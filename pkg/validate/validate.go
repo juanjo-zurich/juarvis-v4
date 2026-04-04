@@ -31,14 +31,6 @@ func RunHealthCheck() error {
 		output.Success("Git detectado.")
 	}
 
-	// Comprobar python / hookify engine
-	cmdPy := exec.Command("python3", "--version")
-	if err := cmdPy.Run(); err != nil {
-		output.Warning("python3 no detectado. Si planeas usar hookify nativo, instálalo.")
-	} else {
-		output.Success("Sistema Python verificado.")
-	}
-
 	// Comprobar marketplace
 	if _, err := os.Stat(filepath.Join(rootPath, "marketplace.json")); os.IsNotExist(err) {
 		embeddedFS, embErr := assets.GetEmbeddedFS()

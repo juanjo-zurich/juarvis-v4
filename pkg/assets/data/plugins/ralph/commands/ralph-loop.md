@@ -7,10 +7,10 @@ hide-from-slash-command-tool: "true"
 
 # Comando Ralph Loop
 
-Ejecutar el script de configuración para inicializar el bucle Ralph:
+Ejecutar el comando de configuración para inicializar el bucle Ralph:
 
 ```!
-bash ~/.config/opencode/hooks/ralph/setup-ralph-loop.sh $ARGUMENTS
+juarvis ralph loop $ARGUMENTS
 ```
 
 Por favor, trabajar en la tarea. Cuando intentes salir, el bucle Ralph alimentará el MISMO PROMPT de vuelta para la siguiente iteración. Verás tu trabajo anterior en archivos e historial de git, permitiéndote iterar y mejorar.
