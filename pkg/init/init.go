@@ -1,6 +1,7 @@
 package initpkg
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
@@ -11,6 +12,19 @@ import (
 	"juarvis/pkg/loader"
 	"juarvis/pkg/output"
 )
+
+// marketplaceEntry representa un plugin del marketplace.json embebido
+type marketplaceEntry struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Version     string `json:"version"`
+	Category    string `json:"category"`
+}
+
+type marketplaceFile struct {
+	Name    string             `json:"name"`
+	Plugins []marketplaceEntry `json:"plugins"`
+}
 
 // RunInit crea la estructura base de un ecosistema Juarvis desde los assets embebidos
 func RunInit(path string) error {
@@ -69,13 +83,47 @@ func RunInit(path string) error {
 		copied++
 	}
 
-	// 2. Crear .atl/ (directorio de runtime, no está en el embed)
+	// 2. Crear .atl/ y .juarvis-plugin/ para cada plugin
+	// Go embed excluye directorios que empiezan con '.', así que los creamos manualmente
 	atlDir := filepath.Join(absPath, ".atl")
 	if err := os.MkdirAll(atlDir, 0755); err != nil {
 		return fmt.Errorf("error creando directorio .atl: %w", err)
 	}
 
+	// Leer marketplace.json para saber qué plugins existen
+	marketplaceData, err := fs.ReadFile(embeddedFS, "marketplace.json")
+	if err == nil {
+		var market marketplaceFile
+		if err := json.Unmarshal(marketplaceData, &market); err == nil {
+			for _, p := range market.Plugins {
+				pluginDir := filepath.Join(absPath, "plugins", strings.TrimPrefix(p.Name, "juarvis-"))
+				manifestDir := filepath.Join(pluginDir, ".juarvis-plugin")
+				if err := os.MkdirAll(manifestDir, 0755); err != nil {
+					return fmt.Errorf("error creando manifest dir para %s: %w", p.Name, err)
+				}
+
+				// Crear plugin.json
+				manifest := fmt.Sprintf(`{
+  "name": "%s",
+  "version": "%s",
+  "description": "%s",
+  "category": "%s"
+}`, p.Name, p.Version, p.Description, p.Category)
+				if err := os.WriteFile(filepath.Join(manifestDir, "plugin.json"), []byte(manifest), 0644); err != nil {
+					return fmt.Errorf("error creando plugin.json para %s: %w", p.Name, err)
+				}
+
+				// Crear enabled
+				if err := os.WriteFile(filepath.Join(manifestDir, "enabled"), []byte("true"), 0644); err != nil {
+					return fmt.Errorf("error creando enabled para %s: %w", p.Name, err)
+				}
+			}
+		}
+	}
+
 	// 3. Ejecutar loader para indexar los plugins extraídos
+	// IMPORTANTE: Setear JUARVIS_ROOT para que el loader use el nuevo ecosistema
+	os.Setenv("JUARVIS_ROOT", absPath)
 	output.Info("Indexando plugins...")
 	if err := loader.RunLoader(); err != nil {
 		return fmt.Errorf("error indexando plugins: %w", err)

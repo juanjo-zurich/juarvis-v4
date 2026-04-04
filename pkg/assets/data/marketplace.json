@@ -20,6 +20,10 @@
     {"name": "juarvis-api", "description": "Diseño de APIs e integración MCP", "version": "1.0.0", "source": "./plugins/api", "category": "development"},
     {"name": "juarvis-testing", "description": "Testing y debugging sistemático", "version": "1.0.0", "source": "./plugins/testing", "category": "testing"},
     {"name": "juarvis-ci-cd", "description": "Pipelines de CI/CD", "version": "1.0.0", "source": "./plugins/ci-cd", "category": "infrastructure"},
-    {"name": "juarvis-config", "description": "Configuración, hooks pedagógicos y reglas de escritura", "version": "1.0.0", "source": "./plugins/config", "category": "development"}
+    {"name": "juarvis-config", "description": "Configuración, hooks pedagógicos y reglas de escritura", "version": "1.0.0", "source": "./plugins/config", "category": "development"},
+    {"name": "juarvis-backend-patterns", "description": "Patrones de arquitectura backend: API design, repository, service layer, caching, auth, rate limiting", "version": "1.0.0", "source": "./plugins/backend-patterns", "category": "development"},
+    {"name": "juarvis-api-error-handling", "description": "Manejo avanzado de errores en APIs: retry con backoff, circuit breaker, graceful degradation", "version": "1.0.0", "source": "./plugins/api-error-handling", "category": "development"},
+    {"name": "juarvis-frontend-design", "description": "Principios de diseño frontend: tipografía, color, espaciado, layouts modernos, componentes estéticos", "version": "1.0.0", "source": "./plugins/frontend-design", "category": "design"},
+    {"name": "juarvis-frontend-ui", "description": "Estrategias de UI basadas en investigación para crear interfaces visualmente atractivas", "version": "1.0.0", "source": "./plugins/frontend-ui", "category": "design"}
   ]
 }
