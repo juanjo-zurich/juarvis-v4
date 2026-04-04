@@ -18,7 +18,7 @@ Si no se especifica path, se usa el directorio actual.
 Estructura creada:
   - marketplace.json
   - plugins/juarvis-core/
-  - .atl/
+  - .juar/
 `,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

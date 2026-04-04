@@ -78,8 +78,8 @@ var rootCmd = &cobra.Command{
 				_, err := os.Stat(filepath.Join(r, "skills"))
 				return err == nil
 			}},
-			{".atl/skill-registry.md", func(r string) bool {
-				_, err := os.Stat(filepath.Join(r, ".atl", "skill-registry.md"))
+			{".juar/skill-registry.md", func(r string) bool {
+				_, err := os.Stat(filepath.Join(r, ".juar", "skill-registry.md"))
 				return err == nil
 			}},
 		}

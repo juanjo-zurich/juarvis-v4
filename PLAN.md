@@ -95,7 +95,7 @@
 - `juarvis init [path]` crea estructura base:
   - `marketplace.json` (plantilla vacia o con plugins por defecto)
   - `plugins/` (con al menos `juarvis-core`)
-  - `.atl/` (directorio vacio)
+  - `.juar/` (directorio vacio)
   - `AGENTS.md` (desde assets embebidos)
   - `permissions.yaml` (desde assets embebidos)
   - `opencode.json` (desde assets embebidos)

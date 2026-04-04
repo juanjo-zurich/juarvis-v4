@@ -44,7 +44,7 @@ func TestRunLoader_Success(t *testing.T) {
 		t.Fatal("skills directory was not created")
 	}
 
-	registryPath := filepath.Join(rootPath, ".atl", "skill-registry.md")
+	registryPath := filepath.Join(rootPath, ".juar", "skill-registry.md")
 	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
 		t.Fatal("skill-registry.md was not created")
 	}

@@ -49,7 +49,7 @@ Para asegurar el máximo rendimiento de razonamiento y minimizar el desperdicio 
 **Haz esto PRIMERO, antes de cualquier otro trabajo.**
 
 1. Intenta engram primero: `mem_search(query: "skill-registry", project: "{project}")` → si se encuentra, `mem_get_observation(id)` para el registro completo
-2. Si engram no está disponible o no se encuentra: lee `.atl/skill-registry.md` de la raíz del proyecto
+2. Si engram no está disponible o no se encuentra: lee `.juar/skill-registry.md` de la raíz del proyecto
 3. Si ninguno existe: procede sin habilidades (no es un error)
 
 Del registro, identifica y lee cualquier habilidad cuyos activadores coincidan con tu tarea. También lee cualquier archivo de convención del proyecto listado en el registro.

@@ -20,8 +20,8 @@ func RunLoader() error {
 	}
 	pluginDir := filepath.Join(rootPath, "plugins")
 	skillsDir := filepath.Join(rootPath, "skills")
-	atlDir := filepath.Join(rootPath, ".atl")
-	registryPath := filepath.Join(atlDir, "skill-registry.md")
+	juarDir := filepath.Join(rootPath, ".juar")
+	registryPath := filepath.Join(juarDir, "skill-registry.md")
 
 	output.Info("Iniciando carga e indexación de Plugins (Juarvis Engine en Go)")
 
@@ -32,8 +32,8 @@ func RunLoader() error {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	if err := os.MkdirAll(atlDir, 0755); err != nil {
-		return fmt.Errorf("error creando .atl dir: %w", err)
+	if err := os.MkdirAll(juarDir, 0755); err != nil {
+		return fmt.Errorf("error creando .juar dir: %w", err)
 	}
 
 	entries, err := os.ReadDir(pluginDir)

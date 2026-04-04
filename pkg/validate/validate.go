@@ -50,10 +50,10 @@ func RunHealthCheck() error {
 	}
 
 	// Comprobar Skill Registry y directorio activo
-	if _, err := os.Stat(filepath.Join(rootPath, ".atl", "skill-registry.md")); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(rootPath, ".juar", "skill-registry.md")); os.IsNotExist(err) {
 		output.Warning("No hay skill-registry.md generado. Ejecuta 'juarvis load'.")
 	} else {
-		output.Success("Base de memoria LLM (.atl) intacta.")
+		output.Success("Base de memoria LLM (.juar) intacta.")
 	}
 
 	if errors > 0 {

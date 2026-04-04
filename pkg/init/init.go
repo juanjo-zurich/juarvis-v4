@@ -40,6 +40,15 @@ func RunInit(path string) error {
 
 	output.Info("Inicializando ecosistema Juarvis en %s...", absPath)
 
+	// Migrar .atl/ → .juar/ si existe un ecosistema legacy
+	migrated, err := migrateAtlToJuar(absPath)
+	if err != nil {
+		return err
+	}
+	if migrated {
+		output.Success("Migración .atl/ → .juar/ completada")
+	}
+
 	// Crear el directorio raíz si no existe
 	if err := os.MkdirAll(absPath, 0755); err != nil {
 		return fmt.Errorf("error creando directorio %s: %w", absPath, err)
@@ -83,11 +92,11 @@ func RunInit(path string) error {
 		copied++
 	}
 
-	// 2. Crear .atl/ y .juarvis-plugin/ para cada plugin
+	// 2. Crear .juar/ y .juarvis-plugin/ para cada plugin
 	// Go embed excluye directorios que empiezan con '.', así que los creamos manualmente
-	atlDir := filepath.Join(absPath, ".atl")
-	if err := os.MkdirAll(atlDir, 0755); err != nil {
-		return fmt.Errorf("error creando directorio .atl: %w", err)
+	juarDir := filepath.Join(absPath, ".juar")
+	if err := os.MkdirAll(juarDir, 0755); err != nil {
+		return fmt.Errorf("error creando directorio .juar: %w", err)
 	}
 
 	// Leer marketplace.json para saber qué plugins existen
@@ -133,6 +142,32 @@ func RunInit(path string) error {
 	output.Info("%d archivos extraídos del binario", copied)
 	output.Info("Ejecuta 'juarvis check' para verificar el ecosistema")
 	return nil
+}
+
+// pathExists verifica si un path existe en el filesystem
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+// migrateAtlToJuar renombra .atl/ a .juar/ para ecosistemas legacy.
+// Retorna true si se realizó la migración, false si no era necesaria.
+func migrateAtlToJuar(rootPath string) (bool, error) {
+	juarPath := filepath.Join(rootPath, ".juar")
+	atlPath := filepath.Join(rootPath, ".atl")
+
+	if pathExists(juarPath) {
+		return false, nil // .juar ya existe
+	}
+	if !pathExists(atlPath) {
+		return false, nil // nada que migrar
+	}
+
+	output.Warning("Directorio .atl/ renombrado a .juar/ para compatibilidad")
+	if err := os.Rename(atlPath, juarPath); err != nil {
+		return false, fmt.Errorf("error renombrando .atl/ a .juar/: %w", err)
+	}
+	return true, nil
 }
 
 // copyEmbeddedDir copia un directorio completo del embed.FS al filesystem

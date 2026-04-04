@@ -40,4 +40,4 @@ Para tareas de refactor o arquitecturales, **SIEMPRE genera un plan estructurado
 ## Consideraciones Finales
 
 - Respeta absolutamente el `permissions.yaml` si lo evalúas.
-- Revisa `.atl/skill-registry.md` cuando dudes si tienes herramientas para una petición específica (ej: BBDD → usa `database-design`).
+- Revisa `.juar/skill-registry.md` cuando dudes si tienes herramientas para una petición específica (ej: BBDD → usa `database-design`).

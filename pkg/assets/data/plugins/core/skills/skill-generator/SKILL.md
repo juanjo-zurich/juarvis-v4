@@ -26,7 +26,7 @@ Analiza el pedido del usuario buscando conceptos "skillables":
 - **Dominios**: Auth, API, Testing, Database, CI/CD, CSS-Modules, etc.
 
 ### Paso 2: Verificación de Registro
-Busca en el archivo `.atl/skill-registry.md` (o en la memoria de engram para "skill-registry"):
+Busca en el archivo `.juar/skill-registry.md` (o en la memoria de engram para "skill-registry"):
 - ¿Existe algún skill que se active con estos conceptos?
 - Si NO existe, has identificado un **Skill Gap**.
 

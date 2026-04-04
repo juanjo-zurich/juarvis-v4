@@ -14,8 +14,8 @@ func setupValidateTest(t *testing.T) string {
 	os.WriteFile(filepath.Join(dir, "marketplace.json"), []byte(marketplace), 0644)
 
 	os.MkdirAll(filepath.Join(dir, "plugins"), 0755)
-	os.MkdirAll(filepath.Join(dir, ".atl"), 0755)
-	os.WriteFile(filepath.Join(dir, ".atl", "skill-registry.md"), []byte("# Skill Registry\n"), 0644)
+	os.MkdirAll(filepath.Join(dir, ".juar"), 0755)
+	os.WriteFile(filepath.Join(dir, ".juar", "skill-registry.md"), []byte("# Skill Registry\n"), 0644)
 
 	t.Setenv("JUARVIS_ROOT", dir)
 

@@ -48,7 +48,7 @@ To ensure maximum reasoning performance and minimize token waste:
   ```
   `topic_key` permite actualizaciones (upserts).
 
-- Si el modo es `openspec`: Escribe `.atl/skill-registry.md`.
+- Si el modo es `openspec`: Escribe `.juar/skill-registry.md`.
 - Si el modo es `hybrid`: Persiste en Engram Y escribe en el sistema de archivos.
 - Si el modo es `none`: Devuelve el registro sin realizar cambios permanentes.
 
@@ -80,7 +80,7 @@ Busca archivos de configuración de agentes e instrucciones globales:
 - `AGENTS.md`
 - `GEMINI.md` / `GEMINI.md`
 - `.cursorrules` / `.agent/rules/`
-- `.atl/`
+- `.juar/`
 
 Si un archivo (como `agents.md`) referencia otros archivos, DEBES leer esas referencias e incluirlas en el registro.
 
@@ -98,8 +98,8 @@ Crea una tabla en formato Markdown con las habilidades detectadas:
 
 **Este paso es OBLIGATORIO — SIEMPRE escribe el archivo físico si es posible.**
 
-1. Crea el directorio `.atl/` si no existe.
-2. Escribe el contenido en `.atl/skill-registry.md`.
+1. Crea el directorio `.juar/` si no existe.
+2. Escribe el contenido en `.juar/skill-registry.md`.
 3. Si Engram está disponible, guárdalo también allí usando `mem_save`.
 
 ### Paso 5: Devolver Resumen
@@ -111,7 +111,7 @@ Devolver al orquestador:
 
 **Habilidades detectadas**: {M}
 **Convenciones encontradas**: {N}
-**Ubicación**: `.atl/skill-registry.md`
+**Ubicación**: `.juar/skill-registry.md`
 
 ### Resumen del Inventario
 - [x] {Habilidad 1} ({activadores})
@@ -120,7 +120,7 @@ Devolver al orquestador:
 El registro está listo para ser cargado por los sub-agentes mediante `**Do this FIRST, before any other work.**
 
 1. Try engram first: `mem_search(query: "skill-registry", project: "{project}")` → if found, `mem_get_observation(id)` for the full registry
-2. If engram not available or not found: read `.atl/skill-registry.md` from the project root
+2. If engram not available or not found: read `.juar/skill-registry.md` from the project root
 3. If neither exists: proceed without skills (not an error)
 
 From the registry, identify and read any skills whose triggers match your task. Also read any project convention files listed in the registry.
