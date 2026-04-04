@@ -1,0 +1,15 @@
+{
+  "description": "Hook de modo aprendizaje que añade instrucciones de aprendizaje interactivo",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${OPENCODE_PLUGIN_ROOT}/hooks-handlers/session-start.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

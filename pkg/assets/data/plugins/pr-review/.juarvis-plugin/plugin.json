@@ -1,0 +1,1 @@
+{"name": "juarvis-pr-review", "version": "1.0.0", "description": "Pull request review and code quality analysis skills", "author": {"name": "Juarvis"}, "category": "development", "skills": ["pr-code-reviewer", "pr-code-simplifier", "pr-comment-analyzer", "pr-review-toolkit", "pr-silent-failure-hunter", "pr-test-analyzer", "pr-type-design-analyzer"]}

@@ -1,0 +1,7 @@
+{
+		"name": "juarvis-core",
+		"version": "1.0.0",
+		"description": "Skills básicas del sistema (context-handoff, memory-update, plan-mode, etc.)",
+		"category": "development",
+		"skills": ["magic-skill-1"]
+	}

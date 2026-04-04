@@ -1,0 +1,51 @@
+{
+  "description": "Hookify - User-configurable hooks from .opencode/hookify.*.local.md files",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/hookify/pretooluse.py",
+            "timeout": 10
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit|Bash"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/hookify/posttooluse.py",
+            "timeout": 10
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit|Bash"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/hookify/stop.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/hookify/userpromptsubmit.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
