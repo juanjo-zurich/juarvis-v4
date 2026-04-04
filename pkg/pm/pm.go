@@ -3,6 +3,8 @@ package pm
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
+	"juarvis/pkg/assets"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 	"os"
@@ -32,7 +34,19 @@ func loadMarketplace() (*Marketplace, error) {
 	}
 	file, err := os.ReadFile(filepath.Join(rootPath, "marketplace.json"))
 	if err != nil {
-		return nil, fmt.Errorf("no se encontró marketplace.json en %s", rootPath)
+		// Fallback al marketplace embebido
+		embeddedFS, embErr := assets.GetEmbeddedFS()
+		if embErr == nil {
+			file, err = fs.ReadFile(embeddedFS, "marketplace.json")
+			if err == nil {
+				var market Marketplace
+				if err := json.Unmarshal(file, &market); err != nil {
+					return nil, fmt.Errorf("marketplace embebido corrupto: %v", err)
+				}
+				return &market, nil
+			}
+		}
+		return nil, fmt.Errorf("no se encontro marketplace.json en %s", rootPath)
 	}
 
 	var market Marketplace
@@ -192,12 +206,23 @@ func installFromGit(url, destDir, pluginName string) error {
 
 func installFromLocal(source, destDir, rootPath string) error {
 	srcPath := filepath.Join(rootPath, source)
-	if _, err := os.Stat(srcPath); err != nil {
-		return fmt.Errorf("fuente local no encontrada: %s", srcPath)
+	if _, err := os.Stat(srcPath); err == nil {
+		return copyDir(srcPath, destDir)
 	}
 
-	// Copiar directorio recursivamente
-	return copyDir(srcPath, destDir)
+	// Fallback: buscar en assets embebidos
+	embeddedFS, embErr := assets.GetEmbeddedFS()
+	if embErr != nil {
+		return fmt.Errorf("fuente local no encontrada: %s y assets embebidos no disponibles", srcPath)
+	}
+
+	// source es algo como "./plugins/core" -> "plugins/core"
+	embedPath := strings.TrimPrefix(source, "./")
+	if _, err := fs.Stat(embeddedFS, embedPath); err != nil {
+		return fmt.Errorf("fuente no encontrada ni en filesystem (%s) ni en assets embebidos (%s)", srcPath, embedPath)
+	}
+
+	return copyEmbeddedDir(embeddedFS, embedPath, destDir)
 }
 
 // copyDir copia un directorio recursivamente
@@ -231,4 +256,29 @@ func copyDir(src, dst string) error {
 	}
 
 	return nil
+}
+
+// copyEmbeddedDir copia un directorio del embed.FS al filesystem
+func copyEmbeddedDir(targetFS fs.FS, srcPath, destPath string) error {
+	return fs.WalkDir(targetFS, srcPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		relPath := strings.TrimPrefix(path, srcPath)
+		if relPath == "" {
+			relPath = "."
+		}
+		dest := filepath.Join(destPath, strings.TrimPrefix(relPath, string(filepath.Separator)))
+		if relPath == "." {
+			dest = destPath
+		}
+		if d.IsDir() {
+			return os.MkdirAll(dest, 0755)
+		}
+		content, err := fs.ReadFile(targetFS, path)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(dest, content, 0644)
+	})
 }

@@ -2,6 +2,8 @@ package validate
 
 import (
 	"fmt"
+	"io/fs"
+	"juarvis/pkg/assets"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 	"os"
@@ -39,8 +41,18 @@ func RunHealthCheck() error {
 
 	// Comprobar marketplace
 	if _, err := os.Stat(filepath.Join(rootPath, "marketplace.json")); os.IsNotExist(err) {
-		output.Error("[CRÍTICO] marketplace.json no encontrado. Juarvis no es capaz de indexar plugins.")
-		errors++
+		embeddedFS, embErr := assets.GetEmbeddedFS()
+		if embErr == nil {
+			if _, err := fs.ReadFile(embeddedFS, "marketplace.json"); err == nil {
+				output.Warning("marketplace.json no encontrado en filesystem (disponible en binario). Ejecuta 'juarvis init'.")
+			} else {
+				output.Error("[CRÍTICO] marketplace.json no encontrado en ningún sitio")
+				errors++
+			}
+		} else {
+			output.Error("[CRÍTICO] marketplace.json no encontrado en filesystem")
+			errors++
+		}
 	} else {
 		output.Success("Catálogo Marketplace enlazado.")
 	}

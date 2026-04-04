@@ -2,98 +2,112 @@ package initpkg
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"juarvis/pkg/assets"
+	"juarvis/pkg/loader"
 	"juarvis/pkg/output"
 )
 
-// RunInit creates the base structure of a Juarvis ecosystem
+// RunInit crea la estructura base de un ecosistema Juarvis desde los assets embebidos
 func RunInit(path string) error {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return fmt.Errorf("error resolviendo path %s: %w", path, err)
 	}
 
-	// Create base structure
-	dirs := []string{
-		absPath,
-		filepath.Join(absPath, "plugins", "juarvis-core"),
-		filepath.Join(absPath, ".atl"),
-		filepath.Join(absPath, "plugins", "juarvis-core", ".juarvis-plugin"),
-		filepath.Join(absPath, "plugins", "juarvis-core", "skills"),
+	// Verificar si ya existe un ecosistema
+	if _, err := os.Stat(filepath.Join(absPath, "marketplace.json")); err == nil {
+		return fmt.Errorf("ya existe un ecosistema Juarvis en %s", absPath)
 	}
 
-	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return fmt.Errorf("error creando directorio %s: %w", dir, err)
+	output.Info("Inicializando ecosistema Juarvis en %s...", absPath)
+
+	// Crear el directorio raíz si no existe
+	if err := os.MkdirAll(absPath, 0755); err != nil {
+		return fmt.Errorf("error creando directorio %s: %w", absPath, err)
+	}
+
+	// 1. Extraer TODOS los assets embebidos al path destino
+	embeddedFS, err := assets.GetEmbeddedFS()
+	if err != nil {
+		return fmt.Errorf("assets embebidos no disponibles: %w", err)
+	}
+
+	entries, err := fs.ReadDir(embeddedFS, ".")
+	if err != nil {
+		return fmt.Errorf("error leyendo assets embebidos: %w", err)
+	}
+
+	copied := 0
+	for _, entry := range entries {
+		srcPath := entry.Name()
+		destPath := filepath.Join(absPath, srcPath)
+
+		// No sobrescribir archivos existentes
+		if _, err := os.Stat(destPath); err == nil {
+			output.Warning("%s ya existe, omitiendo", srcPath)
+			continue
 		}
-	}
 
-	// Create marketplace.json
-	marketplacePath := filepath.Join(absPath, "marketplace.json")
-	if _, err := os.Stat(marketplacePath); os.IsNotExist(err) {
-		marketplace := `{
-  "name": "juarvis-ecosystem",
-  "version": "1.0.0",
-  "description": "Ecosistema Juarvis",
-  "plugins": [
-    {
-      "name": "juarvis-core",
-      "version": "1.0.0",
-      "description": "Skills basicas del sistema",
-      "category": "development",
-      "source": "./plugins/juarvis-core"
-    }
-  ]
-}`
-		if err := os.WriteFile(marketplacePath, []byte(marketplace), 0644); err != nil {
-			return fmt.Errorf("error creando marketplace.json: %w", err)
+		if entry.IsDir() {
+			if err := copyEmbeddedDir(embeddedFS, srcPath, destPath); err != nil {
+				return fmt.Errorf("error extrayendo %s: %w", srcPath, err)
+			}
+		} else {
+			content, err := fs.ReadFile(embeddedFS, srcPath)
+			if err != nil {
+				return fmt.Errorf("error leyendo %s del embed: %w", srcPath, err)
+			}
+			if err := os.WriteFile(destPath, content, 0644); err != nil {
+				return fmt.Errorf("error escribiendo %s: %w", destPath, err)
+			}
 		}
+		copied++
 	}
 
-	// Create plugin.json for core
-	pluginJSON := filepath.Join(absPath, "plugins", "juarvis-core", ".juarvis-plugin", "plugin.json")
-	if _, err := os.Stat(pluginJSON); os.IsNotExist(err) {
-		manifest := `{
-  "name": "juarvis-core",
-  "version": "1.0.0",
-  "description": "Skills basicas del sistema",
-  "category": "development"
-}`
-		if err := os.WriteFile(pluginJSON, []byte(manifest), 0644); err != nil {
-			return fmt.Errorf("error creando plugin.json: %w", err)
-		}
+	// 2. Crear .atl/ (directorio de runtime, no está en el embed)
+	atlDir := filepath.Join(absPath, ".atl")
+	if err := os.MkdirAll(atlDir, 0755); err != nil {
+		return fmt.Errorf("error creando directorio .atl: %w", err)
 	}
 
-	// Create enabled file
-	enabledPath := filepath.Join(absPath, "plugins", "juarvis-core", ".juarvis-plugin", "enabled")
-	if _, err := os.Stat(enabledPath); os.IsNotExist(err) {
-		if err := os.WriteFile(enabledPath, []byte("true"), 0644); err != nil {
-			return fmt.Errorf("error creando enabled: %w", err)
-		}
-	}
-
-	// Create empty SKILL.md for core
-	skillPath := filepath.Join(absPath, "plugins", "juarvis-core", "skills", "juarvis-core", "SKILL.md")
-	if err := os.MkdirAll(filepath.Dir(skillPath), 0755); err != nil {
-		return fmt.Errorf("error creando directorio de skill: %w", err)
-	}
-	if _, err := os.Stat(skillPath); os.IsNotExist(err) {
-		skillContent := `# juarvis-core
-
-Skills basicas del sistema Juarvis.
-
-## Uso
-
-Este plugin proporciona las habilidades fundamentales para el funcionamiento del ecosistema.
-`
-		if err := os.WriteFile(skillPath, []byte(skillContent), 0644); err != nil {
-			return fmt.Errorf("error creando SKILL.md: %w", err)
-		}
+	// 3. Ejecutar loader para indexar los plugins extraídos
+	output.Info("Indexando plugins...")
+	if err := loader.RunLoader(); err != nil {
+		return fmt.Errorf("error indexando plugins: %w", err)
 	}
 
 	output.Success("Ecosistema Juarvis inicializado en %s", absPath)
-	output.Info("Ejecuta 'juarvis load' para indexar los plugins")
+	output.Info("%d archivos extraídos del binario", copied)
+	output.Info("Ejecuta 'juarvis check' para verificar el ecosistema")
 	return nil
+}
+
+// copyEmbeddedDir copia un directorio completo del embed.FS al filesystem
+func copyEmbeddedDir(targetFS fs.FS, srcPath, destPath string) error {
+	return fs.WalkDir(targetFS, srcPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		relPath := strings.TrimPrefix(path, srcPath)
+		if relPath == "" {
+			relPath = "."
+		}
+		dest := filepath.Join(destPath, strings.TrimPrefix(relPath, string(filepath.Separator)))
+		if relPath == "." {
+			dest = destPath
+		}
+		if d.IsDir() {
+			return os.MkdirAll(dest, 0755)
+		}
+		content, err := fs.ReadFile(targetFS, path)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(dest, content, 0644)
+	})
 }

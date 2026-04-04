@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./hooks/ralph/stop-hook.sh"
+            "command": "juarvis ralph stop"
           }
         ]
       }
