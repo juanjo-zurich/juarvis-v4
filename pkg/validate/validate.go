@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
 	"juarvis/pkg/assets"
@@ -50,10 +51,21 @@ func RunHealthCheck() error {
 	}
 
 	// Comprobar Skill Registry y directorio activo
-	if _, err := os.Stat(filepath.Join(rootPath, ".juar", "skill-registry.md")); os.IsNotExist(err) {
+	registryPath := filepath.Join(rootPath, ".juar", "skill-registry.md")
+	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
 		output.Warning("No hay skill-registry.md generado. Ejecuta 'juarvis load'.")
 	} else {
-		output.Success("Base de memoria LLM (.juar) intacta.")
+		// Verificar que el registry tiene contenido real
+		content, readErr := os.ReadFile(registryPath)
+		if readErr != nil {
+			output.Warning("No se pudo leer skill-registry.md. Ejecuta 'juarvis load'.")
+		} else if len(content) < 50 {
+			output.Warning("skill-registry.md existe pero está vacío o corrupto. Ejecuta 'juarvis load'.")
+		} else if !bytes.Contains(content, []byte("|")) {
+			output.Warning("skill-registry.md existe pero no tiene entradas de skills. Ejecuta 'juarvis load'.")
+		} else {
+			output.Success("Base de memoria LLM (.juar) intacta.")
+		}
 	}
 
 	if errors > 0 {

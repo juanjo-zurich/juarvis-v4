@@ -47,12 +47,12 @@ func TestCreateSnapshot_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Verificar que no hay stashes de juarvis (porque pop los elimina)
+	// Verificar que el stash persiste (porque apply no lo elimina)
 	cmd := exec.Command("git", "stash", "list")
 	cmd.Dir = dir
 	output, _ := cmd.CombinedOutput()
-	if strings.Contains(string(output), "juarvis-snapshot|") {
-		t.Error("stash leak detected: juarvis-snapshot still in stash list after pop")
+	if !strings.Contains(string(output), "juarvis-snapshot|") {
+		t.Error("stash should persist after apply")
 	}
 }
 

@@ -25,7 +25,7 @@ func CreateSnapshot(name string) error {
 		return fmt.Errorf("fallo al crear snapshot git stash: %s", string(out))
 	}
 
-	if err := exec.Command("git", "stash", "pop", "stash@{0}").Run(); err != nil {
+	if err := exec.Command("git", "stash", "apply", "stash@{0}").Run(); err != nil {
 		return fmt.Errorf("error aplicando snapshot: %w", err)
 	}
 
@@ -78,13 +78,13 @@ func RestoreLatestSnapshot() error {
 // Si all es true, elimina todos. Si olderThan > 0, elimina solo los más antiguos.
 func PruneSnapshots(all bool) (int, error) {
 	cmdList := exec.Command("git", "stash", "list")
-	output, err := cmdList.CombinedOutput()
+	listOut, err := cmdList.CombinedOutput()
 	if err != nil {
 		// No hay stashes o git no disponible
 		return 0, nil
 	}
 
-	lines := strings.Split(string(output), "\n")
+	lines := strings.Split(string(listOut), "\n")
 	pruned := 0
 
 	// Collect juarvis stash refs first, then drop in reverse order to avoid index shifting

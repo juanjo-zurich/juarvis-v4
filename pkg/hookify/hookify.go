@@ -212,7 +212,7 @@ func loadRuleFile(filePath string) (Rule, error) {
 func LoadRules(eventFilter string) []Rule {
 	var rules []Rule
 
-	pattern := filepath.Join(".opencode", "hookify.*.local.md")
+	pattern := filepath.Join(".claude", "hookify.*.local.md")
 	files, err := filepath.Glob(pattern)
 	if err != nil {
 		return nil
