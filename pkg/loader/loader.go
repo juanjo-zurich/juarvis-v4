@@ -22,9 +22,21 @@ func RunLoader() error {
 	pluginDir := filepath.Join(rootPath, "plugins")
 	skillsDir := filepath.Join(rootPath, "skills")
 	juarDir := filepath.Join(rootPath, config.JuarDir)
-	registryPath := filepath.Join(juarDir, "skill-registry.md")
+	registryPath := filepath.Join(juarDir, config.SkillRegistryFile)
 
 	output.Info("Iniciando carga e indexación de Plugins (Juarvis Engine en Go)")
+
+	// Leer plugins primero (necesario para validación y para el loader)
+	entries, err := os.ReadDir(pluginDir)
+	if err != nil {
+		return fmt.Errorf("error leyendo carpeta plugins: %v", err)
+	}
+
+	// Verificación incremental: si skillsDir y registry existen y todos los symlinks son válidos, skip
+	if valid, _ := areSkillsValid(rootPath, skillsDir, registryPath, entries); valid {
+		output.Info("Skills ya actualizadas. No se requiere recarga.")
+		return nil
+	}
 
 	// Crear directorio temporal en el mismo filesystem para atomicidad
 	tmpDir, err := os.MkdirTemp(filepath.Dir(skillsDir), "juarvis-loader-*")
@@ -35,11 +47,6 @@ func RunLoader() error {
 
 	if err := os.MkdirAll(juarDir, 0755); err != nil {
 		return fmt.Errorf("error creando .juar dir: %w", err)
-	}
-
-	entries, err := os.ReadDir(pluginDir)
-	if err != nil {
-		return fmt.Errorf("error leyendo carpeta plugins: %v", err)
 	}
 
 	var registryRows []string
@@ -121,4 +128,54 @@ func RunLoader() error {
 
 	output.Success("Cargador finalizado. %d Plugins leídos. %d Skills indexadas y enlazadas.", enabledCount, len(registryRows))
 	return nil
+}
+
+// areSkillsValid verifica si los symlinks existentes son válidos y el registry existe.
+func areSkillsValid(rootPath, skillsDir, registryPath string, pluginEntries []os.DirEntry) (bool, error) {
+	// Verificar que el registry existe
+	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
+		return false, nil
+	}
+
+	// Verificar que skillsDir existe
+	if _, err := os.Stat(skillsDir); os.IsNotExist(err) {
+		return false, nil
+	}
+
+	// Verificar que cada plugin habilitado tiene sus symlinks válidos
+	for _, e := range pluginEntries {
+		if !e.IsDir() {
+			continue
+		}
+		pName := e.Name()
+		pPath := filepath.Join(rootPath, "plugins", pName)
+		enabledFile := filepath.Join(pPath, config.JuarvisPluginDir, "enabled")
+		if content, err := os.ReadFile(enabledFile); err == nil && strings.TrimSpace(string(content)) == "false" {
+			continue
+		}
+		skillPath := filepath.Join(pPath, "skills")
+		skillFolders, err := os.ReadDir(skillPath)
+		if err != nil {
+			continue
+		}
+		for _, sk := range skillFolders {
+			if !sk.IsDir() {
+				continue
+			}
+			linkPath := filepath.Join(skillsDir, sk.Name())
+			target, err := os.Readlink(linkPath)
+			if err != nil {
+				return false, nil
+			}
+			// Verificar que el target resuelve
+			absTarget, err := filepath.Abs(filepath.Join(skillsDir, target))
+			if err != nil {
+				return false, nil
+			}
+			if _, err := os.Stat(absTarget); err != nil {
+				return false, nil
+			}
+		}
+	}
+	return true, nil
 }

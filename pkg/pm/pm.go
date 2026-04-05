@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 
 	"juarvis/pkg/assets"
 	"juarvis/pkg/config"
@@ -32,8 +34,14 @@ type Plugin struct {
 	Category    string `json:"category"`
 }
 
-// httpGetFunc es inyectable para tests
-var httpGetFunc = http.Get
+// httpClient con timeout para evitar bloqueos infinitos
+var httpClient = &http.Client{Timeout: 10 * time.Second}
+var httpGetFunc = func(url string) (*http.Response, error) {
+	return httpClient.Get(url)
+}
+
+var pluginCache map[string]string
+var pluginCacheMu sync.RWMutex
 
 func loadMarketplace() (*Marketplace, error) {
 	output.Info("Sincronizando con ecosistema global remoto (Vercel Agent Skills / skills.sh)...")
@@ -146,7 +154,7 @@ func SearchPlugins(query string) {
 	}
 	output.Info("Buscando '%s' en el directorio global (skills.sh - Múltiples proveedores)...", query)
 	url := fmt.Sprintf("https://skills.sh/api/search?q=%s&limit=100", query) // Ampliado a 100 para compensar el filtro
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil || resp.StatusCode != 200 {
 		output.Error("Error contactando el directorio global de skills")
 		return
@@ -185,6 +193,16 @@ func SearchPlugins(query string) {
 }
 
 func findPluginDir(name string) (string, error) {
+	pluginCacheMu.RLock()
+	if path, ok := pluginCache[name]; ok {
+		if _, err := os.Stat(path); err == nil {
+			pluginCacheMu.RUnlock()
+			return path, nil
+		}
+		delete(pluginCache, name)
+	}
+	pluginCacheMu.RUnlock()
+
 	rootPath, err := root.GetRoot()
 	if err != nil {
 		return "", fmt.Errorf("error obteniendo root: %w", err)
@@ -206,11 +224,22 @@ func findPluginDir(name string) (string, error) {
 		if data, err := os.ReadFile(manifestFile); err == nil {
 			json.Unmarshal(data, &plug)
 			if plug.Name == name {
+				pluginCacheMu.Lock()
+				if pluginCache == nil {
+					pluginCache = make(map[string]string)
+				}
+				pluginCache[name] = path
+				pluginCacheMu.Unlock()
 				return path, nil
 			}
 		} else {
-			// Fallback si no tiene manifest pero la carpeta se llama igual
 			if e.Name() == name || "juarvis-"+e.Name() == name {
+				pluginCacheMu.Lock()
+				if pluginCache == nil {
+					pluginCache = make(map[string]string)
+				}
+				pluginCache[name] = path
+				pluginCacheMu.Unlock()
 				return path, nil
 			}
 		}
@@ -246,7 +275,13 @@ func RemovePlugin(name string) error {
 		return err
 	}
 
-	return os.RemoveAll(pluginDir)
+	err = os.RemoveAll(pluginDir)
+	if err == nil {
+		pluginCacheMu.Lock()
+		delete(pluginCache, name)
+		pluginCacheMu.Unlock()
+	}
+	return err
 }
 
 // InstallPlugin instala un plugin desde el marketplace o directamente desde un proveedor (owner/repo/skill)
@@ -308,16 +343,21 @@ func InstallPlugin(pluginName string) error {
 	// Determinar tipo de fuente
 	if strings.HasPrefix(targetPlugin.Source, "ext:") {
 		sParts := strings.Split(strings.TrimPrefix(targetPlugin.Source, "ext:"), "|")
-		return installExternalSkill(sParts[0], sParts[1], pluginDir)
-	}
-	if strings.HasPrefix(targetPlugin.Source, "vercel:") {
+		err = installExternalSkill(sParts[0], sParts[1], pluginDir)
+	} else if strings.HasPrefix(targetPlugin.Source, "vercel:") {
 		skillName := strings.TrimPrefix(targetPlugin.Source, "vercel:")
-		return installVercelSkill(skillName, pluginDir)
+		err = installVercelSkill(skillName, pluginDir)
+	} else if strings.HasPrefix(targetPlugin.Source, "http") {
+		err = installFromGit(targetPlugin.Source, pluginDir, targetPlugin.Name)
+	} else {
+		err = installFromLocal(targetPlugin.Source, pluginDir, rootPath)
 	}
-	if strings.HasPrefix(targetPlugin.Source, "http") {
-		return installFromGit(targetPlugin.Source, pluginDir, targetPlugin.Name)
+	if err == nil {
+		pluginCacheMu.Lock()
+		delete(pluginCache, targetPlugin.Name)
+		pluginCacheMu.Unlock()
 	}
-	return installFromLocal(targetPlugin.Source, pluginDir, rootPath)
+	return err
 }
 
 func installExternalSkill(repoUrl, skillName, destDir string) error {

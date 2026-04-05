@@ -39,6 +39,7 @@ type Session struct {
 type Storage struct {
 	mu        sync.RWMutex
 	memoryDir string
+	index     map[string][]string // token -> observation IDs
 }
 
 func NewStorage(rootPath string) (*Storage, error) {
@@ -49,7 +50,76 @@ func NewStorage(rootPath string) (*Storage, error) {
 	if err := os.MkdirAll(filepath.Join(memoryDir, "sessions"), 0755); err != nil {
 		return nil, fmt.Errorf("error creando directorio de sesiones: %w", err)
 	}
-	return &Storage{memoryDir: memoryDir}, nil
+	s := &Storage{memoryDir: memoryDir, index: make(map[string][]string)}
+	s.buildIndex()
+	return s, nil
+}
+
+func tokenize(text string) []string {
+	text = strings.ToLower(text)
+	words := strings.Fields(text)
+	seen := make(map[string]bool)
+	var result []string
+	for _, w := range words {
+		w = strings.Trim(w, ".,;:!?()[]{}\"'")
+		if len(w) >= 2 && !seen[w] {
+			seen[w] = true
+			result = append(result, w)
+		}
+	}
+	return result
+}
+
+func (s *Storage) buildIndex() {
+	entries, err := os.ReadDir(filepath.Join(s.memoryDir, "observations"))
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if !strings.HasSuffix(entry.Name(), ".json") {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(s.memoryDir, "observations", entry.Name()))
+		if err != nil {
+			continue
+		}
+		var obs Observation
+		if err := json.Unmarshal(data, &obs); err != nil {
+			continue
+		}
+		if obs.DeletedAt != nil {
+			continue
+		}
+		tokens := tokenize(obs.Title + " " + obs.Content)
+		for _, token := range tokens {
+			found := false
+			for _, id := range s.index[token] {
+				if id == obs.ID {
+					found = true
+					break
+				}
+			}
+			if !found {
+				s.index[token] = append(s.index[token], obs.ID)
+			}
+		}
+	}
+}
+
+func (s *Storage) indexObservation(obs *Observation) {
+	tokens := tokenize(obs.Title + " " + obs.Content)
+	for _, token := range tokens {
+		found := false
+		for _, id := range s.index[token] {
+			if id == obs.ID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			s.index[token] = append(s.index[token], obs.ID)
+		}
+	}
 }
 
 func (s *Storage) SaveObservation(obs *Observation) error {
@@ -66,13 +136,17 @@ func (s *Storage) SaveObservation(obs *Observation) error {
 	obs.UpdatedAt = now
 	obs.RevisionCount++
 
-	data, err := json.MarshalIndent(obs, "", "  ")
+	data, err := json.Marshal(obs)
 	if err != nil {
 		return fmt.Errorf("error serializando observación: %w", err)
 	}
 
 	path := filepath.Join(s.memoryDir, "observations", obs.ID+".json")
-	return os.WriteFile(path, data, 0644)
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return fmt.Errorf("error escribiendo observación: %w", err)
+	}
+	s.indexObservation(obs)
+	return nil
 }
 
 func (s *Storage) GetObservation(id string) (*Observation, error) {
@@ -100,29 +174,36 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 		limit = 10
 	}
 
-	entries, err := os.ReadDir(filepath.Join(s.memoryDir, "observations"))
-	if err != nil {
-		return nil, fmt.Errorf("error leyendo observaciones: %w", err)
+	// Use index to find candidate IDs
+	candidateIDs := make(map[string]bool)
+	if query != "" {
+		queryTokens := tokenize(query)
+		for _, token := range queryTokens {
+			if ids, ok := s.index[token]; ok {
+				for _, id := range ids {
+					candidateIDs[id] = true
+				}
+			}
+		}
+	} else {
+		// No query: use all observations
+		entries, _ := os.ReadDir(filepath.Join(s.memoryDir, "observations"))
+		for _, entry := range entries {
+			if strings.HasSuffix(entry.Name(), ".json") {
+				candidateIDs[strings.TrimSuffix(entry.Name(), ".json")] = true
+			}
+		}
 	}
 
-	query = strings.ToLower(query)
 	var results []Observation
-
-	for _, entry := range entries {
-		if !strings.HasSuffix(entry.Name(), ".json") {
-			continue
+	for id := range candidateIDs {
+		if len(results) >= limit {
+			break
 		}
-
-		data, err := os.ReadFile(filepath.Join(s.memoryDir, "observations", entry.Name()))
+		obs, err := s.getObservationLocked(id)
 		if err != nil {
 			continue
 		}
-
-		var obs Observation
-		if err := json.Unmarshal(data, &obs); err != nil {
-			continue
-		}
-
 		if obs.DeletedAt != nil {
 			continue
 		}
@@ -135,19 +216,23 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 		if scope != "" && obs.Scope != scope {
 			continue
 		}
-
-		content := strings.ToLower(obs.Title + " " + obs.Content)
-		if query != "" && !strings.Contains(content, query) {
-			continue
-		}
-
-		results = append(results, obs)
-		if len(results) >= limit {
-			break
-		}
+		results = append(results, *obs)
 	}
 
 	return results, nil
+}
+
+func (s *Storage) getObservationLocked(id string) (*Observation, error) {
+	path := filepath.Join(s.memoryDir, "observations", id+".json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("observación no encontrada: %s", id)
+	}
+	var obs Observation
+	if err := json.Unmarshal(data, &obs); err != nil {
+		return nil, fmt.Errorf("error parseando observación: %w", err)
+	}
+	return &obs, nil
 }
 
 func (s *Storage) UpdateObservation(id string, updates map[string]interface{}) error {
@@ -177,7 +262,7 @@ func (s *Storage) UpdateObservation(id string, updates map[string]interface{}) e
 		obs["revision_count"] = 1
 	}
 
-	data, err = json.MarshalIndent(obs, "", "  ")
+	data, err = json.Marshal(obs)
 	if err != nil {
 		return fmt.Errorf("error serializando: %w", err)
 	}
@@ -205,7 +290,7 @@ func (s *Storage) DeleteObservation(id string, hard bool) error {
 	}
 
 	obs["deleted_at"] = time.Now().Format(time.RFC3339)
-	data, _ = json.MarshalIndent(obs, "", "  ")
+	data, _ = json.Marshal(obs)
 	return os.WriteFile(path, data, 0644)
 }
 
@@ -213,7 +298,7 @@ func (s *Storage) SaveSession(sess *Session) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	data, err := json.MarshalIndent(sess, "", "  ")
+	data, err := json.Marshal(sess)
 	if err != nil {
 		return err
 	}
