@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
+
+	"juarvis/pkg/output"
 
 	initpkg "juarvis/pkg/init"
 
@@ -28,7 +29,7 @@ Estructura creada:
 		}
 
 		if err := initpkg.RunInit(path); err != nil {
-			fmt.Fprintf(os.Stderr, "❌ Error inicializando ecosistema: %v\n", err)
+			output.Error("Error inicializando ecosistema: %v", err)
 			os.Exit(1)
 		}
 	},

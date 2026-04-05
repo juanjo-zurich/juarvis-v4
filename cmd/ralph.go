@@ -77,21 +77,21 @@ var ralphStopCmd = &cobra.Command{
 		}
 
 		if state.IsComplete() {
-			fmt.Fprintf(os.Stderr, "🛑 Ralph loop: Max iterations (%d) reached.\n", state.MaxIterations)
+			output.Error("Ralph loop: Max iterations (%d) reached.", state.MaxIterations)
 			state.Delete()
 			os.Exit(0)
 		}
 
 		transcriptPath, _ := inputData["transcript_path"].(string)
 		if transcriptPath == "" {
-			fmt.Fprintln(os.Stderr, "⚠️  Ralph loop: No transcript_path in hook input. Stopping.")
+			output.Warning("Ralph loop: No transcript_path in hook input. Stopping.")
 			state.Delete()
 			os.Exit(0)
 		}
 
 		result, err := ralph.BuildStopResponse(state, transcriptPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "⚠️  Ralph loop error: %v\n", err)
+			output.Warning("Ralph loop error: %v", err)
 			state.Delete()
 			os.Exit(0)
 		}
