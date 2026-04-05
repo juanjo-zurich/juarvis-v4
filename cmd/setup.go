@@ -15,6 +15,9 @@ var setupCmd = &cobra.Command{
 	Short: "Distribuye configuraciones, reglas y skills de Juarvis a tu IDE (Sustituye setup.sh)",
 	Run: func(cmd *cobra.Command, args []string) {
 		if useGui {
+			if cmd.Flags().Changed("ide") {
+				output.Warning("El flag --ide se ignora en modo GUI. Selecciona el IDE desde la interfaz web.")
+			}
 			if err := setup.RunServer(); err != nil {
 				output.Error("Fallo en el servidor GUI: %v", err)
 			}

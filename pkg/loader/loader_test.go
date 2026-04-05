@@ -74,6 +74,6 @@ func TestRunLoader_InvalidManifest(t *testing.T) {
 
 	err := RunLoader()
 	if err == nil {
-		t.Log("Warning: RunLoader did not return error for invalid manifest")
+		t.Fatal("expected error for invalid manifest, got nil")
 	}
 }

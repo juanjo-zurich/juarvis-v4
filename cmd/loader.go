@@ -49,9 +49,15 @@ var skillCreateCmd = &cobra.Command{
 		pluginPath := filepath.Join(rootPath, "plugins", pluginFolder)
 		skillsPath := filepath.Join(pluginPath, "skills", name)
 
-		os.MkdirAll(skillsPath, 0755)
+		if err := os.MkdirAll(skillsPath, 0755); err != nil {
+			output.Error("Error creando directorio de skills: %v", err)
+			os.Exit(1)
+		}
 		manifestPath := filepath.Join(pluginPath, ".juarvis-plugin")
-		os.MkdirAll(manifestPath, 0755)
+		if err := os.MkdirAll(manifestPath, 0755); err != nil {
+			output.Error("Error creando directorio de manifiesto: %v", err)
+			os.Exit(1)
+		}
 
 		// Escribir manifest
 		manifest := fmt.Sprintf(`{
@@ -60,11 +66,17 @@ var skillCreateCmd = &cobra.Command{
   "description": "Custom skill creada localmente",
   "category": "custom"
 }`, name)
-		os.WriteFile(filepath.Join(manifestPath, "plugin.json"), []byte(manifest), 0644)
+		if err := os.WriteFile(filepath.Join(manifestPath, "plugin.json"), []byte(manifest), 0644); err != nil {
+			output.Error("Error escribiendo plugin.json: %v", err)
+			os.Exit(1)
+		}
 
 		// Escribir SKILL.md
 		skillMD := fmt.Sprintf("---\nname: %s\ndescription: Custom skill template\n---\n\n## Instrucciones\n\nEscribe aquí los comandos...", name)
-		os.WriteFile(filepath.Join(skillsPath, "SKILL.md"), []byte(skillMD), 0644)
+		if err := os.WriteFile(filepath.Join(skillsPath, "SKILL.md"), []byte(skillMD), 0644); err != nil {
+			output.Error("Error escribiendo SKILL.md: %v", err)
+			os.Exit(1)
+		}
 
 		output.Success("Estructura base creada. Indexando...")
 		if err := loader.RunLoader(); err != nil {

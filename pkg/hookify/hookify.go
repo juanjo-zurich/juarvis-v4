@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 type Condition struct {
@@ -235,17 +236,17 @@ func LoadRules(eventFilter string) []Rule {
 	return rules
 }
 
-var regexCache = make(map[string]*regexp.Regexp)
+var regexCache sync.Map
 
 func compileRegex(pattern string) (*regexp.Regexp, error) {
-	if re, ok := regexCache[pattern]; ok {
-		return re, nil
+	if val, ok := regexCache.Load(pattern); ok {
+		return val.(*regexp.Regexp), nil
 	}
 	re, err := regexp.Compile("(?i)" + pattern)
 	if err != nil {
 		return nil, err
 	}
-	regexCache[pattern] = re
+	regexCache.Store(pattern, re)
 	return re, nil
 }
 

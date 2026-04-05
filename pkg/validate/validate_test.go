@@ -27,16 +27,22 @@ func TestRunHealthCheck_Success(t *testing.T) {
 
 	err := RunHealthCheck()
 	if err != nil {
-		t.Logf("RunHealthCheck returned error (may be expected if git/python missing): %v", err)
+		t.Fatalf("expected no error, got: %v", err)
 	}
 }
 
-func TestRunHealthCheck_NoMarketplace(t *testing.T) {
+func TestRunHealthCheck_NoRegistry(t *testing.T) {
 	dir := t.TempDir()
+
+	// Create valid ecosystem without running load (no registry)
+	marketplace := `{"name":"test","plugins":[]}`
+	os.WriteFile(filepath.Join(dir, "marketplace.json"), []byte(marketplace), 0644)
+	os.MkdirAll(filepath.Join(dir, "plugins"), 0755)
 	t.Setenv("JUARVIS_ROOT", dir)
 
 	err := RunHealthCheck()
-	if err == nil {
-		t.Log("Warning: RunHealthCheck did not return error without marketplace")
+	// Should pass because embedded marketplace is available as fallback
+	if err != nil {
+		t.Fatalf("expected no error (embedded marketplace fallback), got: %v", err)
 	}
 }
