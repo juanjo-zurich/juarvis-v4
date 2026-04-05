@@ -79,7 +79,7 @@ pkg/validate/ → Health-check del ecosistema
 pkg/snapshot/ → Snapshots via git stash
 pkg/root/     → Detección del directorio raíz
 pkg/output/   → Output centralizado (emojis + JSON)
-pkg/memory/   → Servidor MCP de memoria local (SQLite FTS5)
+pkg/memory/   → Servidor MCP de memoria local (JSON + índice en memoria)
 pkg/utils/    → Utilidades compartidas (embed helpers)
 ```
 
