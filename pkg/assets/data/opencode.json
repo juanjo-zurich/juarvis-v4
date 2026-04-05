@@ -28,10 +28,10 @@
       "type": "remote",
       "url": "https://mcp.context7.com/mcp"
     },
-    "engram": {
+    "memory": {
       "command": [
-        "engram",
-        "mcp"
+        "juarvis",
+        "memory"
       ],
       "enabled": true,
       "type": "local"
