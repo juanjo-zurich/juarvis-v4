@@ -3,9 +3,9 @@ package assets
 import (
 	"embed"
 	"io/fs"
-	"os"
 	"path/filepath"
-	"strings"
+
+	"juarvis/pkg/utils"
 )
 
 //go:embed data/*
@@ -18,25 +18,5 @@ func GetEmbeddedFS() (fs.FS, error) {
 
 // CopyEmbeddedToDisk copia un directorio del embed.FS al filesystem
 func CopyEmbeddedToDisk(srcPath, destPath string) error {
-	return fs.WalkDir(embeddedAssets, filepath.Join("data", srcPath), func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		relPath := strings.TrimPrefix(path, filepath.Join("data", srcPath))
-		if relPath == "" {
-			relPath = "."
-		}
-		dest := filepath.Join(destPath, strings.TrimPrefix(relPath, string(filepath.Separator)))
-		if relPath == "." {
-			dest = destPath
-		}
-		if d.IsDir() {
-			return os.MkdirAll(dest, 0755)
-		}
-		content, err := fs.ReadFile(embeddedAssets, path)
-		if err != nil {
-			return err
-		}
-		return os.WriteFile(dest, content, 0644)
-	})
+	return utils.CopyEmbeddedDir(embeddedAssets, filepath.Join("data", srcPath), destPath)
 }

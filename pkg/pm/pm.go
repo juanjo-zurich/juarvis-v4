@@ -350,15 +350,9 @@ func installExternalSkill(repoUrl, skillName, destDir string) error {
 		return fmt.Errorf("error copiando la skill externa: %w", err)
 	}
 
-	manifestDir := filepath.Join(destDir, config.JuarvisPluginDir)
-	os.MkdirAll(manifestDir, 0755)
-	manifest := fmt.Sprintf(`{
-  "name": "%s",
-  "version": "1.0.0",
-  "description": "External Provider Skill",
-  "category": "external-skills"
-}`, skillName)
-	os.WriteFile(filepath.Join(manifestDir, "plugin.json"), []byte(manifest), 0644)
+	if err := utils.CreatePluginManifest(destDir, skillName, "1.0.0", "External Provider Skill", "external-skills"); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -385,17 +379,7 @@ func installVercelSkill(skillName, destDir string) error {
 	}
 
 	// Inyectar el manifiesto plugin.json de Juarvis para compatibilidad nativa
-	manifestDir := filepath.Join(destDir, config.JuarvisPluginDir)
-	os.MkdirAll(manifestDir, 0755)
-	manifest := fmt.Sprintf(`{
-  "name": "%s",
-  "version": "1.0.0",
-  "description": "Vercel Agent Skill oficial",
-  "category": "vercel-skills"
-}`, skillName)
-	os.WriteFile(filepath.Join(manifestDir, "plugin.json"), []byte(manifest), 0644)
-
-	return nil
+	return utils.CreatePluginManifest(destDir, skillName, "1.0.0", "Vercel Agent Skill oficial", "vercel-skills")
 }
 
 func installFromGit(gitURL, destDir, pluginName string) error {

@@ -49,7 +49,7 @@ func extractAssetsToRoot(rootPath string) error {
 func RunSetup(ide string) error {
 	var targets []string
 	if ide == "all" {
-		targets = []string{"opencode", "windsurf", "cursor", "vscode", "antigravity", "trae", "kiro"}
+		targets = []string{"opencode", "windsurf", "cursor", "vscode", "antigravity", "trae", "kiro", "claude"}
 	} else {
 		targets = []string{ide}
 	}
@@ -77,13 +77,16 @@ func RunSetupCore(targets []string) error {
 
 	for _, t := range targets {
 		var targetDir string
+		var mcpDest string
 		switch t {
 		case "opencode":
 			targetDir = filepath.Join(homeDir, ".config", "opencode")
 		case "windsurf":
 			targetDir = filepath.Join(homeDir, ".windsurf", "rules")
+			mcpDest = filepath.Join(homeDir, ".codeium", "windsurf", "mcp_config.json")
 		case "cursor":
 			targetDir = filepath.Join(rootPath, ".cursor", "rules")
+			mcpDest = filepath.Join(rootPath, ".cursor", "mcp.json")
 		case "vscode":
 			targetDir = filepath.Join(rootPath, ".vscode")
 		case "antigravity":
@@ -92,6 +95,9 @@ func RunSetupCore(targets []string) error {
 			targetDir = filepath.Join(homeDir, ".trae", "rules")
 		case "kiro":
 			targetDir = filepath.Join(homeDir, ".kiro", "rules")
+		case "claude":
+			targetDir = filepath.Join(rootPath, ".claude")
+			mcpDest = filepath.Join(rootPath, ".mcp.json")
 		}
 
 		if targetDir == "" {
@@ -128,6 +134,33 @@ func RunSetupCore(targets []string) error {
 				warnings = append(warnings, fmt.Sprintf("no se pudo copiar opencode.json a %s: %v", t, err))
 			} else {
 				output.Success("Configuración opencode.json instalada en IDE %s", t)
+			}
+		}
+
+		// Distribuir configuración MCP de memoria local
+		if mcpDest != "" {
+			mcpDir := filepath.Dir(mcpDest)
+			if err := os.MkdirAll(mcpDir, 0755); err != nil {
+				warnings = append(warnings, fmt.Sprintf("no se pudo crear directorio MCP para %s: %v", t, err))
+			} else {
+				var srcMCP string
+				switch t {
+				case "cursor":
+					srcMCP = filepath.Join(rootPath, "mcp-cursor.json")
+				case "windsurf":
+					srcMCP = filepath.Join(rootPath, "mcp-windsurf.json")
+				case "claude":
+					srcMCP = filepath.Join(rootPath, "mcp-claude.json")
+				}
+				if srcMCP != "" {
+					if _, err := os.Stat(srcMCP); err == nil {
+						if err := copyFile(srcMCP, mcpDest); err != nil {
+							warnings = append(warnings, fmt.Sprintf("no se pudo copiar MCP config a %s: %v", t, err))
+						} else {
+							output.Success("Servidor MCP de memoria configurado en IDE %s", t)
+						}
+					}
+				}
 			}
 		}
 
