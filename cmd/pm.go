@@ -21,6 +21,15 @@ var listCmd = &cobra.Command{
 	},
 }
 
+var searchCmd = &cobra.Command{
+	Use:   "search [query]",
+	Short: "Busca en el directorio global (skills.sh) plugins de cualquier proveedor",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		pm.SearchPlugins(args[0])
+	},
+}
+
 var enableCmd = &cobra.Command{
 	Use:   "enable [plugin]",
 	Short: "Habilita un plugin instalado",
@@ -84,6 +93,7 @@ var installCmd = &cobra.Command{
 
 func init() {
 	pmCmd.AddCommand(listCmd)
+	pmCmd.AddCommand(searchCmd)
 	pmCmd.AddCommand(enableCmd)
 	pmCmd.AddCommand(disableCmd)
 	pmCmd.AddCommand(removeCmd)
