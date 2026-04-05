@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Condition struct {
@@ -26,125 +28,38 @@ type Rule struct {
 	Message     string
 }
 
-func extractFrontmatter(content string) (map[string]any, string) {
+// extractFrontmatter extrae el frontmatter YAML de un archivo markdown.
+// El frontmatter debe estar entre --- y --- al inicio del archivo.
+func extractFrontmatter(content string) (map[string]interface{}, string, error) {
+	content = strings.TrimSpace(content)
 	if !strings.HasPrefix(content, "---") {
-		return nil, content
+		return nil, content, nil
 	}
 
-	parts := strings.SplitN(content, "---", 3)
-	if len(parts) < 3 {
-		return nil, content
+	// Find closing ---
+	endIdx := strings.Index(content[3:], "\n---")
+	if endIdx == -1 {
+		return nil, content, fmt.Errorf("frontmatter no cerrado")
+	}
+	endIdx += 3 // Skip past the "---"
+
+	fmStr := content[3:endIdx]
+	body := strings.TrimSpace(content[endIdx+4:]) // Skip past "---\n"
+
+	var fm map[string]interface{}
+	if err := yaml.Unmarshal([]byte(fmStr), &fm); err != nil {
+		return nil, content, fmt.Errorf("error parseando frontmatter: %w", err)
 	}
 
-	fmText := strings.TrimSpace(parts[1])
-	message := strings.TrimSpace(parts[2])
-
-	fm := make(map[string]any)
-	lines := strings.Split(fmText, "\n")
-
-	var currentKey string
-	var currentList []any
-	var currentDict map[string]string
-	inList := false
-	inDictItem := false
-
-	for _, line := range lines {
-		stripped := strings.TrimSpace(line)
-		if stripped == "" || strings.HasPrefix(stripped, "#") {
-			continue
-		}
-
-		indent := len(line) - len(strings.TrimLeft(line, " \t"))
-
-		if indent == 0 && strings.Contains(line, ":") && !strings.HasPrefix(stripped, "-") {
-			if inList && currentKey != "" {
-				if inDictItem && currentDict != nil {
-					currentList = append(currentList, currentDict)
-					currentDict = nil
-				}
-				fm[currentKey] = currentList
-				inList = false
-				inDictItem = false
-				currentList = nil
-			}
-
-			idx := strings.Index(line, ":")
-			key := strings.TrimSpace(line[:idx])
-			value := strings.TrimSpace(line[idx+1:])
-
-			if value == "" {
-				currentKey = key
-				inList = true
-				currentList = []any{}
-			} else {
-				value = strings.Trim(value, "\"'")
-				switch strings.ToLower(value) {
-				case "true":
-					fm[key] = true
-				case "false":
-					fm[key] = false
-				default:
-					fm[key] = value
-				}
-			}
-		} else if strings.HasPrefix(stripped, "-") && inList {
-			if inDictItem && currentDict != nil {
-				currentList = append(currentList, currentDict)
-				currentDict = nil
-			}
-
-			itemText := strings.TrimSpace(stripped[1:])
-			if strings.Contains(itemText, ":") && strings.Contains(itemText, ",") {
-				itemDict := make(map[string]string)
-				for _, part := range strings.Split(itemText, ",") {
-					if idx := strings.Index(part, ":"); idx >= 0 {
-						k := strings.TrimSpace(part[:idx])
-						v := strings.TrimSpace(strings.Trim(part[idx+1:], "\"'"))
-						itemDict[k] = v
-					}
-				}
-				currentList = append(currentList, itemDict)
-				inDictItem = false
-			} else if strings.Contains(itemText, ":") {
-				inDictItem = true
-				idx := strings.Index(itemText, ":")
-				currentDict = map[string]string{
-					strings.TrimSpace(itemText[:idx]): strings.TrimSpace(strings.Trim(itemText[idx+1:], "\"'")),
-				}
-			} else {
-				currentList = append(currentList, strings.Trim(itemText, "\"'"))
-				inDictItem = false
-			}
-		} else if indent > 2 && inDictItem && strings.Contains(line, ":") {
-			idx := strings.Index(stripped, ":")
-			if idx >= 0 {
-				currentDict[strings.TrimSpace(stripped[:idx])] = strings.TrimSpace(strings.Trim(stripped[idx+1:], "\"'"))
-			}
-		}
-	}
-
-	if inList && currentKey != "" {
-		if inDictItem && currentDict != nil {
-			currentList = append(currentList, currentDict)
-		}
-		fm[currentKey] = currentList
-	}
-
-	return fm, message
+	return fm, body, nil
 }
 
-func ruleFromDict(fm map[string]any, message string) Rule {
+func ruleFromDict(fm map[string]interface{}, message string) Rule {
 	var conditions []Condition
 
-	if condList, ok := fm["conditions"].([]any); ok {
+	if condList, ok := fm["conditions"].([]interface{}); ok {
 		for _, c := range condList {
-			if cm, ok := c.(map[string]string); ok {
-				conditions = append(conditions, Condition{
-					Field:    cm["field"],
-					Operator: cm["operator"],
-					Pattern:  cm["pattern"],
-				})
-			} else if cm, ok := c.(map[string]any); ok {
+			if cm, ok := c.(map[string]interface{}); ok {
 				conditions = append(conditions, Condition{
 					Field:    fmt.Sprint(cm["field"]),
 					Operator: fmt.Sprint(cm["operator"]),
@@ -202,7 +117,10 @@ func loadRuleFile(filePath string) (Rule, error) {
 	}
 
 	content := string(data)
-	fm, message := extractFrontmatter(content)
+	fm, message, err := extractFrontmatter(content)
+	if err != nil {
+		return Rule{}, fmt.Errorf("%s: %w", filePath, err)
+	}
 	if fm == nil {
 		return Rule{}, fmt.Errorf("%s missing YAML frontmatter", filePath)
 	}

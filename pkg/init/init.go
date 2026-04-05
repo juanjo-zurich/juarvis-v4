@@ -11,6 +11,7 @@ import (
 	"juarvis/pkg/assets"
 	"juarvis/pkg/loader"
 	"juarvis/pkg/output"
+	"juarvis/pkg/utils"
 )
 
 // marketplaceEntry representa un plugin del marketplace.json embebido
@@ -77,7 +78,7 @@ func RunInit(path string) error {
 		}
 
 		if entry.IsDir() {
-			if err := copyEmbeddedDir(embeddedFS, srcPath, destPath); err != nil {
+			if err := utils.CopyEmbeddedDir(embeddedFS, srcPath, destPath); err != nil {
 				return fmt.Errorf("error extrayendo %s: %w", srcPath, err)
 			}
 		} else {
@@ -168,29 +169,4 @@ func migrateAtlToJuar(rootPath string) (bool, error) {
 		return false, fmt.Errorf("error renombrando .atl/ a .juar/: %w", err)
 	}
 	return true, nil
-}
-
-// copyEmbeddedDir copia un directorio completo del embed.FS al filesystem
-func copyEmbeddedDir(targetFS fs.FS, srcPath, destPath string) error {
-	return fs.WalkDir(targetFS, srcPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		relPath := strings.TrimPrefix(path, srcPath)
-		if relPath == "" {
-			relPath = "."
-		}
-		dest := filepath.Join(destPath, strings.TrimPrefix(relPath, string(filepath.Separator)))
-		if relPath == "." {
-			dest = destPath
-		}
-		if d.IsDir() {
-			return os.MkdirAll(dest, 0755)
-		}
-		content, err := fs.ReadFile(targetFS, path)
-		if err != nil {
-			return err
-		}
-		return os.WriteFile(dest, content, 0644)
-	})
 }

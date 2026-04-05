@@ -1,6 +1,7 @@
 package pm
 
 import (
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,6 +22,13 @@ func setupPMTest(t *testing.T) string {
 }`
 	os.WriteFile(filepath.Join(dir, "marketplace.json"), []byte(marketplace), 0644)
 	t.Setenv("JUARVIS_ROOT", dir)
+
+	// Mock HTTP to skip remote calls in tests
+	originalHTTP := httpGetFunc
+	httpGetFunc = func(url string) (*http.Response, error) {
+		return nil, http.ErrMissingFile // Simulate HTTP failure
+	}
+	t.Cleanup(func() { httpGetFunc = originalHTTP })
 
 	return dir
 }
@@ -44,9 +52,20 @@ func TestLoadMarketplace_NoFile(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("JUARVIS_ROOT", dir)
 
-	_, err := loadMarketplace()
-	if err == nil {
-		t.Fatal("expected error, got nil")
+	// Mock HTTP to skip remote calls
+	originalHTTP := httpGetFunc
+	httpGetFunc = func(url string) (*http.Response, error) {
+		return nil, http.ErrMissingFile
+	}
+	defer func() { httpGetFunc = originalHTTP }()
+
+	// Should NOT error because embedded marketplace is available as fallback
+	market, err := loadMarketplace()
+	if err != nil {
+		t.Fatalf("expected no error (embedded fallback), got: %v", err)
+	}
+	if len(market.Plugins) == 0 {
+		t.Error("expected plugins from embedded marketplace")
 	}
 }
 

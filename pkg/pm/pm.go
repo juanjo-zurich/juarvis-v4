@@ -7,6 +7,7 @@ import (
 	"juarvis/pkg/assets"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
+	"juarvis/pkg/utils"
 	"net/http"
 	"os"
 	"os/exec"
@@ -28,11 +29,14 @@ type Plugin struct {
 	Category    string `json:"category"`
 }
 
+// httpGetFunc es inyectable para tests
+var httpGetFunc = http.Get
+
 func loadMarketplace() (*Marketplace, error) {
 	output.Info("Sincronizando con ecosistema global remoto (Vercel Agent Skills / skills.sh)...")
-	
+
 	// Prioridad 1: Obtener Skills oficiales de Vercel Labs vía GitHub API
-	resp, reqErr := http.Get("https://api.github.com/repos/vercel-labs/agent-skills/contents/skills")
+	resp, reqErr := httpGetFunc("https://api.github.com/repos/vercel-labs/agent-skills/contents/skills")
 	if reqErr == nil && resp.StatusCode == http.StatusOK {
 		defer resp.Body.Close()
 		var contents []map[string]interface{}
@@ -60,32 +64,31 @@ func loadMarketplace() (*Marketplace, error) {
 
 	// Prioridad 2: Fallback al marketplace local si no hay conexión
 	rootPath, err := root.GetRoot()
-	if err != nil {
-		return nil, fmt.Errorf("error obteniendo root para fallback: %w", err)
-	}
-	file, err := os.ReadFile(filepath.Join(rootPath, "marketplace.json"))
-	if err != nil {
-		// Prioridad 3: Fallback al marketplace embebido en el binario
-
-		embeddedFS, embErr := assets.GetEmbeddedFS()
-		if embErr == nil {
-			file, err = fs.ReadFile(embeddedFS, "marketplace.json")
-			if err == nil {
-				var market Marketplace
-				if err := json.Unmarshal(file, &market); err != nil {
-					return nil, fmt.Errorf("marketplace embebido corrupto: %v", err)
-				}
-				return &market, nil
+	if err == nil {
+		file, err := os.ReadFile(filepath.Join(rootPath, "marketplace.json"))
+		if err == nil {
+			var market Marketplace
+			if err := json.Unmarshal(file, &market); err != nil {
+				return nil, fmt.Errorf("JSON corrupto: %v", err)
 			}
+			return &market, nil
 		}
-		return nil, fmt.Errorf("no se encontro marketplace.json en %s", rootPath)
 	}
 
-	var market Marketplace
-	if err := json.Unmarshal(file, &market); err != nil {
-		return nil, fmt.Errorf("JSON corrupto: %v", err)
+	// Prioridad 3: Fallback al marketplace embebido en el binario
+	embeddedFS, embErr := assets.GetEmbeddedFS()
+	if embErr == nil {
+		file, err := fs.ReadFile(embeddedFS, "marketplace.json")
+		if err == nil {
+			var market Marketplace
+			if err := json.Unmarshal(file, &market); err != nil {
+				return nil, fmt.Errorf("marketplace embebido corrupto: %v", err)
+			}
+			return &market, nil
+		}
 	}
-	return &market, nil
+
+	return nil, fmt.Errorf("no se encontro marketplace.json en ningun sitio")
 }
 
 func ListPlugins() {
@@ -146,7 +149,7 @@ func SearchPlugins(query string) {
 		return
 	}
 	defer resp.Body.Close()
-	
+
 	var res SkillsSearchResult
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		output.Error("Error procesando los resultados de búsqueda")
@@ -250,7 +253,7 @@ func InstallPlugin(pluginName string) error {
 
 	if len(parts) >= 2 { // Instalación dinámica desde proveedor (owner/repo/skillId)
 		owner := parts[0]
-		
+
 		// 🛡️ BARRERA DE SEGURIDAD (Zero-Trust): Solo permitimos Organizaciones Oficiales
 		if !isOfficialProvider(owner) {
 			return fmt.Errorf("🛡️  ALERTA DE SEGURIDAD: Instalación bloqueada. El proveedor '%s' no está en la lista blanca oficial (verified). Operación abortada para evitar skills maliciosas", owner)
@@ -381,7 +384,7 @@ func installVercelSkill(skillName, destDir string) error {
   "category": "vercel-skills"
 }`, skillName)
 	os.WriteFile(filepath.Join(manifestDir, "plugin.json"), []byte(manifest), 0644)
-	
+
 	return nil
 }
 
@@ -432,7 +435,7 @@ func installFromLocal(source, destDir, rootPath string) error {
 		return fmt.Errorf("fuente no encontrada ni en filesystem (%s) ni en assets embebidos (%s)", srcPath, embedPath)
 	}
 
-	return copyEmbeddedDir(embeddedFS, embedPath, destDir)
+	return utils.CopyEmbeddedDir(embeddedFS, embedPath, destDir)
 }
 
 // copyDir copia un directorio recursivamente
@@ -466,29 +469,4 @@ func copyDir(src, dst string) error {
 	}
 
 	return nil
-}
-
-// copyEmbeddedDir copia un directorio del embed.FS al filesystem
-func copyEmbeddedDir(targetFS fs.FS, srcPath, destPath string) error {
-	return fs.WalkDir(targetFS, srcPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		relPath := strings.TrimPrefix(path, srcPath)
-		if relPath == "" {
-			relPath = "."
-		}
-		dest := filepath.Join(destPath, strings.TrimPrefix(relPath, string(filepath.Separator)))
-		if relPath == "." {
-			dest = destPath
-		}
-		if d.IsDir() {
-			return os.MkdirAll(dest, 0755)
-		}
-		content, err := fs.ReadFile(targetFS, path)
-		if err != nil {
-			return err
-		}
-		return os.WriteFile(dest, content, 0644)
-	})
 }
