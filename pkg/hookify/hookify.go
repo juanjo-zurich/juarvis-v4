@@ -155,15 +155,20 @@ func LoadRules(eventFilter string) []Rule {
 	return rules
 }
 
+const maxPatternLength = 1000
+
 var regexCache sync.Map
 
 func compileRegex(pattern string) (*regexp.Regexp, error) {
 	if val, ok := regexCache.Load(pattern); ok {
 		return val.(*regexp.Regexp), nil
 	}
+	if len(pattern) > maxPatternLength {
+		return nil, fmt.Errorf("patrón de regex demasiado largo (%d caracteres, máximo %d)", len(pattern), maxPatternLength)
+	}
 	re, err := regexp.Compile("(?i)" + pattern)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("patrón de regex inválido %q: %w", pattern, err)
 	}
 	regexCache.Store(pattern, re)
 	return re, nil
