@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"juarvis/pkg/config"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 )
@@ -23,7 +24,7 @@ func CreateSkill(name string) error {
 	}
 
 	// Juarvis local skills always live in .agent/skills/
-	skillDir := filepath.Join(rootPath, ".agent", "skills", name)
+	skillDir := filepath.Join(rootPath, config.AgentSkillsDir, name)
 	if _, err := os.Stat(skillDir); err == nil {
 		return fmt.Errorf("la skill '%s' ya existe en %s", name, skillDir)
 	}

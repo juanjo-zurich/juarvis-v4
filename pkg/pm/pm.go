@@ -4,16 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"juarvis/pkg/assets"
-	"juarvis/pkg/output"
-	"juarvis/pkg/root"
-	"juarvis/pkg/utils"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"juarvis/pkg/assets"
+	"juarvis/pkg/config"
+	"juarvis/pkg/output"
+	"juarvis/pkg/root"
+	"juarvis/pkg/utils"
 )
 
 // Marketplace representa la estructura del JSON del catálogo
@@ -199,7 +201,7 @@ func findPluginDir(name string) (string, error) {
 			continue
 		}
 		path := filepath.Join(pluginDir, e.Name())
-		manifestFile := filepath.Join(path, ".juarvis-plugin", "plugin.json")
+		manifestFile := filepath.Join(path, config.JuarvisPluginDir, "plugin.json")
 		var plug Plugin
 		if data, err := os.ReadFile(manifestFile); err == nil {
 			json.Unmarshal(data, &plug)
@@ -223,7 +225,7 @@ func SetPluginStatus(name string, enabled bool) error {
 		return err
 	}
 
-	targetFile := filepath.Join(pluginDir, ".juarvis-plugin", "enabled")
+	targetFile := filepath.Join(pluginDir, config.JuarvisPluginDir, "enabled")
 
 	val := "false"
 	if enabled {
@@ -348,7 +350,7 @@ func installExternalSkill(repoUrl, skillName, destDir string) error {
 		return fmt.Errorf("error copiando la skill externa: %w", err)
 	}
 
-	manifestDir := filepath.Join(destDir, ".juarvis-plugin")
+	manifestDir := filepath.Join(destDir, config.JuarvisPluginDir)
 	os.MkdirAll(manifestDir, 0755)
 	manifest := fmt.Sprintf(`{
   "name": "%s",
@@ -383,7 +385,7 @@ func installVercelSkill(skillName, destDir string) error {
 	}
 
 	// Inyectar el manifiesto plugin.json de Juarvis para compatibilidad nativa
-	manifestDir := filepath.Join(destDir, ".juarvis-plugin")
+	manifestDir := filepath.Join(destDir, config.JuarvisPluginDir)
 	os.MkdirAll(manifestDir, 0755)
 	manifest := fmt.Sprintf(`{
   "name": "%s",
@@ -410,7 +412,7 @@ func installFromGit(gitURL, destDir, pluginName string) error {
 	}
 
 	// Crear estructura .juarvis-plugin si no existe
-	manifestDir := filepath.Join(destDir, ".juarvis-plugin")
+	manifestDir := filepath.Join(destDir, config.JuarvisPluginDir)
 	if err := os.MkdirAll(manifestDir, 0755); err != nil {
 		return fmt.Errorf("error creando directorio de manifiesto: %w", err)
 	}

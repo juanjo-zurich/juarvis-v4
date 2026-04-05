@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"juarvis/pkg/assets"
+	"juarvis/pkg/config"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 	"os"
@@ -51,7 +52,7 @@ func RunHealthCheck() error {
 	}
 
 	// Comprobar Skill Registry y directorio activo
-	registryPath := filepath.Join(rootPath, ".juar", "skill-registry.md")
+	registryPath := filepath.Join(rootPath, config.JuarDir, config.SkillRegistryFile)
 	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
 		output.Warning("No hay skill-registry.md generado. Ejecuta 'juarvis load'.")
 	} else {

@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"juarvis/pkg/config"
 )
 
 func setupPMTest(t *testing.T) string {
@@ -92,7 +94,7 @@ func TestInstallPlugin_AlreadyInstalled(t *testing.T) {
 func TestSetPluginStatus_Enable(t *testing.T) {
 	dir := setupPMTest(t)
 
-	pluginDir := filepath.Join(dir, "plugins", "plugin-a", ".juarvis-plugin")
+	pluginDir := filepath.Join(dir, "plugins", "plugin-a", config.JuarvisPluginDir)
 	os.MkdirAll(pluginDir, 0755)
 	manifest := `{"name":"plugin-a","version":"1.0.0","description":"Plugin A","category":"dev"}`
 	os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(manifest), 0644)
@@ -114,7 +116,7 @@ func TestSetPluginStatus_Enable(t *testing.T) {
 func TestSetPluginStatus_Disable(t *testing.T) {
 	dir := setupPMTest(t)
 
-	pluginDir := filepath.Join(dir, "plugins", "plugin-a", ".juarvis-plugin")
+	pluginDir := filepath.Join(dir, "plugins", "plugin-a", config.JuarvisPluginDir)
 	os.MkdirAll(pluginDir, 0755)
 	manifest := `{"name":"plugin-a","version":"1.0.0","description":"Plugin A","category":"dev"}`
 	os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(manifest), 0644)
@@ -138,9 +140,9 @@ func TestRemovePlugin(t *testing.T) {
 	dir := setupPMTest(t)
 
 	pluginDir := filepath.Join(dir, "plugins", "plugin-a")
-	os.MkdirAll(filepath.Join(pluginDir, ".juarvis-plugin"), 0755)
+	os.MkdirAll(filepath.Join(pluginDir, config.JuarvisPluginDir), 0755)
 	manifest := `{"name":"plugin-a","version":"1.0.0","description":"Plugin A","category":"dev"}`
-	os.WriteFile(filepath.Join(pluginDir, ".juarvis-plugin", "plugin.json"), []byte(manifest), 0644)
+	os.WriteFile(filepath.Join(pluginDir, config.JuarvisPluginDir, "plugin.json"), []byte(manifest), 0644)
 
 	err := RemovePlugin("plugin-a")
 	if err != nil {

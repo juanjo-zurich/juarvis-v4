@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"juarvis/pkg/config"
 )
 
 func TestRunInit_CreatesStructure(t *testing.T) {
@@ -27,7 +29,7 @@ func TestRunInit_CreatesStructure(t *testing.T) {
 		}
 	}
 
-	dirs := []string{"plugins", ".juar", "skills"}
+	dirs := []string{"plugins", config.JuarDir, "skills"}
 	for _, d := range dirs {
 		if _, err := os.Stat(filepath.Join(target, d)); os.IsNotExist(err) {
 			t.Errorf("expected directory %s to exist", d)

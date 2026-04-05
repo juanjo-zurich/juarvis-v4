@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"juarvis/pkg/config"
 	"juarvis/pkg/output"
 	"juarvis/pkg/pm"
 	"juarvis/pkg/root"
@@ -20,7 +21,7 @@ func RunLoader() error {
 	}
 	pluginDir := filepath.Join(rootPath, "plugins")
 	skillsDir := filepath.Join(rootPath, "skills")
-	juarDir := filepath.Join(rootPath, ".juar")
+	juarDir := filepath.Join(rootPath, config.JuarDir)
 	registryPath := filepath.Join(juarDir, "skill-registry.md")
 
 	output.Info("Iniciando carga e indexación de Plugins (Juarvis Engine en Go)")
@@ -53,14 +54,14 @@ func RunLoader() error {
 		pPath := filepath.Join(pluginDir, pName)
 
 		// Verificar si está deshabilitado
-		enabledFile := filepath.Join(pPath, ".juarvis-plugin", "enabled")
+		enabledFile := filepath.Join(pPath, config.JuarvisPluginDir, "enabled")
 		if content, err := os.ReadFile(enabledFile); err == nil && strings.TrimSpace(string(content)) == "false" {
 			continue // Saltado
 		}
 
 		enabledCount++
 		// Leer manifiesto
-		manifestFile := filepath.Join(pPath, ".juarvis-plugin", "plugin.json")
+		manifestFile := filepath.Join(pPath, config.JuarvisPluginDir, "plugin.json")
 		var plug pm.Plugin
 		if data, err := os.ReadFile(manifestFile); err == nil {
 			if err := json.Unmarshal(data, &plug); err != nil {

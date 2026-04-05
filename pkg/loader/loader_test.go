@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"juarvis/pkg/config"
 	"juarvis/pkg/root"
 )
 
@@ -15,7 +16,7 @@ func setupLoaderTest(t *testing.T) string {
 	marketplace := `{"name":"test","plugins":[{"name":"test-plugin","version":"1.0.0","description":"Test","category":"dev","source":"./plugins/test-plugin"}]}`
 	os.WriteFile(filepath.Join(dir, "marketplace.json"), []byte(marketplace), 0644)
 
-	pluginDir := filepath.Join(dir, "plugins", "test-plugin", ".juarvis-plugin")
+	pluginDir := filepath.Join(dir, "plugins", "test-plugin", config.JuarvisPluginDir)
 	os.MkdirAll(pluginDir, 0755)
 	manifest := `{"name":"test-plugin","version":"1.0.0","description":"Test plugin","category":"dev"}`
 	os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(manifest), 0644)
@@ -44,7 +45,7 @@ func TestRunLoader_Success(t *testing.T) {
 		t.Fatal("skills directory was not created")
 	}
 
-	registryPath := filepath.Join(rootPath, ".juar", "skill-registry.md")
+	registryPath := filepath.Join(rootPath, config.JuarDir, config.SkillRegistryFile)
 	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
 		t.Fatal("skill-registry.md was not created")
 	}
@@ -66,7 +67,7 @@ func TestRunLoader_InvalidManifest(t *testing.T) {
 	dir := t.TempDir()
 	os.WriteFile(filepath.Join(dir, "marketplace.json"), []byte(`{"name":"test","plugins":[{"name":"bad","version":"1.0.0","description":"Bad","category":"dev","source":"./plugins/bad"}]}`), 0644)
 
-	pluginDir := filepath.Join(dir, "plugins", "bad", ".juarvis-plugin")
+	pluginDir := filepath.Join(dir, "plugins", "bad", config.JuarvisPluginDir)
 	os.MkdirAll(pluginDir, 0755)
 	os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(`{invalid json`), 0644)
 	os.WriteFile(filepath.Join(pluginDir, "enabled"), []byte("true"), 0644)

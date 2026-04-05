@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"juarvis/pkg/config"
 )
 
 type Observation struct {
@@ -40,7 +42,7 @@ type Storage struct {
 }
 
 func NewStorage(rootPath string) (*Storage, error) {
-	memoryDir := filepath.Join(rootPath, ".juar", "memory")
+	memoryDir := filepath.Join(rootPath, config.JuarDir, config.MemoryDir)
 	if err := os.MkdirAll(filepath.Join(memoryDir, "observations"), 0755); err != nil {
 		return nil, fmt.Errorf("error creando directorio de observaciones: %w", err)
 	}

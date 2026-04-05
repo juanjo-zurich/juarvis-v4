@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"juarvis/pkg/config"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 )
@@ -78,8 +79,8 @@ var rootCmd = &cobra.Command{
 				_, err := os.Stat(filepath.Join(r, "skills"))
 				return err == nil
 			}},
-			{".juar/skill-registry.md", func(r string) bool {
-				_, err := os.Stat(filepath.Join(r, ".juar", "skill-registry.md"))
+			{config.JuarDir + "/" + config.SkillRegistryFile, func(r string) bool {
+				_, err := os.Stat(filepath.Join(r, config.JuarDir, config.SkillRegistryFile))
 				return err == nil
 			}},
 		}

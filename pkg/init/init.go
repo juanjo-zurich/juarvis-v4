@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"juarvis/pkg/assets"
+	"juarvis/pkg/config"
 	"juarvis/pkg/loader"
 	"juarvis/pkg/output"
 	"juarvis/pkg/utils"
@@ -95,7 +96,7 @@ func RunInit(path string) error {
 
 	// 2. Crear .juar/ y .juarvis-plugin/ para cada plugin
 	// Go embed excluye directorios que empiezan con '.', así que los creamos manualmente
-	juarDir := filepath.Join(absPath, ".juar")
+	juarDir := filepath.Join(absPath, config.JuarDir)
 	if err := os.MkdirAll(juarDir, 0755); err != nil {
 		return fmt.Errorf("error creando directorio .juar: %w", err)
 	}
@@ -107,7 +108,7 @@ func RunInit(path string) error {
 		if err := json.Unmarshal(marketplaceData, &market); err == nil {
 			for _, p := range market.Plugins {
 				pluginDir := filepath.Join(absPath, "plugins", strings.TrimPrefix(p.Name, "juarvis-"))
-				manifestDir := filepath.Join(pluginDir, ".juarvis-plugin")
+				manifestDir := filepath.Join(pluginDir, config.JuarvisPluginDir)
 				if err := os.MkdirAll(manifestDir, 0755); err != nil {
 					return fmt.Errorf("error creando manifest dir para %s: %w", p.Name, err)
 				}
@@ -154,7 +155,7 @@ func pathExists(path string) bool {
 // migrateAtlToJuar renombra .atl/ a .juar/ para ecosistemas legacy.
 // Retorna true si se realizó la migración, false si no era necesaria.
 func migrateAtlToJuar(rootPath string) (bool, error) {
-	juarPath := filepath.Join(rootPath, ".juar")
+	juarPath := filepath.Join(rootPath, config.JuarDir)
 	atlPath := filepath.Join(rootPath, ".atl")
 
 	if pathExists(juarPath) {

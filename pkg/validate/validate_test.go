@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"juarvis/pkg/config"
 )
 
 func setupValidateTest(t *testing.T) string {
@@ -14,8 +16,8 @@ func setupValidateTest(t *testing.T) string {
 	os.WriteFile(filepath.Join(dir, "marketplace.json"), []byte(marketplace), 0644)
 
 	os.MkdirAll(filepath.Join(dir, "plugins"), 0755)
-	os.MkdirAll(filepath.Join(dir, ".juar"), 0755)
-	os.WriteFile(filepath.Join(dir, ".juar", "skill-registry.md"), []byte("# Skill Registry\n"), 0644)
+	os.MkdirAll(filepath.Join(dir, config.JuarDir), 0755)
+	os.WriteFile(filepath.Join(dir, config.JuarDir, config.SkillRegistryFile), []byte("# Skill Registry\n"), 0644)
 
 	t.Setenv("JUARVIS_ROOT", dir)
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"juarvis/pkg/config"
 	"juarvis/pkg/loader"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
@@ -55,7 +56,7 @@ var skillCreateCmd = &cobra.Command{
 			output.Error("Error creando directorio de skills: %v", err)
 			os.Exit(1)
 		}
-		manifestPath := filepath.Join(pluginPath, ".juarvis-plugin")
+		manifestPath := filepath.Join(pluginPath, config.JuarvisPluginDir)
 		if err := os.MkdirAll(manifestPath, 0755); err != nil {
 			output.Error("Error creando directorio de manifiesto: %v", err)
 			os.Exit(1)

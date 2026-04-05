@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"juarvis/pkg/config"
 )
 
 func setupStorage(t *testing.T) *Storage {
@@ -126,8 +128,8 @@ func TestStorageCreatesDirectories(t *testing.T) {
 		t.Fatalf("error creating storage: %v", err)
 	}
 
-	obsDir := filepath.Join(tmpDir, ".juar", "memory", "observations")
-	sessDir := filepath.Join(tmpDir, ".juar", "memory", "sessions")
+	obsDir := filepath.Join(tmpDir, config.JuarDir, config.MemoryDir, "observations")
+	sessDir := filepath.Join(tmpDir, config.JuarDir, config.MemoryDir, "sessions")
 
 	if _, err := os.Stat(obsDir); os.IsNotExist(err) {
 		t.Error("observations directory was not created")
