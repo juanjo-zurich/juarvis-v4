@@ -215,7 +215,7 @@ func copyFile(src, dst string) error {
 	}
 	defer source.Close()
 
-	destination, err := os.Create(dst)
+	destination, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}

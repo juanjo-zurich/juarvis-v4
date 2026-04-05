@@ -10,6 +10,7 @@ import (
 )
 
 var validSnapshotName = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+var validStashRef = regexp.MustCompile(`^stash@\{\d+\}$`)
 
 // CreateSnapshot utiliza git stash de forma transparente
 func CreateSnapshot(name string) error {
@@ -55,10 +56,13 @@ func RestoreLatestSnapshot() error {
 	for _, line := range lines {
 		if strings.Contains(line, "juarvis-snapshot|") {
 			// Extract stash@{X}
-			parts := strings.Split(line, ":")
+			parts := strings.SplitN(line, ":", 2)
 			if len(parts) > 0 {
-				stashTarget = parts[0]
-				break
+				candidate := strings.TrimSpace(parts[0])
+				if validStashRef.MatchString(candidate) {
+					stashTarget = candidate
+					break
+				}
 			}
 		}
 	}
@@ -106,7 +110,11 @@ func PruneSnapshots(all bool) (int, error) {
 		if len(parts) == 0 {
 			continue
 		}
-		juarvisRefs = append(juarvisRefs, strings.TrimSpace(parts[0]))
+		ref := strings.TrimSpace(parts[0])
+		if !validStashRef.MatchString(ref) {
+			continue
+		}
+		juarvisRefs = append(juarvisRefs, ref)
 	}
 
 	// Drop in reverse order to prevent index shifting

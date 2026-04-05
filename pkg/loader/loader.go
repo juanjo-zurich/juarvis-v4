@@ -79,7 +79,21 @@ func RunLoader() error {
 					skName := sk.Name()
 					source := filepath.Join("..", "plugins", pName, "skills", skName)
 					dest := filepath.Join(tmpDir, skName)
-					if err := os.Symlink(source, dest); err != nil {
+
+					// Security: validate symlink target stays within ecosystem
+					cleanSource := filepath.Clean(source)
+					absSource, err := filepath.Abs(filepath.Join(tmpDir, cleanSource))
+					if err != nil {
+						output.Warning("Skill %s saltada: no se pudo resolver path", skName)
+						continue
+					}
+					absRoot, _ := filepath.Abs(rootPath)
+					if !strings.HasPrefix(absSource, absRoot) {
+						output.Warning("Skill %s saltada: symlink apunta fuera del ecosistema", skName)
+						continue
+					}
+
+					if err := os.Symlink(cleanSource, dest); err != nil {
 						return fmt.Errorf("error creando symlink para skill %s: %w", skName, err)
 					}
 					registryRows = append(registryRows, fmt.Sprintf("| %s | %s | %s | enabled |", skName, pName, filepath.Join("plugins", pName, "skills", skName)))

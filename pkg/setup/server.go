@@ -2,6 +2,7 @@ package setup
 
 import (
 	"bytes"
+	"crypto/rand"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -19,7 +21,17 @@ import (
 var uiFS embed.FS
 
 type InstallRequest struct {
-	Targets []string `json:"targets"`
+	Targets   []string `json:"targets"`
+	CSRFToken string   `json:"csrf_token,omitempty"`
+}
+
+// generateCSRFToken genera un token aleatorio de 32 bytes hex-encoded
+func generateCSRFToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", b), nil
 }
 
 func openBrowser(url string) {
@@ -44,6 +56,11 @@ func RunServer() error {
 	port := "8989"
 	url := fmt.Sprintf("http://localhost:%s", port)
 
+	csrfToken, err := generateCSRFToken()
+	if err != nil {
+		return fmt.Errorf("error generando CSRF token: %w", err)
+	}
+
 	staticFS, err := fs.Sub(uiFS, "ui")
 	if err != nil {
 		return fmt.Errorf("error cargando frontend embebido: %w", err)
@@ -52,14 +69,32 @@ func RunServer() error {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.FS(staticFS)))
 
+	mux.HandleFunc("/api/csrf-token", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"token": csrfToken})
+	})
+
 	mux.HandleFunc("/api/install", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Metodo no permitido", http.StatusMethodNotAllowed)
 			return
 		}
+
+		ct := r.Header.Get("Content-Type")
+		if ct != "" && !strings.HasPrefix(ct, "application/json") {
+			http.Error(w, "Content-Type debe ser application/json", http.StatusUnsupportedMediaType)
+			return
+		}
+
 		var req InstallRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, fmt.Sprintf("Error parseando body: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		// Verify CSRF token
+		if req.CSRFToken != "" && req.CSRFToken != csrfToken {
+			http.Error(w, "CSRF token invalido", http.StatusForbidden)
 			return
 		}
 
