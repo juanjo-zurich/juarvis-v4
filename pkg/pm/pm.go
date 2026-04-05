@@ -193,15 +193,15 @@ func SearchPlugins(query string) {
 }
 
 func findPluginDir(name string) (string, error) {
-	pluginCacheMu.RLock()
+	pluginCacheMu.Lock()
 	if path, ok := pluginCache[name]; ok {
 		if _, err := os.Stat(path); err == nil {
-			pluginCacheMu.RUnlock()
+			pluginCacheMu.Unlock()
 			return path, nil
 		}
 		delete(pluginCache, name)
 	}
-	pluginCacheMu.RUnlock()
+	pluginCacheMu.Unlock()
 
 	rootPath, err := root.GetRoot()
 	if err != nil {
