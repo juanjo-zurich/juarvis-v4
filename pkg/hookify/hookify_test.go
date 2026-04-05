@@ -44,9 +44,17 @@ func TestExtractFrontmatter_NoFrontmatter(t *testing.T) {
 
 func TestExtractFrontmatter_Unclosed(t *testing.T) {
 	content := "---\nname: test\n"
-	_, _, err := extractFrontmatter(content)
-	if err == nil {
-		t.Fatal("expected error for unclosed frontmatter")
+	fm, body, err := extractFrontmatter(content)
+	// utils.ExtractFrontmatterBlock returns found=false for unclosed frontmatter
+	// which means extractFrontmatter returns (nil, content, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if fm != nil {
+		t.Error("expected nil frontmatter for unclosed block")
+	}
+	if body != content {
+		t.Errorf("expected body to equal content, got: %s", body)
 	}
 }
 

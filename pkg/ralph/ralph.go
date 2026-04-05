@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"juarvis/pkg/config"
+	"juarvis/pkg/utils"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -24,17 +25,13 @@ type LoopState struct {
 const stateFile = config.OpencodeDir + "/" + config.RalphStateFile
 
 func parseFrontmatter(content string) (map[string]string, string) {
-	if !strings.HasPrefix(content, "---") {
-		return nil, content
-	}
-
-	parts := strings.SplitN(content, "---", 3)
-	if len(parts) < 3 {
+	fmRaw, body, found := utils.ExtractFrontmatterBlock(content)
+	if !found {
 		return nil, content
 	}
 
 	fm := make(map[string]string)
-	lines := strings.Split(strings.TrimSpace(parts[1]), "\n")
+	lines := strings.Split(strings.TrimSpace(fmRaw), "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") {
@@ -48,7 +45,7 @@ func parseFrontmatter(content string) (map[string]string, string) {
 		}
 	}
 
-	return fm, strings.TrimSpace(parts[2])
+	return fm, body
 }
 
 func LoadState() (*LoopState, error) {

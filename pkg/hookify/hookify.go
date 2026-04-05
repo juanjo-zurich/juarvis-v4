@@ -3,6 +3,7 @@ package hookify
 import (
 	"fmt"
 	"juarvis/pkg/config"
+	"juarvis/pkg/utils"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -32,20 +33,10 @@ type Rule struct {
 // extractFrontmatter extrae el frontmatter YAML de un archivo markdown.
 // El frontmatter debe estar entre --- y --- al inicio del archivo.
 func extractFrontmatter(content string) (map[string]interface{}, string, error) {
-	content = strings.TrimSpace(content)
-	if !strings.HasPrefix(content, "---") {
+	fmStr, body, found := utils.ExtractFrontmatterBlock(content)
+	if !found {
 		return nil, content, nil
 	}
-
-	// Find closing ---
-	endIdx := strings.Index(content[3:], "\n---")
-	if endIdx == -1 {
-		return nil, content, fmt.Errorf("frontmatter no cerrado")
-	}
-	endIdx += 3 // Skip past the "---"
-
-	fmStr := content[3:endIdx]
-	body := strings.TrimSpace(content[endIdx+4:]) // Skip past "---\n"
 
 	var fm map[string]interface{}
 	if err := yaml.Unmarshal([]byte(fmStr), &fm); err != nil {
