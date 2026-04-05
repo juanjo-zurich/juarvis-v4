@@ -80,7 +80,7 @@ func loadMarketplace() (*Marketplace, error) {
 		if err == nil {
 			var market Marketplace
 			if err := json.Unmarshal(file, &market); err != nil {
-				return nil, fmt.Errorf("JSON corrupto: %v", err)
+				return nil, fmt.Errorf("JSON corrupto: %w", err)
 			}
 			return &market, nil
 		}
@@ -93,7 +93,7 @@ func loadMarketplace() (*Marketplace, error) {
 		if err == nil {
 			var market Marketplace
 			if err := json.Unmarshal(file, &market); err != nil {
-				return nil, fmt.Errorf("marketplace embebido corrupto: %v", err)
+				return nil, fmt.Errorf("marketplace embebido corrupto: %w", err)
 			}
 			return &market, nil
 		}

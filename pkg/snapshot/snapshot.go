@@ -48,7 +48,7 @@ func RestoreLatestSnapshot() error {
 	cmdList := exec.Command("git", "stash", "list")
 	out, err := cmdList.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("error listando snapshots: %v", err)
+		return fmt.Errorf("error listando snapshots: %w", err)
 	}
 
 	lines := strings.Split(string(out), "\n")

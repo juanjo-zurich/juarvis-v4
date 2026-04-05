@@ -133,10 +133,8 @@ func RunInit(path string) error {
 	}
 
 	// 3. Ejecutar loader para indexar los plugins extraídos
-	// IMPORTANTE: Setear JUARVIS_ROOT para que el loader use el nuevo ecosistema
-	os.Setenv("JUARVIS_ROOT", absPath)
 	output.Info("Indexando plugins...")
-	if err := loader.RunLoader(); err != nil {
+	if err := loader.RunLoader(absPath); err != nil {
 		return fmt.Errorf("error indexando plugins: %w", err)
 	}
 

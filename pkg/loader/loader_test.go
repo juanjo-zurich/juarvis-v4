@@ -34,7 +34,7 @@ func setupLoaderTest(t *testing.T) string {
 func TestRunLoader_Success(t *testing.T) {
 	setupLoaderTest(t)
 
-	err := RunLoader()
+	err := RunLoader("")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -57,7 +57,7 @@ func TestRunLoader_NoPlugins(t *testing.T) {
 	os.MkdirAll(filepath.Join(dir, "plugins"), 0755)
 	t.Setenv("JUARVIS_ROOT", dir)
 
-	err := RunLoader()
+	err := RunLoader("")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestRunLoader_InvalidManifest(t *testing.T) {
 	os.WriteFile(filepath.Join(pluginDir, "enabled"), []byte("true"), 0644)
 	t.Setenv("JUARVIS_ROOT", dir)
 
-	err := RunLoader()
+	err := RunLoader("")
 	if err == nil {
 		t.Fatal("expected error for invalid manifest, got nil")
 	}

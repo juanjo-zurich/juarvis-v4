@@ -16,7 +16,7 @@ var loaderCmd = &cobra.Command{
 	Use:   "load",
 	Short: "Ejecuta el cargador de plugins y regenera enlaces dinámicos",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := loader.RunLoader(); err != nil {
+		if err := loader.RunLoader(""); err != nil {
 			output.Error("Error crítico en el cargador: %v", err)
 			os.Exit(1)
 		}
@@ -28,7 +28,7 @@ var syncCmd = &cobra.Command{
 	Short: "Alias para load (prometido en AGENTS.md)",
 	Run: func(cmd *cobra.Command, args []string) {
 		output.Info("Sincronizando (alias de load)...")
-		if err := loader.RunLoader(); err != nil {
+		if err := loader.RunLoader(""); err != nil {
 			output.Error("Error crítico en el cargador: %v", err)
 			os.Exit(1)
 		}
@@ -82,7 +82,7 @@ var skillCreateCmd = &cobra.Command{
 		}
 
 		output.Success("Estructura base creada. Indexando...")
-		if err := loader.RunLoader(); err != nil {
+		if err := loader.RunLoader(rootPath); err != nil {
 			output.Warning("Advertencia en indexación: %v", err)
 		} else {
 			output.Success("Skill integrada exitosamente!")

@@ -255,7 +255,7 @@ func (s *Storage) UpdateObservation(id string, updates map[string]interface{}) e
 			obs[k] = v
 		}
 	}
-	obs["updated_at"] = time.Now().Format(time.RFC3339)
+	obs["updated_at"] = time.Now()
 	if rev, ok := obs["revision_count"].(float64); ok {
 		obs["revision_count"] = rev + 1
 	} else {
@@ -289,8 +289,11 @@ func (s *Storage) DeleteObservation(id string, hard bool) error {
 		return fmt.Errorf("error parseando: %w", err)
 	}
 
-	obs["deleted_at"] = time.Now().Format(time.RFC3339)
-	data, _ = json.Marshal(obs)
+	obs["deleted_at"] = time.Now()
+	data, err = json.Marshal(obs)
+	if err != nil {
+		return fmt.Errorf("error serializando: %w", err)
+	}
 	return os.WriteFile(path, data, 0644)
 }
 

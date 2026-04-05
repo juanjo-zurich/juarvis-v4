@@ -14,10 +14,13 @@ import (
 )
 
 // RunLoader simula el plugin-loader.sh: Recrea symlinks, genera registry.
-func RunLoader() error {
-	rootPath, err := root.GetRoot()
-	if err != nil {
-		return fmt.Errorf("error obteniendo root: %w", err)
+func RunLoader(rootPath string) error {
+	if rootPath == "" {
+		var err error
+		rootPath, err = root.GetRoot()
+		if err != nil {
+			return fmt.Errorf("error obteniendo root: %w", err)
+		}
 	}
 	pluginDir := filepath.Join(rootPath, "plugins")
 	skillsDir := filepath.Join(rootPath, "skills")
@@ -29,7 +32,7 @@ func RunLoader() error {
 	// Leer plugins primero (necesario para validación y para el loader)
 	entries, err := os.ReadDir(pluginDir)
 	if err != nil {
-		return fmt.Errorf("error leyendo carpeta plugins: %v", err)
+		return fmt.Errorf("error leyendo carpeta plugins: %w", err)
 	}
 
 	// Verificación incremental: si skillsDir y registry existen y todos los symlinks son válidos, skip

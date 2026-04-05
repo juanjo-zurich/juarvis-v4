@@ -17,7 +17,7 @@ type LoopState struct {
 	Iteration         int
 	MaxIterations     int
 	CompletionPromise string
-	StartedAt         string
+	StartedAt         time.Time
 	Prompt            string
 }
 
@@ -78,7 +78,9 @@ func LoadState() (*LoopState, error) {
 		}
 	}
 	if v, ok := fm["started_at"]; ok {
-		state.StartedAt = v
+		if t, err := time.Parse(time.RFC3339, v); err == nil {
+			state.StartedAt = t
+		}
 	}
 
 	return state, nil
@@ -197,7 +199,7 @@ func CreateLoopState(prompt string, maxIterations int, completionPromise string)
 		Iteration:         1,
 		MaxIterations:     maxIterations,
 		CompletionPromise: completionPromise,
-		StartedAt:         time.Now().UTC().Format(time.RFC3339),
+		StartedAt:         time.Now().UTC(),
 		Prompt:            prompt,
 	}
 
