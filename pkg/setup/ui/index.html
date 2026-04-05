@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juarvis Setup GUI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background">
+        <div class="blob blob1"></div>
+        <div class="blob blob2"></div>
+    </div>
+    
+    <main class="glass-container">
+        <header>
+            <h1>Juarvis <span>Ecosystem</span></h1>
+            <div class="info-panel">
+                <div class="info-block">
+                    <h3>🧠 ¿Qué es <span>SDD</span>?</h3>
+                    <p>El <strong>Desarrollo Dirigido por Especificaciones</strong> es un flujo estructural de 9 fases donde la arquitectura, lógica de negocio y planificación de PRs es documentada y aprobada explícitamente antes de generar código, guiando a la IA para evitar alucinaciones y derivas.</p>
+                </div>
+                <div class="info-block">
+                    <h3>⚡ ¿Qué va a ocurrir?</h3>
+                    <p>Esta herramienta <strong>inyectará silenciosamente</strong> reglas maestras (<code>AGENTS.md</code>) y <em>Skills</em> en las carpetas base de tus editores. La próxima vez que abras un proyecto, agentes como Cascade o Composer tendrán su <em>prompt</em> del sistema hackeado, convirtiéndose automáticamente en un Orquestador Juarvis autónomo.</p>
+                </div>
+            </div>
+            <p class="subtitle">Selecciona los ecosistemas donde instalar las variables globales de inyección:</p>
+        </header>
+
+        <section class="targets-grid" id="targets-grid">
+            <label class="ide-card" for="ide-cursor">
+                <input type="checkbox" id="ide-cursor" value="cursor">
+                <div class="card-content">
+                    <svg viewBox="0 0 24 24" class="official-icon" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z"/></svg>
+                    <h3>Cursor</h3>
+                    <p>.cursor/rules</p>
+                </div>
+            </label>
+            <label class="ide-card" for="ide-windsurf">
+                <input type="checkbox" id="ide-windsurf" value="windsurf">
+                <div class="card-content">
+                    <div class="icon windsurf-icon">🏄</div>
+                    <h3>Windsurf</h3>
+                    <p>.windsurf</p>
+                </div>
+            </label>
+            <label class="ide-card" for="ide-vscode">
+                <input type="checkbox" id="ide-vscode" value="vscode">
+                <div class="card-content">
+                    <svg viewBox="0 0 24 24" class="official-icon" fill="#3b82f6"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-1.276.057L.327 7.261A1 1 0 0 0 .326 8.74L3.899 12 .326 15.26a1 1 0 0 0 .001 1.479L1.65 17.94a.999.999 0 0 0 1.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 0 0 1.704.29l4.942-2.377A1.5 1.5 0 0 0 24 20.06V3.939a1.5 1.5 0 0 0-.85-1.352zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg>
+                    <h3>VS Code</h3>
+                    <p>.vscode</p>
+                </div>
+            </label>
+            <label class="ide-card" for="ide-antigravity">
+                <input type="checkbox" id="ide-antigravity" value="antigravity">
+                <div class="card-content">
+                    <svg viewBox="0 0 24 24" class="official-icon" fill="#8b5cf6"><path d="M23.633 11.24L12.76.368a1.077 1.077 0 0 0-1.522 0L.367 11.24a1.077 1.077 0 0 0 0 1.522l10.871 10.871a1.077 1.077 0 0 0 1.522 0l10.871-10.871a1.077 1.077 0 0 0 0-1.522zM12 21.054L2.946 12 12 2.946 21.054 12 12 21.054z"/><path d="M12 5.5l-1.5 4.5H6l3.5 2.5-1.5 4.5 4-3 4 3-1.5-4.5L18 10h-4.5z"/></svg>
+                    <h3>Antigravity</h3>
+                    <p>.gemini</p>
+                </div>
+            </label>
+            <label class="ide-card" for="ide-opencode">
+                <input type="checkbox" id="ide-opencode" value="opencode">
+                <div class="card-content">
+                    <div class="icon opencode-icon">⚡</div>
+                    <h3>OpenCode</h3>
+                    <p>.config/opencode</p>
+                </div>
+            </label>
+            <label class="ide-card" for="ide-trae">
+                <input type="checkbox" id="ide-trae" value="trae">
+                <div class="card-content">
+                    <div class="icon trae-icon">🌌</div>
+                    <h3>Trae</h3>
+                    <p>.trae</p>
+                </div>
+            </label>
+            <label class="ide-card" for="ide-kiro">
+                <input type="checkbox" id="ide-kiro" value="kiro">
+                <div class="card-content">
+                    <div class="icon kiro-icon">🦊</div>
+                    <h3>Kiro</h3>
+                    <p>.kiro</p>
+                </div>
+            </label>
+        </section>
+
+        <section class="action-bar">
+            <button id="install-btn" disabled>Instalar Ecosistema</button>
+        </section>
+        
+        <div id="status-message" class="status-message hidden">
+            <!-- Dynamic feedback -->
+        </div>
+        <div id="console-output" class="console-output hidden">
+            <pre></pre>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

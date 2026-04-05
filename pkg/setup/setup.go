@@ -46,6 +46,17 @@ func extractAssetsToRoot(rootPath string) error {
 
 // Interfaz que simula el pesado setup.sh copiado multi-IDE
 func RunSetup(ide string) error {
+	var targets []string
+	if ide == "all" {
+		targets = []string{"opencode", "windsurf", "cursor", "vscode", "antigravity", "trae", "kiro"}
+	} else {
+		targets = []string{ide}
+	}
+	return RunSetupCore(targets)
+}
+
+// RunSetupCore efectúa la inyección de reglas y dependencias en los editores seleccionados
+func RunSetupCore(targets []string) error {
 	rootPath, err := root.GetRoot()
 	if err != nil {
 		return fmt.Errorf("error obteniendo root: %w", err)
@@ -55,21 +66,12 @@ func RunSetup(ide string) error {
 		return fmt.Errorf("error obteniendo home directory: %w", err)
 	}
 
-	output.Info("Inicializando distribución de reglas de Juarvis hacia el entorno: %s", ide)
-
 	// Extraer activos embebidos al directorio raíz (auto-instalación)
 	output.Info("Verificando activos del núcleo de Juarvis en el sistema local...")
 	if err := extractAssetsToRoot(rootPath); err != nil {
 		output.Warning("No se pudieron extraer los activos base de forma predeterminada: %v", err)
 	} else {
 		output.Success("Estructura base validada y asegurada.")
-	}
-
-	targets := []string{"opencode"}
-	if ide == "all" {
-		targets = []string{"opencode", "windsurf", "cursor"}
-	} else {
-		targets = []string{ide}
 	}
 
 	for _, t := range targets {
@@ -81,6 +83,14 @@ func RunSetup(ide string) error {
 			targetDir = filepath.Join(homeDir, ".windsurf", "rules")
 		case "cursor":
 			targetDir = filepath.Join(rootPath, ".cursor", "rules")
+		case "vscode":
+			targetDir = filepath.Join(rootPath, ".vscode")
+		case "antigravity":
+			targetDir = filepath.Join(rootPath, ".agent", "rules")
+		case "trae":
+			targetDir = filepath.Join(homeDir, ".trae", "rules")
+		case "kiro":
+			targetDir = filepath.Join(homeDir, ".kiro", "rules")
 		}
 
 		if targetDir == "" {
