@@ -43,6 +43,7 @@ juarvis load                   # Re-indexar skills
 
 | Comando | Descripción |
 |---------|-------------|
+| `juarvis` | Sin argumentos: detecta ecosistema y muestra estado |
 | `juarvis init [path]` | Inicializa un ecosistema Juarvis |
 | `juarvis check` | Health-check del ecosistema |
 | `juarvis setup --ide <ide>` | Distribuye configuraciones al IDE |
@@ -56,7 +57,9 @@ juarvis load                   # Re-indexar skills
 | `juarvis snapshot restore` | Restaura último snapshot |
 | `juarvis snapshot prune` | Limpia snapshots viejos |
 | `juarvis ralph loop <prompt>` | Inicia bucle autónomo |
+| `juarvis ralph stop` | Detiene bucle autónomo |
 | `juarvis hookify list` | Lista reglas de hook activas |
+| `juarvis memory` | Servidor MCP de memoria local (uso interno) |
 
 **Flags globales:** `--root <path>`, `--json`, `--version`
 
@@ -65,6 +68,7 @@ juarvis load                   # Re-indexar skills
 ```
 cmd/          → Comandos CLI (Cobra)
 pkg/assets/   → go:embed de todos los datos
+pkg/config/   → Constantes centralizadas de paths
 pkg/init/     → Extracción de assets al filesystem
 pkg/setup/    → Distribución a IDEs (+ servidor GUI)
 pkg/loader/   → Indexación atómica de plugins
@@ -75,14 +79,18 @@ pkg/validate/ → Health-check del ecosistema
 pkg/snapshot/ → Snapshots via git stash
 pkg/root/     → Detección del directorio raíz
 pkg/output/   → Output centralizado (emojis + JSON)
-pkg/utils/    → Utilidades compartidas
+pkg/memory/   → Servidor MCP de memoria local (SQLite FTS5)
+pkg/utils/    → Utilidades compartidas (embed helpers)
 ```
 
 ## Ecosistema
 
-- **20 plugins** embebidos (SDD, backend, frontend, testing, CI/CD, seguridad, etc.)
-- **68+ skills** indexadas automáticamente
+- **21 plugins** embebidos (SDD, backend, frontend, testing, CI/CD, seguridad, PR review, etc.)
+- **71+ skills** indexadas automáticamente
 - **7 IDEs** soportados (OpenCode, Cursor, Windsurf, VS Code, Antigravity, Trae, Kiro)
+- **Servidor MCP de memoria local** integrado (reemplaza dependencia externa de engram)
+- **Hooks de seguridad** cableados en opencode.json (PreToolUse, PostToolUse, Stop, UserPromptSubmit)
+- **73 tests** pasando con coverage completo
 
 ## Desarrollo
 
