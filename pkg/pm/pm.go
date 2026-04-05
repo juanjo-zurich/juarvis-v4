@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -43,11 +44,73 @@ var httpGetFunc = func(url string) (*http.Response, error) {
 var pluginCache map[string]string
 var pluginCacheMu sync.RWMutex
 
+var (
+	lastRequestTime map[string]time.Time
+	requestMu       sync.Mutex
+)
+
+// httpGetWithRetry realiza una petición HTTP con throttle y retry con backoff exponencial.
+func httpGetWithRetry(url string, maxRetries int) (*http.Response, error) {
+	endpoint := url
+	if idx := strings.Index(url, "?"); idx > 0 {
+		endpoint = url[:idx]
+	}
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		// Throttle: esperar 1s mínimo entre requests al mismo endpoint
+		requestMu.Lock()
+		if lastRequestTime == nil {
+			lastRequestTime = make(map[string]time.Time)
+		}
+		if last, ok := lastRequestTime[endpoint]; ok {
+			wait := time.Second - time.Since(last)
+			if wait > 0 {
+				requestMu.Unlock()
+				time.Sleep(wait)
+				requestMu.Lock()
+			}
+		}
+		lastRequestTime[endpoint] = time.Now()
+		requestMu.Unlock()
+
+		resp, err := httpGetFunc(url)
+		if err != nil {
+			if attempt == maxRetries {
+				return nil, err
+			}
+			time.Sleep(time.Duration(1<<attempt) * time.Second)
+			continue
+		}
+
+		// Retry en 429 o 5xx
+		if resp.StatusCode == 429 || resp.StatusCode >= 500 {
+			retryAfter := time.Duration(1<<attempt) * time.Second
+			if resp.StatusCode == 429 {
+				if ra := resp.Header.Get("Retry-After"); ra != "" {
+					if secs, err := strconv.Atoi(ra); err == nil {
+						retryAfter = time.Duration(secs) * time.Second
+					}
+				}
+			}
+			resp.Body.Close()
+			if attempt == maxRetries {
+				return nil, fmt.Errorf("rate limit o error del servidor (HTTP %d)", resp.StatusCode)
+			}
+			time.Sleep(retryAfter)
+			continue
+		}
+
+		return resp, nil
+	}
+
+	return nil, fmt.Errorf("agotados %d intentos para %s", maxRetries+1, url)
+}
+
 func loadMarketplace() (*Marketplace, error) {
 	output.Info("Sincronizando con ecosistema global remoto (Vercel Agent Skills / skills.sh)...")
 
 	// Prioridad 1: Obtener Skills oficiales de Vercel Labs vía GitHub API
-	resp, reqErr := httpGetFunc("https://api.github.com/repos/vercel-labs/agent-skills/contents/skills")
+	resp, reqErr := httpGetWithRetry("https://api.github.com/repos/vercel-labs/agent-skills/contents/skills", 2)
 	if reqErr == nil && resp.StatusCode == http.StatusOK {
 		defer resp.Body.Close()
 		var contents []map[string]interface{}
@@ -153,10 +216,10 @@ func SearchPlugins(query string) {
 		return
 	}
 	output.Info("Buscando '%s' en el directorio global (skills.sh - Múltiples proveedores)...", query)
-	url := fmt.Sprintf("https://skills.sh/api/search?q=%s&limit=100", query) // Ampliado a 100 para compensar el filtro
-	resp, err := httpClient.Get(url)
-	if err != nil || resp.StatusCode != 200 {
-		output.Error("Error contactando el directorio global de skills")
+	searchURL := fmt.Sprintf("https://skills.sh/api/search?q=%s&limit=100", query)
+	resp, err := httpGetWithRetry(searchURL, 2)
+	if err != nil {
+		output.Error("Error contactando el directorio global de skills: %v", err)
 		return
 	}
 	defer resp.Body.Close()
