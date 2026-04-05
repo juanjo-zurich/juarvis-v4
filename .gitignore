@@ -2,3 +2,5 @@ juarvis
 *.exe
 .DS_Store
 /skills/
+.atl/
+openspec/
