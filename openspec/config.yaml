@@ -1,0 +1,28 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Go 1.22.0 (Cobra CLI)
+  Architecture: Modular CLI with pkg/ cmd/ pattern
+  Testing: make test (infraestructure exists)
+  Style: make lint (go vet)
+
+rules:
+  proposal:
+    - Incluir plan de rollback para cambios arriesgados
+    - Identificar módulos/paquetes afectados
+  specs:
+    - Usar formato Given/When/Then para escenarios
+    - Usar palabras clave RFC 2119 (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Incluir diagramas de secuencia para flujos complejos
+    - Documentar decisiones de arquitectura con su justificación
+  tasks:
+    - Agrupar tareas por fase (infraestructura, implementación, testing)
+    - Usar numeración jerárquica (1.1, 1.2, etc.)
+  apply:
+    - Seguir los patrones de Cobra CLI y Go idioms
+    - Cargar habilidades de Go disponibles
+  verify:
+    - sandbox: auto
+    - Ejecutar make test para validar integridad
+    - Comparar la implementación contra el README en este caso

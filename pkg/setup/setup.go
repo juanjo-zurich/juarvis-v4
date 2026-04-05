@@ -8,6 +8,7 @@ import (
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -155,6 +156,13 @@ func RunSetupCore(targets []string) error {
 	}
 
 	output.Success("Distribución finalizada. Tu IA absorberá estas reglas en el próximo chat.")
+
+	// Verificar que el binario juarvis está en el PATH (necesario para hooks)
+	if _, err := exec.LookPath("juarvis"); err != nil {
+		output.Warning("⚠️  'juarvis' no está en el PATH. Los hooks no funcionarán.")
+		output.Info("Ejecuta: make install  o  sudo cp juarvis /usr/local/bin/")
+	}
+
 	return nil
 }
 

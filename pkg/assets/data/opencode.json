@@ -58,5 +58,38 @@
       "*.env": "deny",
       "*.env.*": "deny"
     }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          {"type": "command", "command": "juarvis hookify pretooluse", "timeout": 10}
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          {"type": "command", "command": "juarvis hookify posttooluse", "timeout": 10}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {"type": "command", "command": "juarvis ralph stop", "timeout": 15},
+          {"type": "command", "command": "juarvis hookify stop", "timeout": 10}
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {"type": "command", "command": "juarvis hookify userpromptsubmit", "timeout": 10}
+        ]
+      }
+    ]
   }
 }
