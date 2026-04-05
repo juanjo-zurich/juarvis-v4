@@ -2,6 +2,7 @@ package setup
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"embed"
 	"encoding/json"
@@ -12,8 +13,10 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -138,8 +141,21 @@ func RunServer() error {
 		openBrowser(url)
 	}()
 
-	err = http.ListenAndServe("127.0.0.1:"+port, mux)
-	if err != nil {
+	srv := &http.Server{Addr: "127.0.0.1:" + port, Handler: mux}
+
+	// Graceful shutdown on SIGINT/SIGTERM
+	go func() {
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+		<-sigCh
+		output.Info("Apagando servidor GUI...")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		srv.Shutdown(ctx)
+	}()
+
+	err = srv.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
 		return err
 	}
 	return nil
