@@ -3,6 +3,7 @@ package cmd
 import (
 	"juarvis/pkg/output"
 	"juarvis/pkg/snapshot"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -20,6 +21,7 @@ var snapshotCreateCmd = &cobra.Command{
 		output.Info("Inicializando motor de snapshots locales...")
 		if err := snapshot.CreateSnapshot(args[0]); err != nil {
 			output.Error("%v", err)
+			os.Exit(1)
 		}
 	},
 }
@@ -30,6 +32,7 @@ var snapshotRestoreCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := snapshot.RestoreLatestSnapshot(); err != nil {
 			output.Error("Error al restaurar: %v", err)
+			os.Exit(1)
 		}
 	},
 }
@@ -44,7 +47,7 @@ Los stashes del usuario no se tocan.`,
 		pruned, err := snapshot.PruneSnapshots(true)
 		if err != nil {
 			output.Error("Error eliminando snapshots: %v", err)
-			return
+			os.Exit(1)
 		}
 
 		if pruned == 0 {

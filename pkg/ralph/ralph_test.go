@@ -98,7 +98,6 @@ func TestExtractLastAssistantMessage_FileNotFound(t *testing.T) {
 
 func TestBuildStopResponse_CompletionPromiseMatch(t *testing.T) {
 	tmpDir := t.TempDir()
-	stateFile := filepath.Join(tmpDir, "ralph-loop.local.md")
 	transcriptPath := filepath.Join(tmpDir, "transcript.jsonl")
 
 	state := &LoopState{
@@ -108,7 +107,6 @@ func TestBuildStopResponse_CompletionPromiseMatch(t *testing.T) {
 		CompletionPromise: "done",
 		Prompt:            "test prompt",
 	}
-	stateFile = stateFile // note: this won't affect the package-level stateFile, but Delete uses it
 
 	// Write transcript with matching promise
 	transcriptContent := `{"message":{"content":[{"type":"text","text":"<promise>done</promise>"}]},"role":"assistant"}`

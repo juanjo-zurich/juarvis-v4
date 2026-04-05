@@ -2,6 +2,7 @@ package hookify
 
 import (
 	"fmt"
+	"juarvis/pkg/config"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -131,7 +132,7 @@ func loadRuleFile(filePath string) (Rule, error) {
 func LoadRules(eventFilter string) []Rule {
 	var rules []Rule
 
-	pattern := filepath.Join(".opencode", "hookify.*.local.md")
+	pattern := filepath.Join(config.OpencodeDir, config.HookifyPattern)
 	files, err := filepath.Glob(pattern)
 	if err != nil {
 		return nil

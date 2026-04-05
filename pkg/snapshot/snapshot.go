@@ -5,11 +5,17 @@ import (
 	"fmt"
 	"juarvis/pkg/output"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
+var validSnapshotName = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+
 // CreateSnapshot utiliza git stash de forma transparente
 func CreateSnapshot(name string) error {
+	if !validSnapshotName.MatchString(name) {
+		return fmt.Errorf("nombre de snapshot invalido: %q (solo se permiten letras, numeros, puntos, guiones y guiones bajos)", name)
+	}
 	output.Info("Creando snapshot de seguridad interno: %s", name)
 
 	statusCmd := exec.Command("git", "status", "--porcelain")

@@ -17,6 +17,7 @@ var loaderCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := loader.RunLoader(); err != nil {
 			output.Error("Error crítico en el cargador: %v", err)
+			os.Exit(1)
 		}
 	},
 }
@@ -28,6 +29,7 @@ var syncCmd = &cobra.Command{
 		output.Info("Sincronizando (alias de load)...")
 		if err := loader.RunLoader(); err != nil {
 			output.Error("Error crítico en el cargador: %v", err)
+			os.Exit(1)
 		}
 	},
 }

@@ -3,6 +3,7 @@ package ralph
 import (
 	"encoding/json"
 	"fmt"
+	"juarvis/pkg/config"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -20,7 +21,7 @@ type LoopState struct {
 	Prompt            string
 }
 
-const stateFile = ".opencode/ralph-loop.local.md"
+const stateFile = config.OpencodeDir + "/" + config.RalphStateFile
 
 func parseFrontmatter(content string) (map[string]string, string) {
 	if !strings.HasPrefix(content, "---") {

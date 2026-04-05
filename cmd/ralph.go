@@ -33,7 +33,8 @@ var ralphLoopCmd = &cobra.Command{
 		completionPromise, _ := cmd.Flags().GetString("completion-promise")
 
 		if err := ralph.CreateLoopState(prompt, maxIter, completionPromise); err != nil {
-			return fmt.Errorf("failed to create loop state: %w", err)
+			output.Error("Error en el bucle de Ralph: %v", err)
+			os.Exit(1)
 		}
 
 		iterLabel := "unlimited"

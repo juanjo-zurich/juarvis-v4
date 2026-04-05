@@ -3,6 +3,7 @@ package cmd
 import (
 	"juarvis/pkg/output"
 	"juarvis/pkg/setup"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -20,11 +21,13 @@ var setupCmd = &cobra.Command{
 			}
 			if err := setup.RunServer(); err != nil {
 				output.Error("Fallo en el servidor GUI: %v", err)
+				os.Exit(1)
 			}
 			return
 		}
 		if err := setup.RunSetup(ideTarget); err != nil {
 			output.Error("Fallo en la distribución: %v", err)
+			os.Exit(1)
 		}
 	},
 }

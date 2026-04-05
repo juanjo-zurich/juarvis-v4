@@ -4,3 +4,23 @@ juarvis
 /skills/
 .atl/
 openspec/
+
+# Environment
+.env
+*.env
+.env.*
+
+# Coverage
+coverage.out
+coverage.html
+
+# Hookify rules (user-created, should not be committed)
+.opencode/*.local.md
+
+# Go test binaries
+*.test
+*.test.exe
+__debug_bin*
+
+# Cache
+.cache/

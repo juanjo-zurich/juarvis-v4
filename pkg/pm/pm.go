@@ -9,6 +9,7 @@ import (
 	"juarvis/pkg/root"
 	"juarvis/pkg/utils"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -318,6 +319,13 @@ func InstallPlugin(pluginName string) error {
 }
 
 func installExternalSkill(repoUrl, skillName, destDir string) error {
+	parsed, err := url.Parse(repoUrl)
+	if err != nil {
+		return fmt.Errorf("URL invalida: %w", err)
+	}
+	if parsed.Scheme != "https" {
+		return fmt.Errorf("solo se permiten URLs https, rechazado: %s", repoUrl)
+	}
 	output.Info("Clonando repositorio de proveedor externo (%s)...", repoUrl)
 	tmpDir, err := os.MkdirTemp("", "ext-skill")
 	if err != nil {
@@ -388,8 +396,15 @@ func installVercelSkill(skillName, destDir string) error {
 	return nil
 }
 
-func installFromGit(url, destDir, pluginName string) error {
-	cmd := exec.Command("git", "clone", "--depth", "1", url, destDir)
+func installFromGit(gitURL, destDir, pluginName string) error {
+	parsed, err := url.Parse(gitURL)
+	if err != nil {
+		return fmt.Errorf("URL invalida: %w", err)
+	}
+	if parsed.Scheme != "https" {
+		return fmt.Errorf("solo se permiten URLs https, rechazado: %s", gitURL)
+	}
+	cmd := exec.Command("git", "clone", "--depth", "1", gitURL, destDir)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("error clonando repositorio: %s", string(output))
 	}
@@ -408,7 +423,7 @@ func installFromGit(url, destDir, pluginName string) error {
   "version": "1.0.0",
   "description": "Plugin instalado desde %s",
   "category": "external"
-}`, pluginName, url)
+}`, pluginName, gitURL)
 		if err := os.WriteFile(pluginJSON, []byte(manifest), 0644); err != nil {
 			return fmt.Errorf("error creando plugin.json: %w", err)
 		}
