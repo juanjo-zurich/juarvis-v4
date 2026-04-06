@@ -1,5 +1,5 @@
 {
-  "description": "Hookify - User-configurable hooks from .opencode/hookify.*.local.md files",
+  "description": "Hookify - User-configurable hooks from .juarvis/hookify.*.local.md files",
   "hooks": {
     "PreToolUse": [
       {

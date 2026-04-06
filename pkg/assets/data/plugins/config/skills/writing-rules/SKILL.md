@@ -8,7 +8,7 @@ version: 0.1.0
 
 ## Visión General
 
-Las reglas hookify son archivos markdown con frontmatter YAML que definen patrones a vigilar y mensajes a mostrar cuando esos patrones coinciden. Las reglas se guardan en archivos `.opencode/hookify.{nombre-regla}.local.md`.
+Las reglas hookify son archivos markdown con frontmatter YAML que definen patrones a vigilar y mensajes a mostrar cuando esos patrones coinciden. Las reglas se guardan en archivos `.juarvis/hookify.{nombre-regla}.local.md`.
 
 ## Formato de Archivo de Regla
 
@@ -213,9 +213,9 @@ Mejor: `rm\s+-rf`
 
 ## Organización de Archivos
 
-**Ubicación:** Todas las reglas en directorio `.opencode/`
-**Nomenclatura:** `.opencode/hookify.{nombre-descriptivo}.local.md`
-**Gitignore:** Añadir `.opencode/*.local.md` a `.gitignore`
+**Ubicación:** Todas las reglas en directorio `.juarvis/`
+**Nomenclatura:** `.juarvis/hookify.{nombre-descriptivo}.local.md`
+**Gitignore:** Añadir `.juarvis/*.local.md` a `.gitignore`
 
 ## Referencia Rápida
 

@@ -51,7 +51,7 @@ El hook Stop busca esta etiqueta específica. Sin ella (ni `--max-iterations`), 
 
 ### Archivo de Estado
 
-El estado del bucle se guarda en `.opencode/ralph-loop.local.md` con frontmatter YAML:
+El estado del bucle se guarda en `.juarvis/ralph-loop.local.md` con frontmatter YAML:
 
 ```markdown
 ---
@@ -94,7 +94,7 @@ Cancelar el bucle Ralph activo.
 /cancel-ralph
 ```
 
-Elimina el archivo de estado `.opencode/ralph-loop.local.md`.
+Elimina el archivo de estado `.juarvis/ralph-loop.local.md`.
 
 ## Mejores Prácticas de Prompts
 
@@ -200,7 +200,7 @@ Seguir intentando hasta el éxito. El bucle maneja la lógica de reintentos auto
 
 El hook stop (`hooks/stop-hook.sh`) es el corazón de Ralph:
 
-1. Comprueba si existe `.opencode/ralph-loop.local.md`
+1. Comprueba si existe `.juarvis/ralph-loop.local.md`
 2. Si no existe, permitir salida normalmente
 3. Si existe, parsear frontmatter para iteración, máximo y promesa
 4. Comprobar si máximo de iteraciones alcanzado

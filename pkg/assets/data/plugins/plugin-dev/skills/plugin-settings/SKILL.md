@@ -1,6 +1,6 @@
 ---
 name: Configuración de Plugin
-description: Esta skill debe usarse cuando el usuario pregunta sobre "configuración de plugin", "guardar configuración de plugin", "archivos .local.md", "archivos de estado de plugin", "leer frontmatter YAML", "configuración por proyecto", o quiere hacer el comportamiento del plugin configurable. Documenta el patrón `.opencode/plugin-name.local.md`.
+description: Esta skill debe usarse cuando el usuario pregunta sobre "configuración de plugin", "guardar configuración de plugin", "archivos .local.md", "archivos de estado de plugin", "leer frontmatter YAML", "configuración por proyecto", o quiere hacer el comportamiento del plugin configurable. Documenta el patrón `.juarvis/plugin-name.local.md`.
 version: 0.1.0
 ---
 
@@ -8,10 +8,10 @@ version: 0.1.0
 
 ## Visión General
 
-Los plugins pueden guardar configuración y estado en archivos `.opencode/plugin-name.local.md` dentro del directorio del proyecto. Este patrón usa frontmatter YAML para configuración estructurada y contenido markdown para prompts o contexto adicional.
+Los plugins pueden guardar configuración y estado en archivos `.juarvis/plugin-name.local.md` dentro del directorio del proyecto. Este patrón usa frontmatter YAML para configuración estructurada y contenido markdown para prompts o contexto adicional.
 
 **Características clave:**
-- Ubicación del archivo: `.opencode/nombre-plugin.local.md` en raíz del proyecto
+- Ubicación del archivo: `.juarvis/nombre-plugin.local.md` en raíz del proyecto
 - Estructura: Frontmatter YAML + cuerpo markdown
 - Propósito: Configuración y estado del plugin por proyecto
 - Uso: Leído desde hooks, comandos y agentes
@@ -49,7 +49,7 @@ Este cuerpo markdown puede contener:
 #!/bin/bash
 set -euo pipefail
 
-STATE_FILE=".opencode/mi-plugin.local.md"
+STATE_FILE=".juarvis/mi-plugin.local.md"
 
 if [[ ! -f "$STATE_FILE" ]]; then
   exit 0  # Plugin no configurado, salir
@@ -115,7 +115,7 @@ Usar archivo de configuración para controlar activación de hooks:
 
 ```bash
 #!/bin/bash
-STATE_FILE=".opencode/security-scan.local.md"
+STATE_FILE=".juarvis/security-scan.local.md"
 
 if [[ ! -f "$STATE_FILE" ]]; then
   exit 0
@@ -151,7 +151,7 @@ Proporcionar plantilla en README del plugin:
 ```markdown
 ## Configuración
 
-Crear `.opencode/mi-plugin.local.md` en tu proyecto:
+Crear `.juarvis/mi-plugin.local.md` en tu proyecto:
 
 \`\`\`markdown
 ---
@@ -172,7 +172,7 @@ Tras crear o editar, reiniciar para que los cambios surtan efecto.
 
 ### Nombres de Archivo
 
-- Usar formato `.opencode/plugin-name.local.md`
+- Usar formato `.juarvis/plugin-name.local.md`
 - Coincidir nombre del plugin exactamente
 - Usar sufijo `.local.md` para archivos locales del usuario
 
@@ -181,8 +181,8 @@ Tras crear o editar, reiniciar para que los cambios surtan efecto.
 Siempre añadir a `.gitignore`:
 
 ```gitignore
-.opencode/*.local.md
-.opencode/*.local.json
+.juarvis/*.local.md
+.juarvis/*.local.json
 ```
 
 ### Valores por Defecto
@@ -242,7 +242,7 @@ BODY=$(awk '/^---$/{i++; next} i>=2' "$FILE")
 ### Patrón de Salida Rápida
 
 ```bash
-if [[ ! -f ".opencode/mi-plugin.local.md" ]]; then
+if [[ ! -f ".juarvis/mi-plugin.local.md" ]]; then
   exit 0  # No configurado
 fi
 ```
@@ -251,7 +251,7 @@ fi
 
 1. Diseñar esquema de configuración (qué campos, tipos, valores por defecto)
 2. Crear plantilla en documentación del plugin
-3. Añadir entrada gitignore para `.opencode/*.local.md`
+3. Añadir entrada gitignore para `.juarvis/*.local.md`
 4. Implementar parsing de configuración en hooks/comandos
 5. Usar patrón de salida rápida (comprobar existencia, campo enabled)
 6. Documentar configuración en README con plantilla

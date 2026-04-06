@@ -25,7 +25,7 @@ Hookify permite crear hooks fácilmente sin editar archivos `hooks.json` complej
 /hookify Avisarme cuando use comandos rm -rf
 ```
 
-Esto analiza la petición y crea `.opencode/hookify.warn-rm.local.md`.
+Esto analiza la petición y crea `.juarvis/hookify.warn-rm.local.md`.
 
 ### 2. Probar Inmediatamente
 
@@ -35,7 +35,7 @@ Esto analiza la petición y crea `.opencode/hookify.warn-rm.local.md`.
 
 ### Regla Simple (Patrón Único)
 
-`.opencode/hookify.dangerous-rm.local.md`:
+`.juarvis/hookify.dangerous-rm.local.md`:
 ```markdown
 ---
 name: block-dangerous-rm
@@ -59,7 +59,7 @@ Este comando podría borrar archivos importantes. Por favor:
 
 ### Regla Avanzada (Múltiples Condiciones)
 
-`.opencode/hookify.sensitive-files.local.md`:
+`.juarvis/hookify.sensitive-files.local.md`:
 ```markdown
 ---
 name: warn-sensitive-files
@@ -144,14 +144,14 @@ Usar sintaxis regex de Python:
 
 Simplemente borrar el archivo `.local.md`:
 ```bash
-rm .opencode/hookify.mi-regla.local.md
+rm .juarvis/hookify.mi-regla.local.md
 ```
 
 ## Organización de Archivos
 
-**Ubicación:** Todos los reglamentos en directorio `.opencode/`
-**Nomenclatura:** `.opencode/hookify.{nombre-descriptivo}.local.md`
-**Gitignore:** Añadir `.opencode/*.local.md` a `.gitignore`
+**Ubicación:** Todos los reglamentos en directorio `.juarvis/`
+**Nomenclatura:** `.juarvis/hookify.{nombre-descriptivo}.local.md`
+**Gitignore:** Añadir `.juarvis/*.local.md` a `.gitignore`
 
 **Buenos nombres:**
 - `hookify.dangerous-rm.local.md`
@@ -166,7 +166,7 @@ rm .opencode/hookify.mi-regla.local.md
 2. Determinar qué herramienta está involucrada (Bash, Edit, etc.)
 3. Elegir tipo de evento (bash, file, stop, etc.)
 4. Escribir patrón regex
-5. Crear archivo `.opencode/hookify.{nombre}.local.md`
+5. Crear archivo `.juarvis/hookify.{nombre}.local.md`
 6. Probar inmediatamente - las reglas se leen dinámicamente
 
 ### Refinar una Regla

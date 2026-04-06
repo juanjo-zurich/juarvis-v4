@@ -20,7 +20,7 @@ Todos los cambios notables en este proyecto se documentan aquí.
 
 ### Fixed
 - Snapshot create destruía el snapshot (stash pop → stash apply)
-- Hookify buscaba reglas en ruta incorrecta (.opencode/ en lugar de .juar/)
+- Hookify buscaba reglas en ruta incorrecta (.juarvis/ en lugar de .juar/)
 - Tests sin assertions (validate_test.go, loader_test.go)
 - Error handling en skill-create
 - Race condition en regexCache (sync.Map)
@@ -30,7 +30,7 @@ Todos los cambios notables en este proyecto se documentan aquí.
 - Parsing YAML manual → gopkg.in/yaml.v3
 - Git argument injection en snapshot.go y pm.go
 - Error handling inconsistente en 6 comandos cmd/
-- Paths .opencode/ hardcodeados en hookify.go
+- Paths .juarvis/ hardcodeados en hookify.go
 - Deduplicación de skills por nombre
 - YAML parsing manual reemplazado por librería estándar
 

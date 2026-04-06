@@ -76,7 +76,7 @@ Para hooks de plugin en `hooks/hooks.json`, usar formato envolvente:
 
 ### Formato Settings (Directo)
 
-Para configuraciones de usuario en `.opencode/settings.json`, usar formato directo:
+Para configuraciones de usuario en `.juarvis/settings.json`, usar formato directo:
 
 ```json
 {

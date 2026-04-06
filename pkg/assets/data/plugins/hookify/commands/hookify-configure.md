@@ -13,7 +13,7 @@ Configura una regla hookify existente: habilitar, deshabilitar o cambiar priorid
 /hookify-configure <nombre> --priority alta|media|baja
 
 ### Comportamiento
-1. Buscar la regla en `~/.opencode/hookify.*.local.md` y `plugins/*/hooks/`
+1. Buscar la regla en `~/.juarvis/hookify.*.local.md` y `plugins/*/hooks/`
 2. Si no se encuentra, mostrar error con sugerencia de crearla con `/hookify`
 3. Validar la opción proporcionada
 4. Actualizar el frontmatter YAML de la regla
@@ -28,7 +28,7 @@ Configura una regla hookify existente: habilitar, deshabilitar o cambiar priorid
 ### Flujo de configuración
 1. Validar que el nombre de la regla no está vacío
 2. Buscar el archivo de la regla:
-   - Local: `~/.opencode/hookify.<nombre>.local.md`
+   - Local: `~/.juarvis/hookify.<nombre>.local.md`
    - Plugin: `plugins/*/hooks/<nombre>.md`
 3. Si no se encuentra:
    - Mostrar: "Regla '<nombre>' no encontrada"

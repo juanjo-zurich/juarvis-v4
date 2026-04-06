@@ -20,7 +20,7 @@ hooks:
     matcher: "Edit|Write|MultiEdit|Bash"
 
   # ── 2. Hookify — reglas dinámicas PreToolUse ─────────────────────────────────
-  # Lee .opencode/hookify.*.local.md del proyecto y evalúa patrones/condiciones.
+  # Lee .juarvis/hookify.*.local.md del proyecto y evalúa patrones/condiciones.
   # El usuario crea reglas con /hookify sin tocar este archivo.
   - event: PreToolUse
     script_path: "~/.config/opencode/hooks/hookify/pretooluse.py"
@@ -53,7 +53,7 @@ hooks:
     enabled: true
 
   # ── 6. Ralph — Stop hook para bucles iterativos ───────────────────────────────
-  # Solo activo cuando existe .opencode/ralph-loop.local.md en el proyecto.
+  # Solo activo cuando existe .juarvis/ralph-loop.local.md en el proyecto.
   # Se evalúa DESPUÉS de hookify/stop.py.
   - event: Stop
     script_path: "~/.config/opencode/hooks/ralph/stop-hook.sh"

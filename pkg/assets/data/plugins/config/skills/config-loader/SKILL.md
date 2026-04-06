@@ -8,7 +8,7 @@ version: 0.1.0
 
 ## Visión General
 
-El cargador de configuración gestiona la lectura y parsing de archivos `.opencode/hookify.*.local.md`. Extrae frontmatter YAML y cuerpo de mensaje para crear objetos `Rule` evaluables.
+El cargador de configuración gestiona la lectura y parsing de archivos `.juarvis/hookify.*.local.md`. Extrae frontmatter YAML y cuerpo de mensaje para crear objetos `Rule` evaluables.
 
 ## Estructura de Datos
 
@@ -77,7 +77,7 @@ Se crea una sola Condition con `operator: regex_match`.
 
 ### load_rules(event=None)
 
-1. Buscar todos los archivos `.opencode/hookify.*.local.md` con `glob`
+1. Buscar todos los archivos `.juarvis/hookify.*.local.md` con `glob`
 2. Para cada archivo, llamar `load_rule_file()`
 3. Filtrar por evento si se especifica
 4. Solo incluir reglas habilitadas

@@ -14,7 +14,7 @@ Lista todas las reglas hookify configuradas en el proyecto.
 /hookify-list disabled  # Muestra solo disabled
 
 ### Comportamiento
-1. Escanear directorio `~/.opencode/hookify.*.local.md` para reglas locales
+1. Escanear directorio `~/.juarvis/hookify.*.local.md` para reglas locales
 2. Escanear `plugins/*/hooks/` para reglas de plugins
 3. Mostrar: nombre, evento, estado (enabled/disabled), prioridad, origen
 4. Si no hay reglas configuradas, mostrar mensaje informativo

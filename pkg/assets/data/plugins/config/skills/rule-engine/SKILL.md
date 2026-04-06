@@ -104,7 +104,7 @@ Usa `@lru_cache(maxsize=128)` para cachear regex compilados, mejorando rendimien
 
 ### Carga de Reglas
 
-El `config_loader.py` gestiona la carga de reglas desde archivos `.opencode/hookify.*.local.md`:
+El `config_loader.py` gestiona la carga de reglas desde archivos `.juarvis/hookify.*.local.md`:
 
 1. Busca archivos que coincidan con el patrón
 2. Parsea frontmatter YAML y cuerpo del mensaje

@@ -22,7 +22,7 @@ type LoopState struct {
 	Prompt            string
 }
 
-const stateFile = config.OpencodeDir + "/" + config.RalphStateFile
+const stateFile = config.JuarvisDir + "/" + config.RalphStateFile
 
 func parseFrontmatter(content string) (map[string]string, string) {
 	fmRaw, body, found := utils.ExtractFrontmatterBlock(content)

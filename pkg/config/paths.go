@@ -7,8 +7,8 @@ const (
 	// JuarvisPluginDir es el directorio de manifiesto de cada plugin
 	JuarvisPluginDir = ".juarvis-plugin"
 
-	// OpencodeDir es el directorio de configuración de OpenCode
-	OpencodeDir = ".opencode"
+	// JuarvisDir es el directorio de configuración de Juarvis en el proyecto
+	JuarvisDir = ".juarvis"
 
 	// AgentSkillsDir es el directorio de skills del agente SDK
 	AgentSkillsDir = ".agent/skills"

@@ -123,7 +123,7 @@ func loadRuleFile(filePath string) (Rule, error) {
 func LoadRules(eventFilter string) []Rule {
 	var rules []Rule
 
-	pattern := filepath.Join(config.OpencodeDir, config.HookifyPattern)
+	pattern := filepath.Join(config.JuarvisDir, config.HookifyPattern)
 	files, err := filepath.Glob(pattern)
 	if err != nil {
 		return nil

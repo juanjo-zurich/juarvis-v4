@@ -33,8 +33,8 @@ fi
 
 # ── Ralph activo ───────────────────────────────────────────────────────────────
 RALPH_MSG=""
-if [[ -f ".opencode/ralph-loop.local.md" ]]; then
-    ITERATION=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' ".opencode/ralph-loop.local.md" \
+if [[ -f ".juarvis/ralph-loop.local.md" ]]; then
+    ITERATION=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' ".juarvis/ralph-loop.local.md" \
         | grep '^iteration:' | sed 's/iteration: *//' || echo "?")
     RALPH_MSG="🔄 Ralph activo — iteración ${ITERATION}"
 fi

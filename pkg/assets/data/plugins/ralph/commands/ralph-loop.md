@@ -19,10 +19,10 @@ Por favor, trabajar en la tarea. Cuando intentes salir, el bucle Ralph alimentar
 
 ```bash
 # Ver iteración actual:
-grep '^iteration:' .opencode/ralph-loop.local.md
+grep '^iteration:' .juarvis/ralph-loop.local.md
 
 # Ver estado completo:
-head -10 .opencode/ralph-loop.local.md
+head -10 .juarvis/ralph-loop.local.md
 ```
 
 ## Cancelación

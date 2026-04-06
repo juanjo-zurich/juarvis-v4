@@ -33,7 +33,7 @@ description: Como usar el CLI juarvis — tu propia herramienta de trabajo
 
 ## Hookify — crear reglas de comportamiento
 
-Las reglas de hookify van en `.opencode/hookify.*.local.md`:
+Las reglas de hookify van en `.juarvis/hookify.*.local.md`:
 
 ```markdown
 ---

@@ -15,7 +15,7 @@ Interpreta la descripción del usuario y genera un archivo de regla hookify.
    - **Acción**: ¿Qué debe hacer? (bloquear, avisar, registrar, transformar)
    - **Nombre**: Generar un nombre descriptivo en kebab-case (ej: `no-console-log-ts`)
 
-2. **Generar el archivo** en `~/.opencode/hookify.{nombre}.local.md` con este formato:
+2. **Generar el archivo** en `~/.juarvis/hookify.{nombre}.local.md` con este formato:
 
 ```markdown
 ---
@@ -43,7 +43,7 @@ priority: {baja|media|alta}
    - Nombre del archivo creado
    - Resumen de cuándo se disparará
    - Cómo desactivarla (`enabled: false` en el frontmatter)
-   - Cómo eliminarla (`rm ~/.opencode/hookify.{nombre}.local.md`)
+   - Cómo eliminarla (`rm ~/.juarvis/hookify.{nombre}.local.md`)
 
 ## Ejemplos de peticiones
 
