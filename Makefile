@@ -3,13 +3,18 @@ COMMIT  := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILDDATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "unknown")
 LDFLAGS := -X juarvis/cmd.Version=$(VERSION) -X juarvis/cmd.Commit=$(COMMIT) -X juarvis/cmd.BuildDate=$(BUILDDATE)
 
-.PHONY: build test lint install clean sync-assets
+.PHONY: build test test-integration test-all lint install clean sync-assets
 
 build:
 	go build -ldflags "$(LDFLAGS)" -o juarvis .
 
 test:
 	go test -v -cover ./...
+
+test-integration: build
+	go test -v -tags=integration ./tests/integration/...
+
+test-all: test test-integration
 
 lint:
 	go vet ./...
