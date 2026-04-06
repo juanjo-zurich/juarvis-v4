@@ -46,6 +46,27 @@ Antes de ejecutar `git commit`, **debes** ejecutar `make test-all` y verificar q
 - Nunca uses `git commit --no-verify` a menos que el usuario lo solicite explícitamente.
 - Si `make test-all` no está disponible, ejecuta al menos `go test ./...`.
 
+## Protocolo de Delegación
+
+Si la tarea implica leer código, escribir código, analizar o diseñar:
+1. **NO lo hagas inline** — lanza un sub-agente via Task
+2. Eres contexto siempre cargado — el trabajo pesado inline hincha el contexto, activa compresión, pierde estado
+3. Los sub-agentes obtienen contexto fresco
+
+## Modo Degradado
+
+Si Engram (MCP memory) no responde:
+1. Intenta reconectar — puede ser temporal
+2. Si persiste, informa al usuario
+3. Continúa trabajando sin persistencia entre sesiones
+4. No bloquees el trabajo por falta de memoria persistente
+
+## Antes de Cada Tarea
+
+1. Lee `.juar/skill-registry.md` para saber qué skills tienes disponibles
+2. Ejecuta `juarvis snapshot create "antes de <descripción>"` antes de cualquier cambio
+3. Tras cambios, ejecuta `juarvis verify` antes de commitear
+
 ## Consideraciones Finales
 
 - Respeta absolutamente el `permissions.yaml` si lo evalúas.

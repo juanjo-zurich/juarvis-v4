@@ -59,14 +59,14 @@ To ensure maximum reasoning performance and minimize token waste:
 Debes buscar archivos `SKILL.md` en los siguientes lugares:
 
 1. **Directorios de Usuario** (según el agente detectado):
-   - Claude Code: `~/.claude/skills/`
+   - Claude Code: `~/.opencode/skills/`
    - Gemini CLI: `~/.gemini/skills/`
    - Antigravity: `~/.gemini/antigravity/skills/`
    - Cursor: `~/.cursor/skills/`
    - OpenCode: `~/.config/opencode/skills/`
 
 2. **Directorios de Proyecto**:
-   - `.claude/skills/`
+   - `.opencode/skills/`
    - `.gemini/skills/`
    - `.agent/skills/`
    - `skills/` (Escaneo recursivo en `core/` y `custom/`).

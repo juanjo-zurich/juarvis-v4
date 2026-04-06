@@ -40,11 +40,11 @@ Recibirás un informe con detalles de vulnerabilidades.
 ## Ubicaciones de Comandos
 
 **Comandos de proyecto** (compartidos con equipo):
-- Ubicación: `.claude/commands/`
+- Ubicación: `.opencode/commands/`
 - Alcance: Disponible en proyecto específico
 
 **Comandos personales** (disponibles en todas partes):
-- Ubicación: `~/.claude/commands/`
+- Ubicación: `~/.opencode/commands/`
 - Alcance: Disponible en todos los proyectos
 
 **Comandos de plugin** (empaquetados con plugins):
@@ -182,7 +182,7 @@ Los comandos pueden ejecutar bash inline para recopilar contexto dinámico:
 ### Estructura Plana
 
 ```
-.claude/commands/
+.opencode/commands/
 ├── build.md
 ├── test.md
 ├── deploy.md
@@ -192,7 +192,7 @@ Los comandos pueden ejecutar bash inline para recopilar contexto dinámico:
 ### Estructura con Namespace
 
 ```
-.claude/commands/
+.opencode/commands/
 ├── ci/
 │   ├── build.md
 │   └── test.md

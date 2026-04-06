@@ -228,7 +228,17 @@ Behavior for creating and loading "Mental Model" summaries to preserve context b
 
 ## Combining Modes
 
----
+### debug + review
+1. Usa **debug** para aislar la causa raíz de un bug
+2. Usa **review** para verificar que el fix no introduce regresiones
+
+### brainstorm + implement
+1. Usa **brainstorm** para explorar opciones de diseño con el usuario
+2. Usa **implement** para ejecutar la solución elegida
+
+### review + ship
+1. Usa **review** para verificar que el código cumple estándares
+2. Usa **ship** para commitear y desplegar con confianza
 
 ## Manual Mode Switching
 

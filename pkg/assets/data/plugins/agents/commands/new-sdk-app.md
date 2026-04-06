@@ -100,7 +100,7 @@ Basado en las respuestas del usuario, crea un plan que incluya:
    - Explicar cómo obtener una API key desde https://console.anthropic.com/
 
 6. **Opcional: Crear estructura de directorios**:
-   - Ofrecer crear directorio `.claude/` para agentes, comandos y ajustes
+   - Ofrecer crear directorio `.opencode/` para agentes, comandos y ajustes
    - Preguntar si quiere algún subagente o comando de ejemplo
 
 ## Implementación
