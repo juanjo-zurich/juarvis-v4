@@ -71,6 +71,43 @@ rules:
       action: ask
       reason: "Commit requiere confirmación de que tests pasaron"
 
+    # Comandos Go — build y tests seguros
+    - pattern: "go build"
+      action: allow
+      reason: "Compilación segura"
+
+    - pattern: "go build *"
+      action: allow
+      reason: "Compilación segura con argumentos"
+
+    - pattern: "go test *"
+      action: allow
+      reason: "Ejecución de tests segura"
+
+    - pattern: "go vet *"
+      action: allow
+      reason: "Análisis estático seguro"
+
+    - pattern: "go fmt *"
+      action: allow
+      reason: "Formateo de código seguro"
+
+    - pattern: "go mod tidy"
+      action: allow
+      reason: "Sincronización de dependencias necesaria para que los tests funcionen"
+
+    - pattern: "go run *"
+      action: ask
+      reason: "Ejecuta código arbitrario — requiere confirmación"
+
+    - pattern: "go install *"
+      action: ask
+      reason: "Instala binarios — requiere confirmación"
+
+    - pattern: "./juarvis *"
+      action: allow
+      reason: "Comandos del CLI Juarvis — operaciones internas seguras"
+
     # Comandos que requieren confirmación
     - pattern: "git push"
       action: ask
@@ -190,6 +227,6 @@ limits:
 # Configuración de auditoría
 audit:
   enabled: true
-  log_file: "~/.config/opencode/audit.log"
+  log_file: "~/.config/juarvis/audit.log"
   log_decisions: true
   log_executions: true

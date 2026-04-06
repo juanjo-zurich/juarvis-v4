@@ -62,6 +62,14 @@ Si Engram (MCP memory) no responde:
 3. Continúa trabajando sin persistencia entre sesiones
 4. No bloquees el trabajo por falta de memoria persistente
 
+## Protocolo de Auto-Reparación
+
+Si algo falla durante la ejecución de tests o build:
+1. **Dependencias faltantes**: Ejecuta `go mod tidy` antes de pedir ayuda.
+2. **Build roto**: Ejecuta `go build ./...` para ver el error exacto, intenta corregirlo.
+3. **Tests fallidos**: Ejecuta `go test ./... -v` para ver detalles, corrige y reintenta.
+4. **Solo si no puedes resolverlo**: Informa al usuario con el error exacto y tu diagnóstico.
+
 ## Antes de Cada Tarea
 
 1. Lee `.juar/skill-registry.md` para saber qué skills tienes disponibles
