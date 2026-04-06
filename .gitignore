@@ -15,7 +15,7 @@ coverage.out
 coverage.html
 
 # Hookify rules (user-created, should not be committed)
-.opencode/*.local.md
+.juarvis/*.local.md
 
 # Go test binaries
 *.test
