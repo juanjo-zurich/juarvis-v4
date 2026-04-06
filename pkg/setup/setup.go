@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -186,6 +187,13 @@ func RunSetupCore(targets []string) error {
 				output.Warning("%s", w)
 			}
 		}
+
+		switch t {
+		case "vscode", "cursor", "windsurf":
+			if err := setupWatcherTask(rootPath, targetDir, t); err != nil {
+				output.Warning("No se pudo añadir watcher task para %s: %v", t, err)
+			}
+		}
 	}
 
 	output.Success("Distribución finalizada. Tu IA absorberá estas reglas en el próximo chat.")
@@ -222,4 +230,72 @@ func copyFile(src, dst string) error {
 	defer destination.Close()
 	_, err = io.Copy(destination, source)
 	return err
+}
+
+type vscodeTask struct {
+	Label          string           `json:"label"`
+	Type           string           `json:"type"`
+	Command        string           `json:"command"`
+	RunOptions     vscodeRunOptions `json:"runOptions"`
+	IsBackground   bool             `json:"isBackground"`
+	ProblemMatcher []string         `json:"problemMatcher"`
+}
+
+type vscodeRunOptions struct {
+	RunOn string `json:"runOn"`
+}
+
+type vscodeTasksFile struct {
+	Version string       `json:"version"`
+	Tasks   []vscodeTask `json:"tasks"`
+}
+
+func setupWatcherTask(rootPath string, targetDir string, ide string) error {
+	tasksFile := filepath.Join(targetDir, "tasks.json")
+
+	var tasks vscodeTasksFile
+
+	if _, err := os.Stat(tasksFile); err == nil {
+		data, readErr := os.ReadFile(tasksFile)
+		if readErr != nil {
+			return fmt.Errorf("no se pudo leer %s: %w", tasksFile, readErr)
+		}
+		if err := json.Unmarshal(data, &tasks); err != nil {
+			return fmt.Errorf("no se pudo parsear %s: %w", tasksFile, err)
+		}
+	} else {
+		tasks = vscodeTasksFile{
+			Version: "2.0.0",
+			Tasks:   []vscodeTask{},
+		}
+	}
+
+	for _, task := range tasks.Tasks {
+		if task.Label == "Juarvis Watcher" {
+			return nil
+		}
+	}
+
+	newTask := vscodeTask{
+		Label:          "Juarvis Watcher",
+		Type:           "shell",
+		Command:        "juarvis watch",
+		RunOptions:     vscodeRunOptions{RunOn: "folderOpen"},
+		IsBackground:   true,
+		ProblemMatcher: []string{},
+	}
+
+	tasks.Tasks = append(tasks.Tasks, newTask)
+
+	data, err := json.MarshalIndent(tasks, "", "  ")
+	if err != nil {
+		return fmt.Errorf("no se pudo serializar tasks.json: %w", err)
+	}
+
+	if err := os.WriteFile(tasksFile, append(data, '\n'), 0644); err != nil {
+		return fmt.Errorf("no se pudo escribir %s: %w", tasksFile, err)
+	}
+
+	output.Success("Watcher task añadida a %s/tasks.json para %s", targetDir, ide)
+	return nil
 }
