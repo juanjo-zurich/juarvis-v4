@@ -37,6 +37,15 @@ Si el usuario pide un cambio sencillo (<= 1 archivo, <= 5 líneas), ignora SDD y
 Para tareas de refactor o arquitecturales, **SIEMPRE genera un plan estructurado** antes de hacer cambios, y espera la aprobación del usuario ("aprobar", "sí").
 - Un buen plan detalla: *Archivos a modificar, comandos a ejecutar, criterios de éxito, plan de rollback (snapshots)*.
 
+## Tests Before Commit (OBLIGATORIO)
+
+Antes de ejecutar `git commit`, **debes** ejecutar `make test-all` y verificar que todos los tests pasan.
+
+- Si los tests **pasan**: procede con el commit.
+- Si los tests **fallan**: NO commitees. Reporta los fallos al usuario y corrige antes de intentar de nuevo.
+- Nunca uses `git commit --no-verify` a menos que el usuario lo solicite explícitamente.
+- Si `make test-all` no está disponible, ejecuta al menos `go test ./...`.
+
 ## Consideraciones Finales
 
 - Respeta absolutamente el `permissions.yaml` si lo evalúas.

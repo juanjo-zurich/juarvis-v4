@@ -68,8 +68,8 @@ rules:
       reason: "Añadir archivos al staging"
 
     - pattern: "git commit *"
-      action: allow
-      reason: "Crear commit"
+      action: ask
+      reason: "Commit requiere confirmación de que tests pasaron"
 
     # Comandos que requieren confirmación
     - pattern: "git push"

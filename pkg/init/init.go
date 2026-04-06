@@ -132,7 +132,22 @@ func RunInit(path string) error {
 		}
 	}
 
-	// 3. Ejecutar loader para indexar los plugins extraídos
+	// 3. Instalar pre-commit hook si existe .git/
+	gitDir := filepath.Join(absPath, ".git")
+	if _, err := os.Stat(gitDir); err == nil {
+		hookSrc := filepath.Join(absPath, "hooks", "pre-commit")
+		hookDest := filepath.Join(gitDir, "hooks", "pre-commit")
+		if _, err := os.Stat(hookSrc); err == nil {
+			content, readErr := os.ReadFile(hookSrc)
+			if readErr == nil {
+				if writeErr := os.WriteFile(hookDest, content, 0755); writeErr == nil {
+					output.Success("Pre-commit hook instalado")
+				}
+			}
+		}
+	}
+
+	// 4. Ejecutar loader para indexar los plugins extraídos
 	output.Info("Indexando plugins...")
 	if err := loader.RunLoader(absPath); err != nil {
 		return fmt.Errorf("error indexando plugins: %w", err)

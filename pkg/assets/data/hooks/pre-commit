@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Pre-commit hook: ejecuta tests antes de permitir el commit
+# Escape hatch: git commit --no-verify
+set -e
+
+echo "🔍 Ejecutando tests antes del commit..."
+
+if command -v make &> /dev/null && [ -f Makefile ]; then
+    if ! make test 2>&1; then
+        echo ""
+        echo "❌ Tests fallidos — commit bloqueado."
+        echo "   Para omitir (no recomendado): git commit --no-verify"
+        exit 1
+    fi
+else
+    echo "⚠️  Makefile no encontrado. Omitiendo verificacion de tests."
+fi
+
+echo "✅ Tests pasados correctamente."
+exit 0
