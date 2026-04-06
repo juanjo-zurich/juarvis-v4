@@ -189,8 +189,9 @@ func RunSetupCore(targets []string) error {
 		}
 
 		switch t {
-		case "vscode", "cursor", "windsurf":
-			if err := setupWatcherTask(rootPath, targetDir, t); err != nil {
+		case "vscode", "cursor", "windsurf", "opencode", "antigravity", "trae", "kiro":
+			vscodeDir := filepath.Join(rootPath, ".vscode")
+			if err := setupWatcherTask(rootPath, vscodeDir, t); err != nil {
 				output.Warning("No se pudo añadir watcher task para %s: %v", t, err)
 			}
 		}
@@ -251,6 +252,10 @@ type vscodeTasksFile struct {
 }
 
 func setupWatcherTask(rootPath string, targetDir string, ide string) error {
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		return fmt.Errorf("no se pudo crear %s: %w", targetDir, err)
+	}
+
 	tasksFile := filepath.Join(targetDir, "tasks.json")
 
 	var tasks vscodeTasksFile
