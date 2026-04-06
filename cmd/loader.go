@@ -19,19 +19,6 @@ var loaderCmd = &cobra.Command{
 	},
 }
 
-var syncCmd = &cobra.Command{
-	Use:   "sync",
-	Short: "Alias para load (prometido en AGENTS.md)",
-	Run: func(cmd *cobra.Command, args []string) {
-		output.Info("Sincronizando (alias de load)...")
-		if err := loader.RunLoader(""); err != nil {
-			output.Error("Error crítico en el cargador: %v", err)
-			os.Exit(1)
-		}
-	},
-}
-
 func init() {
 	rootCmd.AddCommand(loaderCmd)
-	rootCmd.AddCommand(syncCmd)
 }
