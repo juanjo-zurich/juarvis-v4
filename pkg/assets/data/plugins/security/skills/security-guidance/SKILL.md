@@ -12,6 +12,124 @@ Eres un especialista en seguridad de aplicaciones. Tu misión es identificar pat
 
 Evalúa SIEMPRE el código en busca de los siguientes patrones al revisar, escribir o editar archivos.
 
+### 0. Go: Inyección de Comandos — `exec.Command`
+
+**Patrón peligroso**: `exec.Command("sh", "-c", "comando " + inputUsuario)`, `exec.Command("bash", "-c", ...)`
+
+**Riesgo**: La inyección de comandos permite ejecutar comandos arbitrarios en el servidor.
+
+**Alternativa segura**:
+```go
+// PELIGROSO:
+exec.Command("sh", "-c", "git stash push -m "+name)
+
+// SEGURO:
+exec.Command("git", "stash", "push", "-m", name)
+```
+
+**Directrices**:
+- Usar `exec.Command` con argumentos separados, NUNCA con `sh -c` + concatenación
+- Validar/sanitizar cualquier input del usuario antes de pasarlo como argumento
+- Para comandos complejos, usar `exec.CommandContext` con timeout
+
+---
+
+### 0.1. Go: Path Traversal — `filepath.Join`
+
+**Patrón peligroso**: `os.ReadFile(filepath.Join(baseDir, userInput))` sin validación
+
+**Riesgo**: Un usuario puede usar `../` para acceder a archivos fuera del directorio esperado.
+
+**Alternativa segura**:
+```go
+// VALIDAR:
+path := filepath.Join(baseDir, userInput)
+absPath, err := filepath.Abs(path)
+if err != nil { return err }
+if !strings.HasPrefix(absPath, baseDir) {
+    return fmt.Errorf("path traversal detectado: %s", userInput)
+}
+```
+
+**Directrices**:
+- Siempre validar que el path resuelto está dentro del directorio base esperado
+- Usar `filepath.Clean` antes de usar paths de usuario
+- Para symlinks, verificar que el target resuelto está dentro del ecosistema
+
+---
+
+### 0.2. Go: Errores ignorados con `_`
+
+**Patrón peligroso**: `os.MkdirAll(...); os.WriteFile(...)` sin verificar errores
+
+**Riesgo**: Si la operación falla silencionalmente, el sistema queda en estado inconsistente.
+
+**Alternativa segura**:
+```go
+// PELIGROSO:
+os.MkdirAll(dir, 0755)
+os.WriteFile(path, data, 0644)
+
+// SEGURO:
+if err := os.MkdirAll(dir, 0755); err != nil {
+    return fmt.Errorf("error creando directorio: %w", err)
+}
+if err := os.WriteFile(path, data, 0644); err != nil {
+    return fmt.Errorf("error escribiendo archivo: %w", err)
+}
+```
+
+**Directrices**:
+- NUNCA ignorar errores de I/O con `_`
+- Usar `fmt.Errorf("contexto: %w", err)` para envolver errores
+- En comandos CLI, usar `output.Error()` + `os.Exit(1)` si no se puede retornar error
+
+---
+
+### 0.3. Go: Race conditions — acceso concurrente a maps
+
+**Patrón peligroso**: `var cache = make(map[string]string)` sin mutex
+
+**Riesgo**: Data race bajo acceso concurrente — crash o comportamiento indefinido.
+
+**Alternativa segura**:
+```go
+// PELIGROSO:
+var cache = make(map[string]string)
+cache[key] = value  // write sin protección
+
+// SEGURO:
+var cacheMu sync.RWMutex
+var cache = make(map[string]string)
+
+cacheMu.Lock()
+cache[key] = value
+cacheMu.Unlock()
+
+// O usar sync.Map para acceso concurrente frecuente
+var cache sync.Map
+cache.Store(key, value)
+```
+
+---
+
+### 0.4. Go: Regex DoS
+
+**Patrón peligroso**: `regexp.Compile(pattern)` donde `pattern` viene del usuario sin validación
+
+**Riesgo**: Patrones maliciosos pueden causar consumo excesivo de CPU (aunque Go usa RE2, que es inmune a catastrophic backtracking).
+
+**Alternativa segura**:
+```go
+// VALIDAR longitud antes de compilar:
+if len(pattern) > 1000 {
+    return fmt.Errorf("patrón demasiado largo")
+}
+re, err := regexp.Compile(pattern)
+```
+
+---
+
 ### 1. Inyección de Comandos — `child_process.exec`
 
 **Patrón peligroso**: `child_process.exec`, `exec(`, `execSync(`
