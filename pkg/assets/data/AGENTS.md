@@ -16,6 +16,7 @@ No pidas al usuario que ejecute la CLI; hazlo tú silenciosamente:
 - **Check**: Verifica que el proyecto esté funcional → `./juarvis check`
 - **Snapshot (¡Obligatorio!)**: ANTES de tocar archivos del usuario, siempre crea un snapshot usando `./juarvis snapshot create "tu-descripcion"` (usa git stash interno). Si hay fallo, ejecuta `./juarvis snapshot restore`.
 - **Sincronización**: Al crear/editar skills, ejecuta `./juarvis load` para regenerar el registry.
+- **Actualización**: Para actualizar el ecosistema local con la versión del binario, ejecuta `./juarvis sync`.
 
 ## Spec-Driven Development (SDD)
 
