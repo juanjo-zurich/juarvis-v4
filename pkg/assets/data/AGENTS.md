@@ -70,6 +70,39 @@ Si algo falla durante la ejecución de tests o build:
 3. **Tests fallidos**: Ejecuta `go test ./... -v` para ver detalles, corrige y reintenta.
 4. **Solo si no puedes resolverlo**: Informa al usuario con el error exacto y tu diagnóstico.
 
+## Reflection Loop: Aprendizaje Continuo
+
+El agente debe aprender de sus errores y evitar repetirlos usando la memoria persistente.
+
+### Antes de tareas no triviales (SDD, refactor, bugs)
+1. Llama `mem_context(project: "juarvis_v4", limit: 5)` para ver sesiones recientes.
+2. Si la tarea tiene un tema específico, llama `mem_search(query: "<tema>", project: "juarvis_v4", limit: 5)`.
+3. Si encuentras observaciones relevantes, léelas con `mem_get_observation(id: "...")`.
+4. Aplica lo aprendido. Evita repetir errores pasados.
+
+### Cuando encuentres un error no obvio
+1. Primero aplica el Protocolo de Auto-Reparación.
+2. Si la solución fue instructiva, guarda el aprendizaje:
+   ```
+   mem_save(
+     title: "Fixed <error breve>",
+     type: "bugfix" | "discovery" | "learning",
+     project: "juarvis_v4",
+     content: "**Error**: <descripción>\n**Causa raíz**: <causa>\n**Solución**: <cómo se resolvió>\n**Archivos**: <paths>\n**Prevención**: <cómo evitarlo en el futuro>"
+   )
+   ```
+3. Si ya existe una observación sobre este tema, usa `mem_update` en vez de duplicar.
+
+### Al cerrar sesión o tarea completada
+1. Si se tomó una decisión de arquitectura o diseño:
+   `mem_save(title: "Chose X over Y", type: "decision", project: "juarvis_v4", content: "...")`
+2. Si se descubrió un patrón o convención:
+   `mem_save(title: "Established <pattern>", type: "pattern", project: "juarvis_v4", content: "...")`
+3. **SIEMPRE** ejecuta `mem_session_summary` con el formato obligatorio:
+   Goal / Instructions / Discoveries / Accomplished / Next Steps / Relevant Files
+
+Si Engram no responde, continúa sin memoria (ver Modo Degradado).
+
 ## Antes de Cada Tarea
 
 1. Lee `.juar/skill-registry.md` para saber qué skills tienes disponibles
