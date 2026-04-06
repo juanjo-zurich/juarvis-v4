@@ -104,7 +104,9 @@ func RunLoader(rootPath string) error {
 					}
 
 					if err := os.Symlink(cleanSource, dest); err != nil {
-						return fmt.Errorf("error creando symlink para skill %s: %w", skName, err)
+						// Skill duplicada — otro plugin ya la tiene. Skip sin error.
+						output.Warning("Skill '%s' duplicada en plugin '%s' (ya existe en otro plugin). Se omite.", skName, pName)
+						continue
 					}
 					registryRows = append(registryRows, fmt.Sprintf("| %s | %s | %s | enabled |", skName, pName, filepath.Join("plugins", pName, "skills", skName)))
 				}
