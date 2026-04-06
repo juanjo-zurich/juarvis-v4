@@ -1,0 +1,15 @@
+{
+  "description": "Hook de modo explicativo que añade instrucciones de contexto educativo",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${OPENCODE_PLUGIN_ROOT}/hooks-handlers/session-start.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

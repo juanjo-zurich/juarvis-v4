@@ -1,0 +1,98 @@
+# Configuración de Hooks del Ciclo de Vida — Juarvis_V3
+#
+# Tres sistemas de hooks activos:
+#   1. security-audit.sh   — auditoría de seguridad estática (PreToolUse, bash)
+#   2. hookify/            — reglas dinámicas configurables por el usuario (Python)
+#   3. ralph/              — bucles iterativos autónomos (Stop hook)
+#
+# Orden de evaluación PreToolUse: security-audit primero, hookify después.
+# Si cualquiera sale con código 2, la operación se bloquea.
+
+version: "1.0"
+
+hooks:
+  # ── 1. Auditoría de seguridad estática ──────────────────────────────────────
+  # Detecta patrones peligrosos: eval, exec, innerHTML, pickle, curl|sh, etc.
+  - event: PreToolUse
+    script_path: "~/.config/opencode/hooks/security-audit.sh"
+    timeout_seconds: 5
+    enabled: true
+    matcher: "Edit|Write|MultiEdit|Bash"
+
+  # ── 2. Hookify — reglas dinámicas PreToolUse ─────────────────────────────────
+  # Lee .juarvis/hookify.*.local.md del proyecto y evalúa patrones/condiciones.
+  # El usuario crea reglas con /hookify sin tocar este archivo.
+  - event: PreToolUse
+    script_path: "~/.config/opencode/hooks/hookify/pretooluse.py"
+    command: "python3 ~/.config/opencode/hooks/hookify/pretooluse.py"
+    timeout_seconds: 10
+    enabled: true
+    matcher: "Edit|Write|MultiEdit|Bash"
+
+  # ── 3. Hookify — reglas dinámicas PostToolUse ────────────────────────────────
+  - event: PostToolUse
+    script_path: "~/.config/opencode/hooks/hookify/posttooluse.py"
+    command: "python3 ~/.config/opencode/hooks/hookify/posttooluse.py"
+    timeout_seconds: 10
+    enabled: true
+    matcher: "Edit|Write|MultiEdit|Bash"
+
+  # ── 4. Hookify — reglas Stop ─────────────────────────────────────────────────
+  # Permite bloquear la salida del agente con reglas tipo "require-tests-run".
+  - event: Stop
+    script_path: "~/.config/opencode/hooks/hookify/stop.py"
+    command: "python3 ~/.config/opencode/hooks/hookify/stop.py"
+    timeout_seconds: 10
+    enabled: true
+
+  # ── 5. Hookify — reglas UserPromptSubmit ─────────────────────────────────────
+  - event: UserPromptSubmit
+    script_path: "~/.config/opencode/hooks/hookify/userpromptsubmit.py"
+    command: "python3 ~/.config/opencode/hooks/hookify/userpromptsubmit.py"
+    timeout_seconds: 10
+    enabled: true
+
+  # ── 6. Ralph — Stop hook para bucles iterativos ───────────────────────────────
+  # Solo activo cuando existe .juarvis/ralph-loop.local.md en el proyecto.
+  # Se evalúa DESPUÉS de hookify/stop.py.
+  - event: Stop
+    script_path: "~/.config/opencode/hooks/ralph/stop-hook.sh"
+    command: "bash ~/.config/opencode/hooks/ralph/stop-hook.sh"
+    timeout_seconds: 15
+    enabled: true
+
+  # ── 7. Logging post-herramienta ───────────────────────────────────────────────
+  - event: PostToolUse
+    script_path: "~/.config/opencode/hooks/post-tool-use-log.sh"
+    command: "bash ~/.config/opencode/hooks/post-tool-use-log.sh"
+    timeout_seconds: 5
+    enabled: true
+
+  # ── Hooks opcionales (desactivados por defecto) ───────────────────────────────
+  - event: PreCompact
+    script_path: ""
+    timeout_seconds: 5
+    enabled: false
+
+  - event: PostCompact
+    script_path: ""
+    timeout_seconds: 5
+    enabled: false
+
+  - event: SessionStart
+    script_path: "~/.config/opencode/hooks/session-start.sh"
+    command: "bash ~/.config/opencode/hooks/session-start.sh"
+    timeout_seconds: 5
+    enabled: false
+
+  - event: SessionEnd
+    script_path: ""
+    timeout_seconds: 5
+    enabled: false
+
+# Configuración global
+settings:
+  timeout_action: "terminate_and_warn"
+  missing_script_action: "warn_and_continue"
+  dry_run: false
+  log_directory: "~/.config/opencode/hooks/logs"

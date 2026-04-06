@@ -1,0 +1,51 @@
+{
+  "description": "Hookify - User-configurable hooks from .juarvis/hookify.*.local.md files",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "juarvis hookify pretooluse",
+            "timeout": 10
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit|Bash"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "juarvis hookify posttooluse",
+            "timeout": 10
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit|Bash"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "juarvis hookify stop",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "juarvis hookify userpromptsubmit",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

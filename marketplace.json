@@ -1,0 +1,29 @@
+{
+  "$schema": "https://juarvis.ai/marketplace.schema.json",
+  "name": "juarvis-marketplace",
+  "version": "1.0.0",
+  "description": "Marketplace oficial de plugins para Juarvis_V4",
+  "owner": {"name": "Juarvis", "email": "juarvis@example.com"},
+  "plugins": [
+    {"name": "juarvis-core", "description": "Skills básicas del sistema (context-handoff, memory-update, plan-mode, etc.)", "version": "1.0.0", "source": "./plugins/core", "category": "development"},
+    {"name": "juarvis-sdd", "description": "Spec-Driven Development completo (9 fases)", "version": "1.0.0", "source": "./plugins/sdd", "category": "development"},
+    {"name": "juarvis-languages", "description": "Skills de lenguajes (nodejs, python, rust, react)", "version": "1.0.0", "source": "./plugins/languages", "category": "languages"},
+    {"name": "juarvis-feature-dev", "description": "Desarrollo de features con agents especializados", "version": "1.0.0", "source": "./plugins/feature-dev", "category": "development"},
+    {"name": "juarvis-pr-review", "description": "Review de PR con 6 agentes especializados", "version": "1.0.0", "source": "./plugins/pr-review", "category": "development"},
+    {"name": "juarvis-security", "description": "Guías y escaneo de seguridad", "version": "1.0.0", "source": "./plugins/security", "category": "security"},
+    {"name": "juarvis-hookify", "description": "Creación dinámica de hooks por lenguaje natural", "version": "1.0.0", "source": "./plugins/hookify", "category": "development"},
+    {"name": "juarvis-ralph", "description": "Bucles autónomos de iteración", "version": "1.0.0", "source": "./plugins/ralph", "category": "productivity"},
+    {"name": "juarvis-agents", "description": "Agentes SDK y desarrollo de agents", "version": "1.0.0", "source": "./plugins/agents", "category": "development"},
+    {"name": "juarvis-plugin-dev", "description": "Toolkit para crear plugins", "version": "1.0.0", "source": "./plugins/plugin-dev", "category": "development"},
+    {"name": "juarvis-frontend", "description": "Diseño frontend y containerización", "version": "1.0.0", "source": "./plugins/frontend", "category": "development"},
+    {"name": "juarvis-database", "description": "Diseño de bases de datos", "version": "1.0.0", "source": "./plugins/database", "category": "development"},
+    {"name": "juarvis-api", "description": "Diseño de APIs e integración MCP", "version": "1.0.0", "source": "./plugins/api", "category": "development"},
+    {"name": "juarvis-testing", "description": "Testing y debugging sistemático", "version": "1.0.0", "source": "./plugins/testing", "category": "testing"},
+    {"name": "juarvis-ci-cd", "description": "Pipelines de CI/CD", "version": "1.0.0", "source": "./plugins/ci-cd", "category": "infrastructure"},
+    {"name": "juarvis-config", "description": "Configuración, hooks pedagógicos y reglas de escritura", "version": "1.0.0", "source": "./plugins/config", "category": "development"},
+    {"name": "juarvis-backend-patterns", "description": "Patrones de arquitectura backend: API design, repository, service layer, caching, auth, rate limiting", "version": "1.0.0", "source": "./plugins/backend-patterns", "category": "development"},
+    {"name": "juarvis-api-error-handling", "description": "Manejo avanzado de errores en APIs: retry con backoff, circuit breaker, graceful degradation", "version": "1.0.0", "source": "./plugins/api-error-handling", "category": "development"},
+    {"name": "juarvis-frontend-design", "description": "Principios de diseño frontend: tipografía, color, espaciado, layouts modernos, componentes estéticos", "version": "1.0.0", "source": "./plugins/frontend-design", "category": "design"},
+    {"name": "juarvis-frontend-ui", "description": "Estrategias de UI basadas en investigación para crear interfaces visualmente atractivas", "version": "1.0.0", "source": "./plugins/frontend-ui", "category": "design"}
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "juarvis-api-error-handling",
+  "version": "1.0.0",
+  "description": "Manejo avanzado de errores en APIs: retry con backoff, circuit breaker, graceful degradation",
+  "category": "development"
+}

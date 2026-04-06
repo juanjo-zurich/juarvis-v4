@@ -1,0 +1,6 @@
+{
+  "name": "juarvis-backend-patterns",
+  "version": "1.0.0",
+  "description": "Patrones de arquitectura backend: API design, repository, service layer, caching, auth, rate limiting",
+  "category": "development"
+}

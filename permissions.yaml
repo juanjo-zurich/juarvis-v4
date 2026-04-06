@@ -1,0 +1,232 @@
+# Sistema de Permisos — Configuración de Herramientas y Comandos
+#
+# Estructura:
+#   tool_name:
+#     - pattern: "patrón glob o comando"
+#       action: allow | deny | ask
+#       reason: "motivo de la decisión"
+#
+# Las reglas más específicas prevalecen sobre las generales.
+# El orden de evaluación: deny > ask > allow (específica > general).
+
+version: "1.0"
+
+rules:
+  bash:
+    # Comandos seguros — lectura y navegación
+    - pattern: "ls"
+      action: allow
+      reason: "Comando de lectura seguro"
+
+    - pattern: "ls *"
+      action: allow
+      reason: "Comando de lectura seguro con argumentos"
+
+    - pattern: "cat *"
+      action: allow
+      reason: "Lectura de archivos"
+
+    - pattern: "pwd"
+      action: allow
+      reason: "Consulta de directorio actual"
+
+    - pattern: "whoami"
+      action: allow
+      reason: "Consulta de usuario"
+
+    - pattern: "echo *"
+      action: allow
+      reason: "Salida de texto inofensiva"
+
+    - pattern: "which *"
+      action: allow
+      reason: "Consulta de ubicación de binarios"
+
+    # Comandos de Git — operaciones seguras
+    - pattern: "git status"
+      action: allow
+      reason: "Consulta de estado del repositorio"
+
+    - pattern: "git log *"
+      action: allow
+      reason: "Consulta de historial"
+
+    - pattern: "git diff *"
+      action: allow
+      reason: "Consulta de diferencias"
+
+    - pattern: "git branch *"
+      action: allow
+      reason: "Consulta de ramas"
+
+    - pattern: "git checkout *"
+      action: allow
+      reason: "Cambio de rama"
+
+    - pattern: "git add *"
+      action: allow
+      reason: "Añadir archivos al staging"
+
+    - pattern: "git commit *"
+      action: ask
+      reason: "Commit requiere confirmación de que tests pasaron"
+
+    # Comandos Go — build y tests seguros
+    - pattern: "go build"
+      action: allow
+      reason: "Compilación segura"
+
+    - pattern: "go build *"
+      action: allow
+      reason: "Compilación segura con argumentos"
+
+    - pattern: "go test *"
+      action: allow
+      reason: "Ejecución de tests segura"
+
+    - pattern: "go vet *"
+      action: allow
+      reason: "Análisis estático seguro"
+
+    - pattern: "go fmt *"
+      action: allow
+      reason: "Formateo de código seguro"
+
+    - pattern: "go mod tidy"
+      action: allow
+      reason: "Sincronización de dependencias necesaria para que los tests funcionen"
+
+    - pattern: "go run *"
+      action: ask
+      reason: "Ejecuta código arbitrario — requiere confirmación"
+
+    - pattern: "go install *"
+      action: ask
+      reason: "Instala binarios — requiere confirmación"
+
+    - pattern: "./juarvis *"
+      action: allow
+      reason: "Comandos del CLI Juarvis — operaciones internas seguras"
+
+    # Comandos que requieren confirmación
+    - pattern: "git push"
+      action: ask
+      reason: "Push a repositorio remoto — requiere confirmación"
+
+    - pattern: "git push *"
+      action: ask
+      reason: "Push a repositorio remoto — requiere confirmación"
+
+    - pattern: "npm install"
+      action: ask
+      reason: "Instalación de dependencias — requiere confirmación"
+
+    - pattern: "npm install *"
+      action: ask
+      reason: "Instalación de dependencias — requiere confirmación"
+
+    - pattern: "pip install *"
+      action: ask
+      reason: "Instalación de dependencias Python — requiere confirmación"
+
+    - pattern: "docker *"
+      action: ask
+      reason: "Operaciones Docker — requiere confirmación"
+
+    # Comandos denegados — destructivos
+    - pattern: "rm -rf *"
+      action: deny
+      reason: "Eliminación recursiva forzada — operación destructiva"
+
+    - pattern: "git push --force"
+      action: deny
+      reason: "Force push — sobrescribe historial remoto"
+
+    - pattern: "git push --force *"
+      action: deny
+      reason: "Force push — sobrescribe historial remoto"
+
+    - pattern: "git reset --hard *"
+      action: deny
+      reason: "Reset hard — elimina cambios locales"
+
+    - pattern: "sudo *"
+      action: deny
+      reason: "Ejecución como root — no permitida por seguridad"
+
+    # Patrones destructivos ampliados
+    - pattern: "rm -rf /"
+      action: deny
+      reason: "Eliminación del sistema raíz — operación catastrófica"
+
+    - pattern: "rm -rf ."
+      action: deny
+      reason: "Eliminación recursiva del directorio actual"
+
+    - pattern: "rm -rf /*"
+      action: deny
+      reason: "Eliminación de todos los archivos del sistema"
+
+    - pattern: "mv * *"
+      action: deny
+      reason: "Movimiento masivo destructivo"
+
+    - pattern: "chmod -R 777 *"
+      action: deny
+      reason: "Cambio de permisos destructivo"
+
+    - pattern: "chmod -R 777 ."
+      action: deny
+      reason: "Cambio de permisos destructivo en directorio actual"
+
+    - pattern: ":(){ :|:& };:"
+      action: deny
+      reason: "Fork bomb — potencial denegación de servicio"
+
+    - pattern: "dd if=/dev/zero"
+      action: deny
+      reason: "Escritura masiva de dispositivos"
+
+    - pattern: "mkfs.*"
+      action: deny
+      reason: "Formateo de sistemas de archivos — destructivo"
+
+    - pattern: "shutdown"
+      action: deny
+      reason: "Apagado del sistema"
+
+    - pattern: "reboot"
+      action: deny
+      reason: "Reinicio del sistema"
+
+    - pattern: "halt"
+      action: deny
+      reason: "Detención del sistema"
+
+    - pattern: "rm -rf"
+      action: ask
+      reason: "Comando de eliminación recursiva — requiere confirmación"
+
+  # Regla general para herramientas de escritura de archivos
+  file_write:
+    - pattern: "*"
+      action: allow
+      reason: "Escritura de archivos por defecto permitida"
+
+  # Regla general para herramientas de lectura de archivos
+  file_read:
+    - pattern: "*"
+      action: allow
+      reason: "Lectura de archivos por defecto permitida"
+
+# Límites de ejecución
+limits:
+  max_bash_executions_per_session: 50
+  max_retries_per_failed_test: 3
+
+# Configuración de auditoría
+audit:
+  enabled: true
+  log_file: "~/.config/juarvis/audit.log"
+  log_decisions: true
+  log_executions: true
