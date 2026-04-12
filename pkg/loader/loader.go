@@ -114,6 +114,49 @@ func RunLoader(rootPath string) error {
 		}
 	}
 
+	// ==== User Skills (.agent/skills/) ====
+	userSkillsDir := filepath.Join(rootPath, ".agent", "skills")
+	if userFiles, err := os.ReadDir(userSkillsDir); err == nil {
+		output.Info("Indexando skills de usuario...")
+		for _, userFile := range userFiles {
+			if !userFile.IsDir() {
+				continue
+			}
+			skillName := userFile.Name()
+			skillDir := filepath.Join(userSkillsDir, skillName)
+
+			// Buscar SKILL.md
+			skillFile := filepath.Join(skillDir, "SKILL.md")
+			if _, err := os.Stat(skillFile); os.IsNotExist(err) {
+				continue
+			}
+
+			// Crear symlink en skills/
+			source := filepath.Join("..", ".agent", "skills", skillName)
+			dest := filepath.Join(tmpDir, skillName)
+
+			// Security: validate symlink target stays within ecosystem
+			cleanSource := filepath.Clean(source)
+			absSource, err := filepath.Abs(filepath.Join(rootPath, cleanSource))
+			if err != nil {
+				output.Warning("Skill de usuario %s saltada: no se pudo resolver path", skillName)
+				continue
+			}
+			absRoot, _ := filepath.Abs(rootPath)
+			if !strings.HasPrefix(absSource, absRoot) {
+				output.Warning("Skill de usuario %s saltada: symlink apunta fuera del ecosistema", skillName)
+				continue
+			}
+
+			if err := os.Symlink(cleanSource, dest); err != nil {
+				// Skill duplicada — ya existe. Skip sin error.
+				output.Warning("Skill de usuario '%s' duplicada. Se omite.", skillName)
+				continue
+			}
+			registryRows = append(registryRows, fmt.Sprintf("| %s | user | .agent/skills/%s | enabled |", skillName, skillName))
+		}
+	}
+
 	// Reemplazo atómico: eliminar skillsDir y renombrar tmpDir
 	if err := os.RemoveAll(skillsDir); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("error eliminando skills antiguo: %w", err)
