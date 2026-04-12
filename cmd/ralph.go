@@ -9,6 +9,7 @@ import (
 
 	"juarvis/pkg/output"
 	"juarvis/pkg/ralph"
+	"juarvis/pkg/root"
 
 	"github.com/spf13/cobra"
 )
@@ -32,7 +33,8 @@ var ralphLoopCmd = &cobra.Command{
 		maxIter, _ := cmd.Flags().GetInt("max-iterations")
 		completionPromise, _ := cmd.Flags().GetString("completion-promise")
 
-		if err := ralph.CreateLoopState(prompt, maxIter, completionPromise); err != nil {
+		rootPath, _ := root.GetRoot()
+		if err := ralph.CreateLoopState(rootPath, prompt, maxIter, completionPromise); err != nil {
 			output.Error("Error en el bucle de Ralph: %v", err)
 			os.Exit(1)
 		}
@@ -67,7 +69,8 @@ var ralphStopCmd = &cobra.Command{
 			return fmt.Errorf("invalid JSON from stdin: %w", err)
 		}
 
-		state, err := ralph.LoadState()
+		rootPath, _ := root.GetRoot()
+		state, err := ralph.LoadState(rootPath)
 		if err != nil {
 			os.Exit(0)
 		}
@@ -103,7 +106,7 @@ var ralphStopCmd = &cobra.Command{
 
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
-		enc.Encode(result)
+		_ = enc.Encode(result)
 
 		os.Exit(0)
 		return nil
@@ -114,7 +117,8 @@ var ralphStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show current Ralph loop status",
 	Run: func(cmd *cobra.Command, args []string) {
-		state, err := ralph.LoadState()
+		rootPath, _ := root.GetRoot()
+		state, err := ralph.LoadState(rootPath)
 		if err != nil {
 			output.Info("No active Ralph loop")
 			return
@@ -134,7 +138,8 @@ var ralphResetCmd = &cobra.Command{
 	Use:   "reset",
 	Short: "Reset/cancel the current Ralph loop",
 	Run: func(cmd *cobra.Command, args []string) {
-		state, err := ralph.LoadState()
+		rootPath, _ := root.GetRoot()
+		state, err := ralph.LoadState(rootPath)
 		if err != nil {
 			output.Info("No active Ralph loop to reset")
 			return

@@ -5,21 +5,27 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"juarvis/pkg/config"
 )
 
 func TestCreateLoopState(t *testing.T) {
-	err := CreateLoopState("test-prompt", 5, "promise")
+	dir := t.TempDir()
+	// Create .juarvis directory
+	os.MkdirAll(dir+"/"+config.JuarvisDir, 0755)
+
+	err := CreateLoopState(dir, "test-prompt", 5, "promise")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	defer func() {
-		s, err := LoadState()
+		s, err := LoadState(dir)
 		if err == nil {
 			s.Delete()
 		}
 	}()
 
-	state, err := LoadState()
+	state, err := LoadState(dir)
 	if err != nil {
 		t.Fatalf("failed to load state: %v", err)
 	}
@@ -131,6 +137,7 @@ func TestBuildStopResponse_NoPromise(t *testing.T) {
 		Iteration:     1,
 		MaxIterations: 5,
 		Prompt:        "test prompt",
+		RootPath:      tmpDir,
 	}
 
 	resp, err := BuildStopResponse(state, transcriptPath)

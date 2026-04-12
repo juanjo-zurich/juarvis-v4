@@ -5,6 +5,12 @@ juarvis
 .atl/
 openspec/
 
+# Backups
+*.bak
+*~
+*.swp
+*.tmp
+
 # Environment
 .env
 *.env

@@ -39,7 +39,8 @@ type Session struct {
 type Storage struct {
 	mu        sync.RWMutex
 	memoryDir string
-	index     map[string][]string // token -> observation IDs
+	index     map[string][]string     // token -> observation IDs
+	obsCache  map[string]*Observation // observation cache for fast lookup
 }
 
 func NewStorage(rootPath string) (*Storage, error) {
@@ -71,6 +72,7 @@ func tokenize(text string) []string {
 }
 
 func (s *Storage) buildIndex() {
+	s.obsCache = make(map[string]*Observation)
 	entries, err := os.ReadDir(filepath.Join(s.memoryDir, "observations"))
 	if err != nil {
 		return
@@ -90,6 +92,8 @@ func (s *Storage) buildIndex() {
 		if obs.DeletedAt != nil {
 			continue
 		}
+		// Cache the observation for fast lookup
+		s.obsCache[obs.ID] = &obs
 		tokens := tokenize(obs.Title + " " + obs.Content)
 		for _, token := range tokens {
 			found := false
@@ -145,6 +149,8 @@ func (s *Storage) SaveObservation(obs *Observation) error {
 	if err := os.WriteFile(path, data, 0644); err != nil {
 		return fmt.Errorf("error escribiendo observación: %w", err)
 	}
+	// Update cache
+	s.obsCache[obs.ID] = obs
 	s.indexObservation(obs)
 	return nil
 }
@@ -200,8 +206,9 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 		if len(results) >= limit {
 			break
 		}
-		obs, err := s.getObservationLocked(id)
-		if err != nil {
+		// Use cache instead of reading from disk
+		obs, ok := s.obsCache[id]
+		if !ok {
 			continue
 		}
 		if obs.DeletedAt != nil {
@@ -222,6 +229,8 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 	return results, nil
 }
 
+// getObservationLocked is reserved for future use with transactions
+// nolint:unused
 func (s *Storage) getObservationLocked(id string) (*Observation, error) {
 	path := filepath.Join(s.memoryDir, "observations", id+".json")
 	data, err := os.ReadFile(path)
@@ -276,7 +285,10 @@ func (s *Storage) DeleteObservation(id string, hard bool) error {
 
 	path := filepath.Join(s.memoryDir, "observations", id+".json")
 	if hard {
-		return os.Remove(path)
+		_ = os.Remove(path)
+		// Remove from cache
+		delete(s.obsCache, id)
+		return nil
 	}
 
 	data, err := os.ReadFile(path)
@@ -294,7 +306,15 @@ func (s *Storage) DeleteObservation(id string, hard bool) error {
 	if err != nil {
 		return fmt.Errorf("error serializando: %w", err)
 	}
-	return os.WriteFile(path, data, 0644)
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return err
+	}
+	// Update cache with soft-deleted observation
+	if existing, ok := s.obsCache[id]; ok {
+		now := time.Now()
+		existing.DeletedAt = &now
+	}
+	return nil
 }
 
 func (s *Storage) SaveSession(sess *Session) error {

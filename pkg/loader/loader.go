@@ -46,7 +46,7 @@ func RunLoader(rootPath string) error {
 	if err != nil {
 		return fmt.Errorf("error creando directorio temporal: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	if err := os.MkdirAll(juarDir, 0755); err != nil {
 		return fmt.Errorf("error creando .juar dir: %w", err)

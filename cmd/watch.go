@@ -169,24 +169,24 @@ func stopWatcher() {
 	pid, err := strconv.Atoi(string(pidBytes))
 	if err != nil {
 		output.Error("PID file corrupto: %v", err)
-		os.Remove(pidFile)
+		_ = os.Remove(pidFile)
 		os.Exit(1)
 	}
 
 	proc, err := os.FindProcess(pid)
 	if err != nil {
 		output.Info("Proceso %d no encontrado, limpiando PID file", pid)
-		os.Remove(pidFile)
+		_ = os.Remove(pidFile)
 		return
 	}
 
 	if err := proc.Signal(syscall.SIGTERM); err != nil {
 		output.Info("Proceso %d ya no existe, limpiando PID file", pid)
-		os.Remove(pidFile)
+		_ = os.Remove(pidFile)
 		return
 	}
 
-	os.Remove(pidFile)
+	_ = os.Remove(pidFile)
 	output.Success("Watcher detenido (PID: %d)", pid)
 }
 
@@ -197,6 +197,6 @@ func init() {
 	watchCmd.Flags().Bool("daemon", false, "Ejecutar watcher en segundo plano (background)")
 	watchCmd.Flags().Bool("stop", false, "Detener el watcher en segundo plano")
 	watchCmd.Flags().Bool("foreground-child", false, "Flag interno para proceso hijo del daemon")
-	watchCmd.Flags().MarkHidden("foreground-child")
+	_ = watchCmd.Flags().MarkHidden("foreground-child")
 	rootCmd.AddCommand(watchCmd)
 }

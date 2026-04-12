@@ -285,7 +285,7 @@ func findPluginDir(name string) (string, error) {
 		manifestFile := filepath.Join(path, config.JuarvisPluginDir, "plugin.json")
 		var plug Plugin
 		if data, err := os.ReadFile(manifestFile); err == nil {
-			json.Unmarshal(data, &plug)
+			_ = json.Unmarshal(data, &plug)
 			if plug.Name == name {
 				pluginCacheMu.Lock()
 				if pluginCache == nil {
@@ -295,16 +295,14 @@ func findPluginDir(name string) (string, error) {
 				pluginCacheMu.Unlock()
 				return path, nil
 			}
-		} else {
-			if e.Name() == name || "juarvis-"+e.Name() == name {
-				pluginCacheMu.Lock()
-				if pluginCache == nil {
-					pluginCache = make(map[string]string)
-				}
-				pluginCache[name] = path
-				pluginCacheMu.Unlock()
-				return path, nil
+		} else if e.Name() == name || "juarvis-"+e.Name() == name {
+			pluginCacheMu.Lock()
+			if pluginCache == nil {
+				pluginCache = make(map[string]string)
 			}
+			pluginCache[name] = path
+			pluginCacheMu.Unlock()
+			return path, nil
 		}
 	}
 	return "", fmt.Errorf("plugin '%s' no encontrado en el sistema de archivos", name)
@@ -404,15 +402,16 @@ func InstallPlugin(pluginName string) error {
 	}
 
 	// Determinar tipo de fuente
-	if strings.HasPrefix(targetPlugin.Source, "ext:") {
+	switch {
+	case strings.HasPrefix(targetPlugin.Source, "ext:"):
 		sParts := strings.Split(strings.TrimPrefix(targetPlugin.Source, "ext:"), "|")
 		err = installExternalSkill(sParts[0], sParts[1], pluginDir)
-	} else if strings.HasPrefix(targetPlugin.Source, "vercel:") {
+	case strings.HasPrefix(targetPlugin.Source, "vercel:"):
 		skillName := strings.TrimPrefix(targetPlugin.Source, "vercel:")
 		err = installVercelSkill(skillName, pluginDir)
-	} else if strings.HasPrefix(targetPlugin.Source, "http") {
+	case strings.HasPrefix(targetPlugin.Source, "http"):
 		err = installFromGit(targetPlugin.Source, pluginDir, targetPlugin.Name)
-	} else {
+	default:
 		err = installFromLocal(targetPlugin.Source, pluginDir, rootPath)
 	}
 	if err == nil {
@@ -436,7 +435,7 @@ func installExternalSkill(repoUrl, skillName, destDir string) error {
 	if err != nil {
 		return fmt.Errorf("error creando directorio temporal: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cmd := exec.Command("git", "clone", "--depth", "1", repoUrl, tmpDir)
 	if out, err := cmd.CombinedOutput(); err != nil {
@@ -465,7 +464,7 @@ func installVercelSkill(skillName, destDir string) error {
 	if err != nil {
 		return fmt.Errorf("error creando directorio temporal: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cmd := exec.Command("git", "clone", "--depth", "1", "https://github.com/vercel-labs/agent-skills.git", tmpDir)
 	if out, err := cmd.CombinedOutput(); err != nil {

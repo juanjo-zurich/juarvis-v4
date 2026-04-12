@@ -58,13 +58,14 @@ func RunHealthCheck() error {
 	} else {
 		// Verificar que el registry tiene contenido real
 		content, readErr := os.ReadFile(registryPath)
-		if readErr != nil {
+		switch {
+		case readErr != nil:
 			output.Warning("No se pudo leer skill-registry.md. Ejecuta 'juarvis load'.")
-		} else if len(content) < 50 {
+		case len(content) < 50:
 			output.Warning("skill-registry.md existe pero está vacío o corrupto. Ejecuta 'juarvis load'.")
-		} else if !bytes.Contains(content, []byte("|")) {
+		case !bytes.Contains(content, []byte("|")):
 			output.Warning("skill-registry.md existe pero no tiene entradas de skills. Ejecuta 'juarvis load'.")
-		} else {
+		default:
 			output.Success("Base de memoria LLM (.juar) intacta.")
 		}
 	}

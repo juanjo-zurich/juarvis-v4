@@ -25,8 +25,16 @@ test-verify: build
 
 test-all: test test-integration test-regression test-e2e test-verify
 
-lint:
+fmt:
+	gofmt -w -s .
+
+vet:
 	go vet ./...
+
+lint:
+	golangci-lint run ./...
+
+check: fmt vet lint
 
 install: build
 	cp juarvis /usr/local/bin/

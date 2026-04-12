@@ -14,6 +14,7 @@ import (
 )
 
 type LoopState struct {
+	RootPath          string // path base del ecosistema
 	Active            bool
 	Iteration         int
 	MaxIterations     int
@@ -21,8 +22,6 @@ type LoopState struct {
 	StartedAt         time.Time
 	Prompt            string
 }
-
-const stateFile = config.JuarvisDir + "/" + config.RalphStateFile
 
 func parseFrontmatter(content string) (map[string]string, string) {
 	fmRaw, body, found := utils.ExtractFrontmatterBlock(content)
@@ -48,7 +47,8 @@ func parseFrontmatter(content string) (map[string]string, string) {
 	return fm, body
 }
 
-func LoadState() (*LoopState, error) {
+func LoadState(rootPath string) (*LoopState, error) {
+	stateFile := rootPath + "/" + config.JuarvisDir + "/" + config.RalphStateFile
 	data, err := os.ReadFile(stateFile)
 	if err != nil {
 		return nil, err
@@ -95,6 +95,7 @@ func (s *LoopState) IsComplete() bool {
 }
 
 func (s *LoopState) Save() error {
+	stateFile := s.RootPath + "/" + config.JuarvisDir + "/" + config.RalphStateFile
 	os.MkdirAll(filepath.Dir(stateFile), 0755)
 
 	promiseYAML := "null"
@@ -117,6 +118,7 @@ started_at: "%s"
 }
 
 func (s *LoopState) Delete() {
+	stateFile := s.RootPath + "/" + config.JuarvisDir + "/" + config.RalphStateFile
 	os.Remove(stateFile)
 }
 
@@ -190,8 +192,9 @@ func ExtractLastAssistantMessage(transcriptPath string) (string, error) {
 	return strings.Join(texts, "\n"), nil
 }
 
-func CreateLoopState(prompt string, maxIterations int, completionPromise string) error {
+func CreateLoopState(rootPath, prompt string, maxIterations int, completionPromise string) error {
 	state := &LoopState{
+		RootPath:          rootPath,
 		Active:            true,
 		Iteration:         1,
 		MaxIterations:     maxIterations,

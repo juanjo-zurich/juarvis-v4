@@ -153,3 +153,75 @@ func TestRemovePlugin(t *testing.T) {
 		t.Fatal("plugin directory was not removed")
 	}
 }
+
+func TestHttpGetWithRetry_Throttle(t *testing.T) {
+	originalHTTP := httpGetFunc
+	callCount := 0
+
+	httpGetFunc = func(url string) (*http.Response, error) {
+		callCount++
+		if callCount == 1 {
+			return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody}, nil
+		}
+		return &http.Response{StatusCode: http.StatusTooManyRequests, Body: http.NoBody}, nil
+	}
+	defer func() { httpGetFunc = originalHTTP }()
+
+	_, err := httpGetWithRetry("http://example.com/test", 2)
+	if err != nil {
+		t.Logf("expected error after retries: %v", err)
+	}
+}
+
+func TestIsOfficialProvider(t *testing.T) {
+	tests := []struct {
+		source   string
+		expected bool
+	}{
+		{"vercel-labs/repo", true},
+		{"github/repo", true},
+		{"google-labs-code/repo", true},
+		{"vercel/repo", true},
+		{"sveltejs/repo", true},
+		{"random-owner/repo", false},
+		{"malicious/repo", false},
+	}
+
+	for _, tt := range tests {
+		result := isOfficialProvider(tt.source)
+		if result != tt.expected {
+			t.Errorf("isOfficialProvider(%q) = %v, want %v", tt.source, result, tt.expected)
+		}
+	}
+}
+
+func TestFindPluginDir(t *testing.T) {
+	dir := setupPMTest(t)
+
+	pluginDir := filepath.Join(dir, "plugins", "plugin-a")
+	os.MkdirAll(filepath.Join(pluginDir, config.JuarvisPluginDir), 0755)
+	manifest := `{"name":"plugin-a","version":"1.0.0","description":"Plugin A","category":"dev"}`
+	os.WriteFile(filepath.Join(pluginDir, config.JuarvisPluginDir, "plugin.json"), []byte(manifest), 0644)
+
+	found, err := findPluginDir("plugin-a")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if found != pluginDir {
+		t.Errorf("expected %q, got %q", pluginDir, found)
+	}
+
+	_, err = findPluginDir("nonexistent-plugin")
+	if err == nil {
+		t.Fatal("expected error for nonexistent plugin")
+	}
+}
+
+func TestRemovePlugin_NotFound(t *testing.T) {
+	setupPMTest(t)
+
+	err := RemovePlugin("nonexistent-plugin")
+	if err == nil {
+		t.Fatal("expected error for nonexistent plugin")
+	}
+}

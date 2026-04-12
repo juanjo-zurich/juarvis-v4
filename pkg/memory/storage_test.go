@@ -138,3 +138,99 @@ func TestStorageCreatesDirectories(t *testing.T) {
 		t.Error("sessions directory was not created")
 	}
 }
+
+func TestTokenize(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []string
+	}{
+		{"hello world", []string{"hello", "world"}},
+		{"Hello, World!", []string{"hello", "world"}},
+		{"test  test", []string{"test"}},
+		{"a", []string{}},                 // menos de 2 chars
+		{"a bc de", []string{"bc", "de"}}, // solo >1 char
+	}
+
+	for _, tt := range tests {
+		result := tokenize(tt.input)
+		if len(result) != len(tt.expected) {
+			t.Errorf("tokenize(%q) = %v, want %v", tt.input, result, tt.expected)
+			continue
+		}
+		for i, v := range result {
+			if v != tt.expected[i] {
+				t.Errorf("tokenize(%q)[%d] = %v, want %v", tt.input, i, v, tt.expected[i])
+			}
+		}
+	}
+}
+
+func TestUpdateObservation(t *testing.T) {
+	s := setupStorage(t)
+
+	obs := &Observation{
+		Title:   "Original title",
+		Type:    "test",
+		Project: "test-project",
+		Content: "original content",
+	}
+	if err := s.SaveObservation(obs); err != nil {
+		t.Fatalf("error saving: %v", err)
+	}
+
+	updates := map[string]interface{}{
+		"title": "Updated title",
+	}
+	if err := s.UpdateObservation(obs.ID, updates); err != nil {
+		t.Fatalf("error updating: %v", err)
+	}
+
+	updated, err := s.GetObservation(obs.ID)
+	if err != nil {
+		t.Fatalf("error getting: %v", err)
+	}
+	if updated.Title != "Updated title" {
+		t.Errorf("expected title 'Updated title', got %q", updated.Title)
+	}
+}
+
+func TestSearchObservations_Filters(t *testing.T) {
+	s := setupStorage(t)
+
+	s.SaveObservation(&Observation{Title: "Bug fix A", Type: "bugfix", Project: "proj-a", Content: "fix auth"})
+	s.SaveObservation(&Observation{Title: "Feature B", Type: "feature", Project: "proj-a", Content: "new dashboard"})
+	s.SaveObservation(&Observation{Title: "Bug fix C", Type: "bugfix", Project: "proj-b", Content: "fix db"})
+
+	results, err := s.SearchObservations("", "proj-a", "", "", 10)
+	if err != nil {
+		t.Fatalf("error searching: %v", err)
+	}
+	if len(results) != 2 {
+		t.Errorf("expected 2 results for proj-a, got %d", len(results))
+	}
+
+	results, err = s.SearchObservations("", "", "bugfix", "", 10)
+	if err != nil {
+		t.Fatalf("error searching: %v", err)
+	}
+	if len(results) != 2 {
+		t.Errorf("expected 2 bugfix results, got %d", len(results))
+	}
+
+	results, err = s.SearchObservations("", "", "", "", 1)
+	if err != nil {
+		t.Fatalf("error searching: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("expected 1 result with limit, got %d", len(results))
+	}
+}
+
+func TestGetObservation_NotFound(t *testing.T) {
+	s := setupStorage(t)
+
+	_, err := s.GetObservation("nonexistent-id")
+	if err == nil {
+		t.Fatal("expected error for nonexistent observation")
+	}
+}

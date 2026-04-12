@@ -26,7 +26,7 @@ var rootCmd = &cobra.Command{
 	Long:  `Juarvis V4 gestiona Spec-Driven Development, integradores MCP y control de paquetes de skills (Marketplace) directamente compilado en Go.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if GlobalRoot != "" {
-			os.Setenv("JUARVIS_ROOT", GlobalRoot)
+			_ = os.Setenv("JUARVIS_ROOT", GlobalRoot)
 		}
 		output.SetJSONMode(GlobalJSON)
 	},
