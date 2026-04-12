@@ -7,6 +7,7 @@ import (
 	"juarvis/pkg/snapshot"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -108,6 +109,62 @@ func (w *Watcher) Stop() error {
 	return w.fsWatcher.Close()
 }
 
+func GetFileScore(path string) int {
+	score := 0
+	ext := filepath.Ext(path)
+
+	highPriorityExts := map[string]int{
+		".go": 50, ".ts": 50, ".tsx": 50, ".js": 50, ".jsx": 50,
+		".py": 45, ".rs": 45, ".java": 40,
+		".sql": 40, ".graphql": 40, ".proto": 35,
+		".yaml": 30, ".yml": 30, ".json": 30,
+		".toml": 25,
+	}
+
+	if v, ok := highPriorityExts[ext]; ok {
+		score += v
+	}
+
+	baseName := filepath.Base(path)
+	if baseName == "go.mod" || baseName == "go.sum" ||
+		baseName == "package.json" || baseName == "tsconfig.json" ||
+		baseName == "Dockerfile" || baseName == "Makefile" {
+		score += 25
+	}
+
+	dirParts := strings.Split(filepath.ToSlash(path), "/")
+	for i, part := range dirParts {
+		if part == "vendor" || part == "node_modules" || part == ".git" || part == "dist" {
+			score -= 30
+		}
+		if part == "internal" || part == "pkg" || part == "cmd" {
+			score += 10 * (len(dirParts) - i)
+		}
+	}
+
+	return score
+}
+
+func ShouldSkip(path string, score int) bool {
+	skipPatterns := []string{
+		"/vendor/", "/node_modules/", "/.git/", "/dist/",
+		"/ Coverage/", "/_test.go", "_test.go",
+		"/.cache/", "/.tmp/", "/.生成的/",
+	}
+
+	for _, pattern := range skipPatterns {
+		if strings.Contains(path, pattern) {
+			return true
+		}
+	}
+
+	if score < 10 {
+		return true
+	}
+
+	return false
+}
+
 func (w *Watcher) addRecursive(dir string) error {
 	return filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -119,6 +176,17 @@ func (w *Watcher) addRecursive(dir string) error {
 			}
 			return w.fsWatcher.Add(path)
 		}
+
+		score := GetFileScore(path)
+		if ShouldSkip(path, score) {
+			return nil
+		}
+
+		if score >= 150 {
+			output.Info("High-priority file detected (score %d): %s", score, path)
+			snapshot.CreateSnapshot(fmt.Sprintf("immediate-%s", filepath.Base(path)))
+		}
+
 		return nil
 	})
 }
