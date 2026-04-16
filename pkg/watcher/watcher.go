@@ -172,13 +172,26 @@ func (w *Watcher) addRecursive(dir string) error {
 		}
 		if d.IsDir() {
 			if w.config.ShouldIgnore(path + "/") {
+				if w.config.Verbose {
+					output.Info("Ignored directory: %s", path)
+				}
 				return filepath.SkipDir
 			}
 			return w.fsWatcher.Add(path)
 		}
 
 		score := GetFileScore(path)
-		if ShouldSkip(path, score) {
+		skip := ShouldSkip(path, score)
+
+		if w.config.Verbose {
+			if skip {
+				output.Info("Skipped file (score %d): %s", score, path)
+			} else {
+				output.Info("Watching file (score %d): %s", score, path)
+			}
+		}
+
+		if skip {
 			return nil
 		}
 

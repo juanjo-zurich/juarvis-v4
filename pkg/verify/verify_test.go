@@ -64,7 +64,7 @@ func TestCheckPluginManifests(t *testing.T) {
 }
 
 func TestRunVerify(t *testing.T) {
-	results, err := RunVerify()
+	results, err := RunVerify(VerifyOptions{})
 	if err != nil {
 		t.Fatalf("RunVerify() error = %v", err)
 	}

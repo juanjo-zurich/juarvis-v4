@@ -10,6 +10,7 @@ type WatcherConfig struct {
 	DebounceMs            int
 	AutoSnapshotThreshold int
 	NoAutoSnapshot        bool
+	Verbose               bool
 	IgnorePatterns        []string
 	WatchDirs             []string
 }

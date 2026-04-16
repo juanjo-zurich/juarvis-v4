@@ -19,20 +19,37 @@ type CheckResult struct {
 	Message string
 }
 
-func RunVerify() ([]CheckResult, error) {
-	checks := []func() CheckResult{
-		checkGoBuild,
-		checkGoVet,
-		checkGoTest,
-		checkEmbeddedJSONs,
-		checkPluginManifests,
-		checkCLICommands,
+type VerifyOptions struct {
+	SkipBuild   bool
+	SkipVet     bool
+	SkipTest    bool
+	SkipJSON    bool
+	SkipPlugins bool
+	SkipCLI     bool
+}
+
+func RunVerify(opts VerifyOptions) ([]CheckResult, error) {
+	var results []CheckResult
+
+	if !opts.SkipBuild {
+		results = append(results, checkGoBuild())
+	}
+	if !opts.SkipVet {
+		results = append(results, checkGoVet())
+	}
+	if !opts.SkipTest {
+		results = append(results, checkGoTest())
+	}
+	if !opts.SkipJSON {
+		results = append(results, checkEmbeddedJSONs())
+	}
+	if !opts.SkipPlugins {
+		results = append(results, checkPluginManifests())
+	}
+	if !opts.SkipCLI {
+		results = append(results, checkCLICommands())
 	}
 
-	var results []CheckResult
-	for _, check := range checks {
-		results = append(results, check())
-	}
 	return results, nil
 }
 

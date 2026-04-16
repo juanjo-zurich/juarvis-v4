@@ -57,6 +57,7 @@ func runWatcherForeground(cmd *cobra.Command) {
 	debounceMs, _ := cmd.Flags().GetInt("debounce-ms")
 	threshold, _ := cmd.Flags().GetInt("auto-snapshot-threshold")
 	noAutoSnapshot, _ := cmd.Flags().GetBool("no-auto-snapshot")
+	verbose, _ := cmd.Flags().GetBool("verbose")
 
 	cfg := watcher.DefaultWatcherConfig(rootPath)
 	if debounceMs > 0 {
@@ -68,6 +69,7 @@ func runWatcherForeground(cmd *cobra.Command) {
 	if noAutoSnapshot {
 		cfg.NoAutoSnapshot = true
 	}
+	cfg.Verbose = verbose
 
 	w, err := watcher.NewWatcher(cfg)
 	if err != nil {
@@ -194,6 +196,7 @@ func init() {
 	watchCmd.Flags().Int("debounce-ms", 500, "Ventana de debounce en milisegundos")
 	watchCmd.Flags().Int("auto-snapshot-threshold", 5, "Numero de cambios para auto-snapshot")
 	watchCmd.Flags().Bool("no-auto-snapshot", false, "Desactivar auto-snapshots")
+	watchCmd.Flags().Bool("verbose", false, "Mostrar detalles de puntuación y filtrado de archivos")
 	watchCmd.Flags().Bool("daemon", false, "Ejecutar watcher en segundo plano (background)")
 	watchCmd.Flags().Bool("stop", false, "Detener el watcher en segundo plano")
 	watchCmd.Flags().Bool("foreground-child", false, "Flag interno para proceso hijo del daemon")

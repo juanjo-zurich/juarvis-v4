@@ -33,6 +33,13 @@ func RunHealthCheck() error {
 		output.Success("Git detectado.")
 	}
 
+	// Comprobar binario local
+	if _, err := os.Stat(filepath.Join(rootPath, "juarvis")); err == nil {
+		output.Success("Binario local juarvis detectado.")
+	} else {
+		output.Warning("Binario local juarvis no encontrado. Ejecuta 'make build'.")
+	}
+
 	// Comprobar marketplace
 	if _, err := os.Stat(filepath.Join(rootPath, "marketplace.json")); os.IsNotExist(err) {
 		embeddedFS, embErr := assets.GetEmbeddedFS()

@@ -8,76 +8,42 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 type LoopState struct {
-	RootPath          string // path base del ecosistema
-	Active            bool
-	Iteration         int
-	MaxIterations     int
-	CompletionPromise string
-	StartedAt         time.Time
-	Prompt            string
-}
-
-func parseFrontmatter(content string) (map[string]string, string) {
-	fmRaw, body, found := utils.ExtractFrontmatterBlock(content)
-	if !found {
-		return nil, content
-	}
-
-	fm := make(map[string]string)
-	lines := strings.Split(strings.TrimSpace(fmRaw), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		if idx := strings.Index(line, ":"); idx >= 0 {
-			key := strings.TrimSpace(line[:idx])
-			val := strings.TrimSpace(line[idx+1:])
-			val = strings.Trim(val, "\"")
-			fm[key] = val
-		}
-	}
-
-	return fm, body
+	RootPath          string `yaml:"-"` // path base del ecosistema
+	Active            bool   `yaml:"active"`
+	Iteration         int    `yaml:"iteration"`
+	MaxIterations     int    `yaml:"max_iterations"`
+	CompletionPromise string `yaml:"completion_promise"`
+	StartedAt         time.Time `yaml:"started_at"`
+	Prompt            string `yaml:"-"`
 }
 
 func LoadState(rootPath string) (*LoopState, error) {
-	stateFile := rootPath + "/" + config.JuarvisDir + "/" + config.RalphStateFile
+	stateFile := filepath.Join(rootPath, config.JuarvisDir, config.RalphStateFile)
 	data, err := os.ReadFile(stateFile)
 	if err != nil {
 		return nil, err
 	}
 
-	fm, prompt := parseFrontmatter(string(data))
+	content := string(data)
+	fmRaw, prompt, found := utils.ExtractFrontmatterBlock(content)
+	if !found {
+		return nil, fmt.Errorf("no frontmatter found in Ralph state file")
+	}
 
-	state := &LoopState{Prompt: prompt}
+	state := &LoopState{
+		RootPath: rootPath,
+		Prompt:   prompt,
+	}
 
-	if v, ok := fm["active"]; ok {
-		state.Active = v == "true"
-	}
-	if v, ok := fm["iteration"]; ok {
-		state.Iteration, _ = strconv.Atoi(v)
-	}
-	if v, ok := fm["max_iterations"]; ok {
-		state.MaxIterations, _ = strconv.Atoi(v)
-	}
-	if v, ok := fm["completion_promise"]; ok {
-		if v == "null" {
-			state.CompletionPromise = ""
-		} else {
-			state.CompletionPromise = v
-		}
-	}
-	if v, ok := fm["started_at"]; ok {
-		if t, err := time.Parse(time.RFC3339, v); err == nil {
-			state.StartedAt = t
-		}
+	if err := yaml.Unmarshal([]byte(fmRaw), state); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal Ralph state: %w", err)
 	}
 
 	return state, nil
@@ -95,24 +61,17 @@ func (s *LoopState) IsComplete() bool {
 }
 
 func (s *LoopState) Save() error {
-	stateFile := s.RootPath + "/" + config.JuarvisDir + "/" + config.RalphStateFile
-	os.MkdirAll(filepath.Dir(stateFile), 0755)
-
-	promiseYAML := "null"
-	if s.CompletionPromise != "" {
-		promiseYAML = fmt.Sprintf("\"%s\"", s.CompletionPromise)
+	stateFile := filepath.Join(s.RootPath, config.JuarvisDir, config.RalphStateFile)
+	if err := os.MkdirAll(filepath.Dir(stateFile), 0755); err != nil {
+		return fmt.Errorf("failed to create directory for Ralph state: %w", err)
 	}
 
-	content := fmt.Sprintf(`---
-active: true
-iteration: %d
-max_iterations: %d
-completion_promise: %s
-started_at: "%s"
----
+	fmData, err := yaml.Marshal(s)
+	if err != nil {
+		return fmt.Errorf("failed to marshal Ralph state: %w", err)
+	}
 
-%s
-`, s.Iteration, s.MaxIterations, promiseYAML, s.StartedAt, s.Prompt)
+	content := fmt.Sprintf("---\n%s---\n\n%s", string(fmData), s.Prompt)
 
 	return os.WriteFile(stateFile, []byte(content), 0644)
 }
