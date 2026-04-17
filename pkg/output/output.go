@@ -9,6 +9,17 @@ import (
 
 var jsonMode = false
 
+const (
+	colorReset  = "\033[0m"
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
+	colorBlue   = "\033[34m"
+	colorPurple = "\033[35m"
+	colorCyan   = "\033[36m"
+	colorBold   = "\033[1m"
+)
+
 func SetJSONMode(enabled bool) {
 	jsonMode = enabled
 }
@@ -22,7 +33,7 @@ func Success(msg string, args ...interface{}) {
 	if jsonMode {
 		printJSON(map[string]interface{}{"status": "success", "message": formatted})
 	} else {
-		fmt.Printf("✅ %s\n", formatted)
+		fmt.Printf("%s✅ %s%s\n", colorGreen, formatted, colorReset)
 	}
 }
 
@@ -31,7 +42,7 @@ func Error(msg string, args ...interface{}) {
 	if jsonMode {
 		printJSONError(map[string]interface{}{"status": "error", "message": formatted})
 	} else {
-		fmt.Fprintf(os.Stderr, "❌ %s\n", formatted)
+		fmt.Fprintf(os.Stderr, "%s❌ %s%s\n", colorRed, formatted, colorReset)
 	}
 }
 
@@ -40,7 +51,7 @@ func Warning(msg string, args ...interface{}) {
 	if jsonMode {
 		printJSON(map[string]interface{}{"status": "warning", "message": formatted})
 	} else {
-		fmt.Printf("⚠️  %s\n", formatted)
+		fmt.Printf("%s⚠️  %s%s\n", colorYellow, formatted, colorReset)
 	}
 }
 
@@ -49,8 +60,41 @@ func Info(msg string, args ...interface{}) {
 	if jsonMode {
 		printJSON(map[string]interface{}{"status": "info", "message": formatted})
 	} else {
-		fmt.Printf("ℹ️  %s\n", formatted)
+		fmt.Printf("%sℹ️  %s%s\n", colorBlue, formatted, colorReset)
 	}
+}
+
+func Banner(msg string) {
+	if jsonMode {
+		return
+	}
+	fmt.Println()
+	fmt.Printf("%s%s%s%s%s\n", colorBold, colorPurple, "== ", msg, " ==")
+	fmt.Println(colorReset)
+}
+
+func Styled(color string, msg string, args ...interface{}) string {
+	formatted := fmt.Sprintf(msg, args...)
+	var c string
+	switch strings.ToLower(color) {
+	case "red":
+		c = colorRed
+	case "green":
+		c = colorGreen
+	case "yellow":
+		c = colorYellow
+	case "blue":
+		c = colorBlue
+	case "purple":
+		c = colorPurple
+	case "cyan":
+		c = colorCyan
+	case "bold":
+		c = colorBold
+	default:
+		return formatted
+	}
+	return c + formatted + colorReset
 }
 
 func PrintJSON(data interface{}) {

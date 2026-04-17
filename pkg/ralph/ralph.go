@@ -165,6 +165,22 @@ func CreateLoopState(rootPath, prompt string, maxIterations int, completionPromi
 	return state.Save()
 }
 
+func getRalphVibe(iteration int) string {
+	vibes := []string{
+		"¡Hagámoslo realidad!",
+		"Manteniendo el ritmo creativo...",
+		"El código está fluyendo bien.",
+		"Un paso más hacia la perfección.",
+		"Ralph está concentrado en tu visión.",
+		"Explorando nuevas posibilidades...",
+		"Construyendo el futuro, bit a bit.",
+	}
+	if iteration <= 0 {
+		return vibes[0]
+	}
+	return vibes[(iteration-1)%len(vibes)]
+}
+
 func BuildStopResponse(state *LoopState, transcriptPath string) (map[string]any, error) {
 	transcriptExists := false
 	if _, err := os.Stat(transcriptPath); err == nil {
@@ -178,7 +194,7 @@ func BuildStopResponse(state *LoopState, transcriptPath string) (map[string]any,
 				state.Delete()
 				return map[string]any{
 					"decision":      "allow",
-					"systemMessage": fmt.Sprintf("✅ Ralph loop: Detected <promise>%s</promise>", state.CompletionPromise),
+					"systemMessage": fmt.Sprintf("✨ **Ralph**: ¡Lo logramos! He detectado la promesa completada: `%s`. Excelente trabajo en equipo.", state.CompletionPromise),
 				}, nil
 			}
 		}
@@ -189,12 +205,13 @@ func BuildStopResponse(state *LoopState, transcriptPath string) (map[string]any,
 		return nil, fmt.Errorf("failed to save state: %w", err)
 	}
 
+	vibe := getRalphVibe(state.Iteration)
 	var sysMsg string
 	if state.CompletionPromise != "" {
-		sysMsg = fmt.Sprintf("🔄 Ralph iteration %d | To stop: output <promise>%s</promise> (ONLY when statement is TRUE - do not lie to exit!)",
-			state.Iteration, state.CompletionPromise)
+		sysMsg = fmt.Sprintf("🤖 **Ralph (Iteración %d)**: %s\nRecuerda, para concluir nuestra misión, necesito que confirmes con: `<promise>%s</promise>` (solo cuando la tarea esté realmente lista).",
+			state.Iteration, vibe, state.CompletionPromise)
 	} else {
-		sysMsg = fmt.Sprintf("🔄 Ralph iteration %d | No completion promise set - loop runs infinitely", state.Iteration)
+		sysMsg = fmt.Sprintf("🤖 **Ralph (Iteración %d)**: %s\nEstamos en modo exploración libre. Continuaré acompañándote hasta que decidas parar.", state.Iteration, vibe)
 	}
 
 	return map[string]any{
