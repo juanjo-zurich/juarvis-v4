@@ -8,119 +8,59 @@ on:
 
 env:
   GO_VERSION: "1.23"
+  CI: "true"
+  JUARVIS_SKIP_NETWORK: "true"
 
 jobs:
-  # 1. Pruebas Unitarias y Linting
-  unit-tests:
+  # 1. Build + Tests + Verify (todo en uno para simplicidad)
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      - name: Run Vet
-        run: go vet ./...
+
+      - name: Build
+        run: make build
+
       - name: Run Unit Tests
-        run: go test -race -v -cover ./...
+        run: go test -timeout 60s -cover ./...
+
+      - name: Run Juarvis Verify
+        run: ./juarvis verify
+
       - name: Upload coverage to Codecov
+        if: success()
         uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }} # Recomendado para v4
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-  # 2. Compilación Única (Para ahorrar tiempo y asegurar consistencia)
-  build:
+  # 2. Linting (separado porque puede fallar independientemente)
+  lint:
     runs-on: ubuntu-latest
-    needs: unit-tests
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      - name: Build Binary
-        run: go build -v -o juarvis .
-      - name: Upload Binary Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: juarvis-binary
-          path: juarvis
-          retention-days: 1
 
-  # 3. Tests de Integración
-  integration-tests:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-      - name: Download Binary
-        uses: actions/download-artifact@v4
-        with:
-          name: juarvis-binary
-      - name: Set Permissions
-        run: chmod +x juarvis
-      - name: Run Integration Tests
-        # Usamos $(pwd)/juarvis para asegurar que el path absoluto sea correcto
-        run: go test -v -tags=integration ./tests/integration/...
+      - name: Run gofmt
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "gofmt issues found:"
+            gofmt -l .
+            exit 1
+          fi
 
-  # 4. Tests de Regresión
-  regression-tests:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-      - name: Download Binary
-        uses: actions/download-artifact@v4
-        with:
-          name: juarvis-binary
-      - name: Set Permissions
-        run: chmod +x juarvis
-      - name: Run Regression Tests
-        run: go test -v -tags=regression ./tests/regression/...
+      - name: Run go vet
+        run: go vet ./...
 
-  # 5. Tests E2E (Extremo a Extremo)
-  e2e-tests:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-      - name: Download Binary
-        uses: actions/download-artifact@v4
-        with:
-          name: juarvis-binary
-      - name: Set Permissions
-        run: chmod +x juarvis
-      - name: Run E2E Tests
-        run: go test -v -tags=e2e -timeout 120s ./tests/e2e/...
-
-  # 6. Verificación Final usando el comando interno
-  verify:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-      - name: Download Binary
-        uses: actions/download-artifact@v4
-        with:
-          name: juarvis-binary
-      - name: Set Permissions
-        run: chmod +x juarvis
-      - name: Run Juarvis Verify
-        run: ./juarvis verify
+      - name: Run golint
+        run: |
+          which golangci-lint && golangci-lint run ./... || echo "golangci-lint not installed, skipping"

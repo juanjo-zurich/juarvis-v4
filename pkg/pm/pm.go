@@ -37,7 +37,12 @@ type Plugin struct {
 
 // httpClient con timeout para evitar bloqueos infinitos
 var httpClient = &http.Client{Timeout: 10 * time.Second}
+
 var httpGetFunc = func(url string) (*http.Response, error) {
+	// Skip network en CI para evitar timeouts
+	if os.Getenv("JUARVIS_SKIP_NETWORK") == "true" {
+		return nil, fmt.Errorf("network disabled (JUARVIS_SKIP_NETWORK=true)")
+	}
 	return httpClient.Get(url)
 }
 
