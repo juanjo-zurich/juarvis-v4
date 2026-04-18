@@ -5,6 +5,17 @@ Todos los cambios notables en este proyecto se documentan aquí.
 ## [Unreleased]
 
 ### Added
+- Comando `juarvis up` para onboarding instantáneo (init + setup + watch)
+- Comando `juarvis vibe` para monitoreo de salud creativa y técnica
+- Dashboard en tiempo real en la interfaz GUI con métricas de uptime y snapshots
+- Smart Cache para plugins: Repositorios externos se almacenan en el caché global del sistema
+- Auto-fixers en Hookify: Acciones `fix:` para reparar archivos automáticamente ante violaciones de reglas
+- Soporte para scripts externos en Hookify para validaciones complejas
+- Flags de optimización en `juarvis verify` (`--skip-build`, `--skip-test`, etc.)
+- Flag `--verbose` en `juarvis watch` para transparencia en la puntuación de archivos
+- Ranking de relevancia mejorado en la memoria MCP local (token frequency + title matching)
+- Soporte para colores ANSI y banners de alto impacto en la terminal
+- Personalidad humana mejorada para Ralph (mensajes de sistema variados y colaborativos)
 - Servidor MCP de memoria local (`pkg/memory/`) con SQLite FTS5, reemplaza dependencia externa de engram
 - Comando `juarvis memory` para servir como MCP server
 - 9 herramientas MCP: mem_save, mem_search, mem_context, mem_session_summary, mem_get_observation, mem_suggest_topic_key, mem_update, mem_delete, mem_session_start, mem_session_end
@@ -19,6 +30,8 @@ Todos los cambios notables en este proyecto se documentan aquí.
 - Tests offline deterministas para `pkg/pm/`
 
 ### Fixed
+- Uso de `os.UserCacheDir()` para mejor compatibilidad entre sistemas operativos
+- Refactorización de Ralph para usar `yaml.v3` en la gestión de estado de bucles
 - Snapshot create destruía el snapshot (stash pop → stash apply)
 - Hookify buscaba reglas en ruta incorrecta (.juarvis/ en lugar de .juar/)
 - Tests sin assertions (validate_test.go, loader_test.go)

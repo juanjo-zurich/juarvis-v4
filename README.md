@@ -28,19 +28,19 @@ make install    # Instala en /usr/local/bin/
 ## Uso Rápido
 
 ```bash
-# 1. Inicializar un ecosistema en tu proyecto
+# La forma más rápida (Zero-Friction)
 cd mi-proyecto
+juarvis up      # Inicializa, configura todos los IDEs y arranca el watcher
+
+# O paso a paso si prefieres control total:
+# 1. Inicializar ecosistema
 juarvis init
 
-# 2. Distribuir reglas a tu IDE (incluye watcher automático)
+# 2. Configurar IDE (incluye watcher automático)
 juarvis setup --ide opencode   # o cursor, windsurf, vscode, antigravity, trae, kiro
-# O configura todos a la vez:
-juarvis setup --all
 
-# 3. Verificar estado
-juarvis check
-
-# 4. El watcher arranca automáticamente al abrir el proyecto en tu IDE
+# 3. Verificar salud y "vibra" del proyecto
+juarvis vibe
 # Vigila cambios, evalúa reglas de seguridad, crea auto-snapshots
 ```
 
@@ -51,9 +51,11 @@ juarvis check
 | Comando | Descripción |
 |---------|-------------|
 | `juarvis` | Sin argumentos: detecta ecosistema y muestra estado |
+| `juarvis up` | **Zero-Friction:** init + setup --all + watch en un solo comando |
 | `juarvis init [path]` | Inicializa un ecosistema completo (21 plugins, 70+ skills) |
-| `juarvis check` | Health-check del ecosistema |
-| `juarvis verify` | Verifica que el proyecto está sano (build, tests, configs) |
+| `juarvis check` | Health-check técnico del ecosistema |
+| `juarvis vibe` | **Vibe Check:** Evalúa la salud creativa, snapshots y flujo de trabajo |
+| `juarvis verify` | Verifica integridad profunda. Soporta `--skip-build`, `--skip-test`, etc. |
 | `juarvis sync` | Actualiza archivos locales con la versión del binario |
 
 ### Watcher (Enforcement Automático)
@@ -61,6 +63,7 @@ juarvis check
 | Comando | Descripción |
 |---------|-------------|
 | `juarvis watch` | Inicia daemon que vigila cambios y evalúa reglas automáticamente |
+| `juarvis watch --verbose` | Muestra detalles del filtrado de archivos y puntuación de relevancia |
 | `juarvis watch --daemon` | Ejecuta en segundo plano |
 | `juarvis watch --stop` | Detiene el watcher en segundo plano |
 | `juarvis watch --no-auto-snapshot` | Desactiva auto-snapshots |
@@ -83,7 +86,7 @@ juarvis check
 
 | Comando | Descripción |
 |---------|-------------|
-| `juarvis snapshot create <name>` | Crea snapshot de seguridad (git stash) |
+| `juarvis snapshot create <name>` | Crea snapshot de seguridad (git stash). Los verás en el Dashboard GUI. |
 | `juarvis snapshot restore` | Restaura último snapshot |
 | `juarvis snapshot prune` | Limpia snapshots viejos |
 | `juarvis hookify list` | Lista reglas de hook activas |
@@ -101,7 +104,7 @@ juarvis check
 |---------|-------------|
 | `juarvis setup --ide <ide>` | Distribuye reglas al IDE + watcher automático |
 | `juarvis setup --all` | Distribuye a TODOS los IDEs soportados |
-| `juarvis setup --gui` | Interfaz web de configuración |
+| `juarvis setup --gui` | Interfaz web de configuración con **Dashboard en tiempo real** |
 
 **Flags globales:** `--root <path>`, `--json`, `--version`
 
@@ -151,8 +154,8 @@ Los agentes siguen un ciclo de 3 fases:
 
 El watcher (`juarvis watch`) proporciona un "cinturón de seguridad" que no depende de la voluntad del agente:
 
-1. **Vigila** cambios en archivos del proyecto (ignora `.git/`, `.juar/`, `node_modules/`)
-2. **Evalúa** reglas de hookify automáticamente en cada cambio
+1. **Vigila** cambios en archivos del proyecto (sistema inteligente de puntuación de archivos)
+2. **Evalúa** reglas de hookify automáticamente en cada cambio. ¡Ahora soporta **Auto-fixers**!
 3. **Alerta** si detecta patrones peligrosos (secretos, comandos destructivos)
 4. **Auto-snapshot** si detecta cambios masivos (configurable)
 
@@ -193,8 +196,9 @@ pkg/utils/    → Utilidades compartidas (embed helpers, frontmatter)
 ## Seguridad
 
 - **Permissions.yaml** — Reglas granulares (allow/deny/ask) para comandos bash, git, Go, etc.
-- **Hookify** — Motor de hooks evalúa reglas YAML en cada cambio de archivo
-- **Watcher** — Daemon automático que vigila y evalúa sin intervención humana
+- **Hookify** — Soporta operadores `script` externos y acciones `fix:` automáticas.
+- **Watcher** — Daemon automático con lógica de relevancia y logs detallados.
+- **Smart Cache** — Descarga segura de plugins externos con caché global en `~/.cache/juarvis`.
 - **Auto-snapshot** — Backup automático ante cambios masivos
 - **Validación de symlinks** — Previene path traversal en plugins
 - **Validación de inputs** — Sanitización de nombres de snapshot, URLs de git, etc.
