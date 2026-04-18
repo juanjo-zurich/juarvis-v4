@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/fs"
 	"juarvis/pkg/output"
+	"juarvis/pkg/root"
 	"net/http"
 	"os"
 	"os/exec"
@@ -131,6 +132,24 @@ func RunServer() error {
 		resp := map[string]string{"status": "ok", "logs": logs}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(resp)
+	})
+
+	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
+		rootPath, _ := root.GetRoot()
+		// Reutilizar lógica de 'vibe' simplificada
+		snapshotsCount := 0
+		out, err := exec.Command("git", "stash", "list").CombinedOutput()
+		if err == nil {
+			snapshotsCount = strings.Count(string(out), "juarvis-snapshot|")
+		}
+
+		resp := map[string]interface{}{
+			"root":      rootPath,
+			"snapshots": snapshotsCount,
+			"time":      time.Now().Format(time.RFC3339),
+		}
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	})
 

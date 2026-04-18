@@ -5,6 +5,7 @@ import (
 	"juarvis/pkg/config"
 	"juarvis/pkg/utils"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -256,12 +257,24 @@ func extractField(field, toolName string, toolInput map[string]any, inputData ma
 
 func checkCondition(cond Condition, toolName string, toolInput map[string]any, inputData map[string]any) bool {
 	fieldValue := extractField(cond.Field, toolName, toolInput, inputData)
-	if fieldValue == "" {
-		return false
-	}
 
 	switch cond.Operator {
+	case "script":
+		// Ejecutar script externo
+		// El script recibe el valor del campo por Stdin y debe devolver exit code 0 para PASS, != 0 para FAIL
+		cmdParts := strings.Fields(cond.Pattern)
+		if len(cmdParts) == 0 {
+			return false
+		}
+		cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
+		cmd.Stdin = strings.NewReader(fieldValue)
+		err := cmd.Run()
+		return err == nil
+
 	case "regex_match":
+		if fieldValue == "" {
+			return false
+		}
 		re, err := compileRegex(cond.Pattern)
 		if err != nil {
 			return false
@@ -315,6 +328,21 @@ func EvaluateRules(rules []Rule, inputData map[string]any) HookResult {
 
 	for _, rule := range rules {
 		if ruleMatches(rule, inputData) {
+			// Auto-Fixer: si la acción es 'fix', intentamos reparar
+			if strings.HasPrefix(rule.Action, "fix:") {
+				fixCmd := strings.TrimPrefix(rule.Action, "fix:")
+				cmdParts := strings.Fields(fixCmd)
+				if len(cmdParts) > 0 {
+					// El fix recibe los datos del campo (content por defecto) y puede modificar el entorno
+					cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
+					_ = cmd.Run()
+					// Tras el fix, el check vuelve a evaluar si sigue rompiendo
+					if !ruleMatches(rule, inputData) {
+						continue // Reparado con éxito
+					}
+				}
+			}
+
 			if rule.Action == "block" {
 				blocking = append(blocking, rule)
 			} else {

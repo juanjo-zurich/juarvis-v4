@@ -172,6 +172,11 @@ func (s *Storage) GetObservation(id string) (*Observation, error) {
 	return &obs, nil
 }
 
+type scoredObservation struct {
+	obs   Observation
+	score int
+}
+
 func (s *Storage) SearchObservations(query, project, obsType, scope string, limit int) ([]Observation, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -180,38 +185,30 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 		limit = 10
 	}
 
-	// Use index to find candidate IDs
-	candidateIDs := make(map[string]bool)
+	// Tokenizar la query para calcular relevancia
+	queryTokens := tokenize(query)
+	candidateScores := make(map[string]int)
+
 	if query != "" {
-		queryTokens := tokenize(query)
 		for _, token := range queryTokens {
 			if ids, ok := s.index[token]; ok {
 				for _, id := range ids {
-					candidateIDs[id] = true
+					// Puntuación simple: frecuencia de términos de la query en la observación
+					candidateScores[id]++
 				}
 			}
 		}
 	} else {
-		// No query: use all observations
-		entries, _ := os.ReadDir(filepath.Join(s.memoryDir, "observations"))
-		for _, entry := range entries {
-			if strings.HasSuffix(entry.Name(), ".json") {
-				candidateIDs[strings.TrimSuffix(entry.Name(), ".json")] = true
-			}
+		// No query: usar todas las observaciones (puntuación base)
+		for id := range s.obsCache {
+			candidateScores[id] = 1
 		}
 	}
 
-	var results []Observation
-	for id := range candidateIDs {
-		if len(results) >= limit {
-			break
-		}
-		// Use cache instead of reading from disk
+	var scored []scoredObservation
+	for id, score := range candidateScores {
 		obs, ok := s.obsCache[id]
-		if !ok {
-			continue
-		}
-		if obs.DeletedAt != nil {
+		if !ok || obs.DeletedAt != nil {
 			continue
 		}
 		if project != "" && obs.Project != project {
@@ -223,7 +220,27 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 		if scope != "" && obs.Scope != scope {
 			continue
 		}
-		results = append(results, *obs)
+
+		// Bonus por coincidencia exacta en el título
+		if query != "" && strings.Contains(strings.ToLower(obs.Title), strings.ToLower(query)) {
+			score += 10
+		}
+
+		scored = append(scored, scoredObservation{obs: *obs, score: score})
+	}
+
+	// Ordenar por puntuación (descendente)
+	for i := 0; i < len(scored); i++ {
+		for j := i + 1; j < len(scored); j++ {
+			if scored[j].score > scored[i].score {
+				scored[i], scored[j] = scored[j], scored[i]
+			}
+		}
+	}
+
+	var results []Observation
+	for i := 0; i < len(scored) && i < limit; i++ {
+		results = append(results, scored[i].obs)
 	}
 
 	return results, nil

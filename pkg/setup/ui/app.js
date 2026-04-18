@@ -62,6 +62,7 @@ installBtn.addEventListener('click', async () => {
         }
 
         installBtn.innerText = '¡Completado!';
+        updateStatus();
     } catch (e) {
         if (!statusMessage.classList.contains('error')) {
             statusMessage.classList.remove('hidden');
@@ -72,3 +73,21 @@ installBtn.addEventListener('click', async () => {
         installBtn.innerText = 'Reintentar Instalación';
     }
 });
+
+async function updateStatus() {
+    try {
+        const res = await fetch('/api/status');
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('stat-snapshots').innerText = data.snapshots;
+            // Calcular uptime aproximado
+            const startTime = new Date(data.time).getTime();
+            const now = new Date().getTime();
+            const mins = Math.floor((now - startTime) / 60000);
+            document.getElementById('stat-uptime').innerText = mins + 'm';
+        }
+    } catch (e) {}
+}
+
+setInterval(updateStatus, 5000);
+updateStatus();

@@ -422,6 +422,42 @@ func InstallPlugin(pluginName string) error {
 	return err
 }
 
+func getGlobalCacheDir() string {
+	cacheRoot, err := os.UserCacheDir()
+	if err != nil {
+		// Fallback manual si falla la detección del sistema
+		home, _ := os.UserHomeDir()
+		cacheRoot = filepath.Join(home, ".cache")
+	}
+	cacheDir := filepath.Join(cacheRoot, "juarvis", "repos")
+	_ = os.MkdirAll(cacheDir, 0755)
+	return cacheDir
+}
+
+func syncRepoToCache(repoUrl string) (string, error) {
+	cacheDir := getGlobalCacheDir()
+	// Crear un nombre de directorio seguro basado en la URL
+	repoName := strings.ReplaceAll(strings.ReplaceAll(repoUrl, "https://", ""), "/", "_")
+	repoPath := filepath.Join(cacheDir, repoName)
+
+	if _, err := os.Stat(repoPath); os.IsNotExist(err) {
+		output.Info("Clonando repositorio en caché global: %s", repoUrl)
+		cmd := exec.Command("git", "clone", "--depth", "1", repoUrl, repoPath)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return "", fmt.Errorf("error clonando repositorio: %s", string(out))
+		}
+	} else {
+		output.Info("Actualizando repositorio en caché: %s", repoUrl)
+		cmd := exec.Command("git", "-C", repoPath, "pull")
+		if _, err := cmd.CombinedOutput(); err != nil {
+			// Si falla el pull (ej. rama cambiada), borramos y re-clonamos
+			_ = os.RemoveAll(repoPath)
+			return syncRepoToCache(repoUrl)
+		}
+	}
+	return repoPath, nil
+}
+
 func installExternalSkill(repoUrl, skillName, destDir string) error {
 	parsed, err := url.Parse(repoUrl)
 	if err != nil {
@@ -430,22 +466,16 @@ func installExternalSkill(repoUrl, skillName, destDir string) error {
 	if parsed.Scheme != "https" {
 		return fmt.Errorf("solo se permiten URLs https, rechazado: %s", repoUrl)
 	}
-	output.Info("Clonando repositorio de proveedor externo (%s)...", repoUrl)
-	tmpDir, err := os.MkdirTemp("", "ext-skill")
-	if err != nil {
-		return fmt.Errorf("error creando directorio temporal: %w", err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
 
-	cmd := exec.Command("git", "clone", "--depth", "1", repoUrl, tmpDir)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("error descargando repositorio proveedor: %s", string(out))
+	repoPath, err := syncRepoToCache(repoUrl)
+	if err != nil {
+		return err
 	}
 
 	// Identificar la ruta correcta de la skill
-	skillDir := filepath.Join(tmpDir, "skills", skillName)
+	skillDir := filepath.Join(repoPath, "skills", skillName)
 	if _, err := os.Stat(skillDir); os.IsNotExist(err) {
-		skillDir = tmpDir // Asumir que la skill está en la raíz
+		skillDir = repoPath // Asumir que la skill está en la raíz
 	}
 
 	if err := copyDir(skillDir, destDir); err != nil {
@@ -459,19 +489,13 @@ func installExternalSkill(repoUrl, skillName, destDir string) error {
 }
 
 func installVercelSkill(skillName, destDir string) error {
-	output.Info("Clonando repositorio oficial de Vercel Agent Skills...")
-	tmpDir, err := os.MkdirTemp("", "vercel-skill")
+	repoUrl := "https://github.com/vercel-labs/agent-skills.git"
+	repoPath, err := syncRepoToCache(repoUrl)
 	if err != nil {
-		return fmt.Errorf("error creando directorio temporal: %w", err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	cmd := exec.Command("git", "clone", "--depth", "1", "https://github.com/vercel-labs/agent-skills.git", tmpDir)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("error descargando vercel skills: %s", string(out))
+		return err
 	}
 
-	skillDir := filepath.Join(tmpDir, "skills", skillName)
+	skillDir := filepath.Join(repoPath, "skills", skillName)
 	if _, err := os.Stat(skillDir); os.IsNotExist(err) {
 		return fmt.Errorf("la skill '%s' no existe en el repositorio de Vercel", skillName)
 	}
