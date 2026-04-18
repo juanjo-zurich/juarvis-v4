@@ -1,16 +1,16 @@
 package cmd
 
 import (
-	"juarvis/pkg/output"
-	"juarvis/pkg/verify"
+	"fmt"
+	"os"
 
+	"juarvis/pkg/verify"
 	"github.com/spf13/cobra"
 )
 
 var verifyCmd = &cobra.Command{
 	Use:   "verify",
-	Short: "Verifica que el proyecto Juarvis está sano",
-	Long:  `Ejecuta verificaciones de build, tests, validación de configs embebidas y comandos CLI.`,
+	Short: "Ejecuta verificaciones de salud del ecosistema",
 	Run: func(cmd *cobra.Command, args []string) {
 		skipBuild, _ := cmd.Flags().GetBool("skip-build")
 		skipVet, _ := cmd.Flags().GetBool("skip-vet")
@@ -30,24 +30,22 @@ var verifyCmd = &cobra.Command{
 
 		results, err := verify.RunVerify(opts)
 		if err != nil {
-			output.Error("Error ejecutando verificación: %v", err)
-			return
+			fmt.Printf("❌ Error al ejecutar verify: %v\n", err)
+			os.Exit(1)
 		}
 
-		allPassed := true
-		for _, r := range results {
-			if r.Passed {
-				output.Success("%s: %s", r.Name, r.Message)
-			} else {
-				output.Error("%s: %s", r.Name, r.Message)
-				allPassed = false
+		passed := true
+		for _, res := range results {
+			status := "✅"
+			if !res.Passed {
+				status = "❌"
+				passed = false
 			}
+			fmt.Printf("%s %-20s: %s\n", status, res.Name, res.Message)
 		}
 
-		if allPassed {
-			output.Success("Todas las verificaciones pasaron")
-		} else {
-			output.Error("Algunas verificaciones fallaron")
+		if !passed {
+			os.Exit(1)
 		}
 	},
 }
@@ -62,3 +60,4 @@ func init() {
 
 	rootCmd.AddCommand(verifyCmd)
 }
+
