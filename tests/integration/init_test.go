@@ -47,7 +47,7 @@ func TestInit_CreatesEcosystem(t *testing.T) {
 
 	expectedPaths := []string{
 		filepath.Join(tmpDir, ".juar"),
-		filepath.Join(tmpDir, ".agent"),
+		// .agent/ NO se crea automaticamente
 		filepath.Join(tmpDir, ".juar", "skill-registry.md"),
 	}
 
