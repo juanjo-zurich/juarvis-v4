@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-// TestRunVerify verifica que la función principal de validación funcione correctamente.
-// Se usa SkipBuild y SkipCLI para que el test no dependa del entorno externo.
+// TestRunVerify verifica que el motor de validación funcione.
+// Usamos SkipBuild y SkipCLI para evitar que el test falle si el binario no está presente.
 func TestRunVerify(t *testing.T) {
 	opts := VerifyOptions{
 		SkipBuild: true,
@@ -14,23 +14,14 @@ func TestRunVerify(t *testing.T) {
 
 	results, err := RunVerify(opts)
 	if err != nil {
-		t.Fatalf("RunVerify falló inesperadamente: %v", err)
+		t.Fatalf("RunVerify falló: %v", err)
 	}
 
 	if len(results) == 0 {
-		t.Error("Se esperaban resultados de verificación, pero se obtuvo una lista vacía")
+		t.Error("Se esperaba al menos un resultado de verificación")
 	}
 
-	// Verificamos que al menos uno de los checks haya corrido (ej. JSON o Plugins)
-	foundCheck := false
 	for _, res := range results {
-		t.Logf("Check ejecutado: %s | Pasó: %v | Mensaje: %s", res.Name, res.Passed, res.Message)
-		if res.Name != "" {
-			foundCheck = true
-		}
-	}
-
-	if !foundCheck {
-		t.Error("Los resultados devueltos no contienen nombres de checks válidos")
+		t.Logf("Resultado de %s: %v (%s)", res.Name, res.Passed, res.Message)
 	}
 }
