@@ -72,7 +72,7 @@ func checkGoVet() CheckResult {
 }
 
 func checkGoTest() CheckResult {
-	// Se incluye un timeout de 5 minutos para evitar que los tests se queden colgados
+	// Updated cmd to include a timeout of 5 minutes
 	cmd := exec.Command("go", "test", "./...", "-cover", "-timeout", "5m")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -178,4 +178,3 @@ func findBinary() (string, error) {
 	}
 	return "", fmt.Errorf("juarvis binary not found")
 }
-
