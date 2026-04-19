@@ -1,0 +1,24 @@
+{
+  "name": "juarvis-security-hooks",
+  "version": "1.0.0",
+  "description": "Sistema avanzado de hooks con PreToolUse, PostToolUse y Agent hooks para seguridad",
+  "category": "security",
+  "author": {
+    "name": "Juarvis Team",
+    "email": "juarvis@example.com"
+  },
+  "keywords": ["security", "hooks", "guardrails", "safety"],
+  "hooks": [
+    {
+      "name": "PreToolUse",
+      "description": "Bloquea comandos peligrosos antes de ejecutarse",
+      "file": "hooks/pre-tooluse.json"
+    },
+    {
+      "name": "PostToolUse", 
+      "description": "Loguea y verifica cambios después de ejecutar",
+      "file": "hooks/post-tooluse.json"
+    }
+  ],
+  "dependencies": []
+}

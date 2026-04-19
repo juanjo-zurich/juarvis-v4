@@ -1,0 +1,85 @@
+{
+  "$schema": "https://juarvis.ai/hook.schema.json",
+  "version": "1.0",
+  "name": "post-tooluse-monitoring",
+  "description": "Hooks PostToolUse - se ejecutan DESPUÉS de cada herramienta",
+  "hooks": [
+    {
+      "name": "log-writes",
+      "description": "Loguea todas las operaciones de escritura",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit",
+      "action": "command",
+      "command": ["juarvis", "audit", "log", "write", "$FILE_PATH"],
+      "fallback": "ignore"
+    },
+    {
+      "name": "verify-after-write",
+      "description": "Ejecuta verificación rápida después de escribir",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit",
+      "action": "command",
+      "command": ["juarvis", "verify", "quick"],
+      "fallback": "ignore"
+    },
+    {
+      "name": "log-bash-commands",
+      "description": "Loguea comandos bash ejecutados",
+      "event": "PostToolUse",
+      "matcher": "Bash",
+      "action": "command", 
+      "command": ["juarvis", "audit", "log", "bash", "$ARGUMENTS.command"],
+      "fallback": "ignore"
+    },
+    {
+      "name": "detect-failures",
+      "description": "Detecta y reporta fallos",
+      "event": "PostToolUseFailure",
+      "matcher": ".*",
+      "action": "command",
+      "command": ["juarvis", "audit", "log-error", "$TOOL_NAME", "$ERROR"],
+      "fallback": "ignore"
+    },
+    {
+      "name": "check-leftover-env",
+      "description": "Verifica que no queden archivos .env en staging",
+      "event": "PostToolUse",
+      "matcher": "Bash(git add",
+      "action": "command",
+      "command": ["juarvis", "audit", "check-env"],
+      "fallback": "warn"
+    },
+    {
+      "name": "format-on-write",
+      "description": "Formatea código después de escribir",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit",
+      "conditions": [
+        {
+          "field": "file_path",
+          "operator": "regex_match",
+          "pattern": "\\.(go|js|ts|py|rs)$"
+        }
+      ],
+      "action": "command",
+      "command": ["juarvis", "fmt", "$FILE_PATH"],
+      "fallback": "ignore"
+    },
+    {
+      "name": "update-skill-registry",
+      "description": "Actualiza registry cuando se crean skills",
+      "event": "PostToolUse",
+      "matcher": "Write",
+      "conditions": [
+        {
+          "field": "file_path",
+          "operator": "contains",
+          "pattern": "SKILL.md"
+        }
+      ],
+      "action": "command",
+      "command": ["juarvis", "load"],
+      "fallback": "ignore"
+    }
+  ]
+}
