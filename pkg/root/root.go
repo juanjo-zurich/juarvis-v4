@@ -21,7 +21,7 @@ func GetRoot() (string, error) {
 	}
 
 	current := cwd
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 10; i++ {
 		if _, err := os.Stat(filepath.Join(current, "marketplace.json")); err == nil {
 			return current, nil
 		}

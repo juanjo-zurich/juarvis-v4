@@ -4,7 +4,6 @@ import (
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 	"juarvis/pkg/sync"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -16,13 +15,15 @@ var syncCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		rootPath, err := root.GetRoot()
 		if err != nil {
-			output.Error("%v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitNoEcosystem,
+				"Ejecuta 'juarvis init' para crear el ecosistema primero",
+				"%v", err)
 		}
 
 		if err := sync.RunSync(rootPath); err != nil {
-			output.Error("Error sincronizando: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitGeneric,
+				"Verifica que tienes permisos de escritura en el directorio del proyecto",
+				"Error sincronizando: %v", err)
 		}
 	},
 }

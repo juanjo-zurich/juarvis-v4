@@ -4,22 +4,27 @@ import (
 	"juarvis/pkg/config"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type WatcherConfig struct {
 	DebounceMs            int
 	AutoSnapshotThreshold int
 	NoAutoSnapshot        bool
-	Verbose               bool
-	IgnorePatterns        []string
-	WatchDirs             []string
+	QuietMode            bool
+	SummaryInterval      time.Duration
+	Verbose             bool
+	IgnorePatterns      []string
+	WatchDirs           []string
 }
 
 func DefaultWatcherConfig(rootPath string) WatcherConfig {
 	return WatcherConfig{
-		DebounceMs:            500,
+		DebounceMs:              500,
 		AutoSnapshotThreshold: 5,
 		NoAutoSnapshot:        false,
+		QuietMode:            true,
+		SummaryInterval:      5 * time.Minute,
 		IgnorePatterns: []string{
 			".git/",
 			config.JuarDir + "/",

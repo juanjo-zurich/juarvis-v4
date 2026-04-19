@@ -35,8 +35,9 @@ var ralphLoopCmd = &cobra.Command{
 
 		rootPath, _ := root.GetRoot()
 		if err := ralph.CreateLoopState(rootPath, prompt, maxIter, completionPromise); err != nil {
-			output.Error("Error en el bucle de Ralph: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitGeneric,
+				"Verifica que el ecosistema está inicializado con 'juarvis check'",
+				"Error en el bucle de Ralph: %v", err)
 		}
 
 		iterLabel := "unlimited"
@@ -72,43 +73,43 @@ var ralphStopCmd = &cobra.Command{
 		rootPath, _ := root.GetRoot()
 		state, err := ralph.LoadState(rootPath)
 		if err != nil {
-			os.Exit(0)
+			os.Exit(0) // protocolo hook: sin estado activo → permitir
 		}
 
 		if !state.IsActive() {
-			os.Exit(0)
+			os.Exit(0) // protocolo hook: loop inactivo → permitir
 		}
 
 		if state.IsComplete() {
 			output.Error("Ralph loop: Max iterations (%d) reached.", state.MaxIterations)
 			state.Delete()
-			os.Exit(0)
+			os.Exit(0) // protocolo hook: completado → permitir salida normal
 		}
 
 		transcriptPath, _ := inputData["transcript_path"].(string)
 		if transcriptPath == "" {
 			output.Warning("Ralph loop: No transcript_path in hook input. Stopping.")
 			state.Delete()
-			os.Exit(0)
+			os.Exit(0) // protocolo hook
 		}
 
 		result, err := ralph.BuildStopResponse(state, transcriptPath)
 		if err != nil {
 			output.Warning("Ralph loop error: %v", err)
 			state.Delete()
-			os.Exit(0)
+			os.Exit(0) // protocolo hook: error recuperable → permitir
 		}
 
 		if result["decision"] == "allow" {
 			fmt.Println(result["systemMessage"])
-			os.Exit(0)
+			os.Exit(0) // protocolo hook
 		}
 
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
 		_ = enc.Encode(result)
 
-		os.Exit(0)
+		os.Exit(0) // protocolo hook
 		return nil
 	},
 }

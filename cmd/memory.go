@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"juarvis/pkg/memory"
+	"juarvis/pkg/output"
 )
 
 var memoryCmd = &cobra.Command{
@@ -16,13 +17,15 @@ var memoryCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		rootPath, err := getMemoryRoot()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
+			output.Fatal(output.ExitNoEcosystem,
+				"Ejecuta 'juarvis init' para inicializar el ecosistema primero",
+				"error: %v", err)
 		}
 
 		if err := memory.ServeStdio(rootPath); err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
+			output.Fatal(output.ExitGeneric,
+				"Comprueba los permisos de escritura en el directorio .juar/",
+				"error: %v", err)
 		}
 	},
 }

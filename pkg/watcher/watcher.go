@@ -8,15 +8,18 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
 )
 
 type Watcher struct {
-	config    WatcherConfig
-	fsWatcher *fsnotify.Watcher
-	debouncer *Debouncer
+	config       WatcherConfig
+	fsWatcher    *fsnotify.Watcher
+	debouncer    *Debouncer
+	eventCount   int64
+	startTime   time.Time
 }
 
 func NewWatcher(cfg WatcherConfig) (*Watcher, error) {
@@ -33,6 +36,8 @@ func NewWatcher(cfg WatcherConfig) (*Watcher, error) {
 }
 
 func (w *Watcher) Start(ctx context.Context) error {
+	w.startTime = time.Now()
+
 	for _, dir := range w.config.WatchDirs {
 		if err := w.addRecursive(dir); err != nil {
 			return err
@@ -40,7 +45,12 @@ func (w *Watcher) Start(ctx context.Context) error {
 	}
 
 	output.Success("Watching for changes in %s...", w.config.WatchDirs[0])
-	output.Info("Press Ctrl+C to stop.")
+
+	if w.config.QuietMode {
+		output.Info("Modo silencioso activo. Resumen cada 5 min.")
+	} else {
+		output.Info("Press Ctrl+C to stop.")
+	}
 
 	changeCount := 0
 	lastSnapshotTime := time.Now()
@@ -48,6 +58,7 @@ func (w *Watcher) Start(ctx context.Context) error {
 	go func() {
 		for batch := range w.debouncer.Events() {
 			changeCount += len(batch)
+			atomic.AddInt64(&w.eventCount, int64(len(batch)))
 			EvaluateFileChanges(batch)
 
 			if !w.config.NoAutoSnapshot && changeCount >= w.config.AutoSnapshotThreshold {
@@ -58,8 +69,16 @@ func (w *Watcher) Start(ctx context.Context) error {
 					lastSnapshotTime = time.Now()
 				}
 			}
+
+			if !w.config.QuietMode {
+				output.Info("Detected %d file changes", len(batch))
+			}
 		}
 	}()
+
+	if w.config.QuietMode {
+		go w.periodicSummary(ctx)
+	}
 
 	for {
 		select {
@@ -107,6 +126,24 @@ func (w *Watcher) Stop() error {
 	output.Info("Stopping watcher...")
 	w.debouncer.Stop()
 	return w.fsWatcher.Close()
+}
+
+func (w *Watcher) periodicSummary(ctx context.Context) {
+	ticker := time.NewTicker(w.config.SummaryInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			events := atomic.LoadInt64(&w.eventCount)
+			elapsed := time.Since(w.startTime)
+			uptime := elapsed.Round(time.Second)
+
+			output.Info("📊 Resumen (%s): %d archivos modificados", uptime, events)
+		}
+	}
 }
 
 func GetFileScore(path string) int {

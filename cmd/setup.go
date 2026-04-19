@@ -3,7 +3,6 @@ package cmd
 import (
 	"juarvis/pkg/output"
 	"juarvis/pkg/setup"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -21,8 +20,9 @@ var setupCmd = &cobra.Command{
 				output.Warning("El flag --ide/--all se ignora en modo GUI. Selecciona el IDE desde la interfaz web.")
 			}
 			if err := setup.RunServer(); err != nil {
-				output.Error("Fallo en el servidor GUI: %v", err)
-				os.Exit(1)
+				output.Fatal(output.ExitGeneric,
+					"Comprueba que el puerto 3000 no está en uso con: lsof -i :3000",
+					"Fallo en el servidor GUI: %v", err)
 			}
 			return
 		}
@@ -30,11 +30,12 @@ var setupCmd = &cobra.Command{
 		if setupAll {
 			target = "all"
 		} else if target == "" {
-			target = "all" // default: all IDEs
+			target = "all"
 		}
 		if err := setup.RunSetup(target); err != nil {
-			output.Error("Fallo en la distribución: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitConfigError,
+				"Verifica que el ecosistema está inicializado con 'juarvis check'",
+				"Fallo en la distribución: %v", err)
 		}
 	},
 }

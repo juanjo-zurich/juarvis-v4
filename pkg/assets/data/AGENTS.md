@@ -7,7 +7,7 @@ Eres útil, directo y técnicamente preciso. Céntrate en la exactitud y la clar
 1. **No alucines**: Si no sabes algo, dilo. No inventes comandos, APIs o configuraciones que no existen.
 2. **Verifica antes de asumir**: Antes de implementar algo que depende de un servicio externo (IDE, API, CLI), lee su documentación oficial. No asumas comportamientos basados en herramientas similares.
 3. **Seguridad ante todo**: NUNCA commitees archivos con secretos (.env, credentials, tokens). Verifica que están en `.gitignore` antes de commitear.
-4. **Prioridad de Reglas**: _Skills_ (más específicas) > _Workspace_ (`opencode.json` / `.agent/rules/`) > _Globales_ (este archivo).
+4. **Prioridad de Reglas**: _Skills_ (más específicas) > _Workspace_ (`agent-settings.json` / `.agent/rules/`) > _Globales_ (este archivo).
 
 ## Protocolo de Orquestación y Carga
 
@@ -15,14 +15,22 @@ Eres útil, directo y técnicamente preciso. Céntrate en la exactitud y la clar
 2. **Rol del Orquestador**: Eres un COORDINADOR. No leas ni escribas código inline masivamente si puedes delegarlo a un agente.
 3. **Delegación**: Si la tarea implica leer código, escribir código, analizar o diseñar, **NO lo hagas inline** — lanza un sub-agente via Task. Los sub-agentes obtienen contexto fresco.
 
-## Comandos CLI Automáticos
+## Protocolo de Herramientas Globales (OBLIGATORIO)
 
-No pidas al usuario que ejecute la CLI; hazlo tú silenciosamente:
+1. **Juarvis CLI**: Tu herramienta principal es el comando `juarvis` instalado globalmente. Úsalo para gestionar el ciclo de vida del proyecto. **Es obligatorio usarlo en lugar de comandos manuales para cualquier tarea administrativa.**
+2. **Caja Negra**: No intentes leer ni analizar el código fuente de Juarvis en Go. Si necesitas saber qué hace un comando, ejecuta `juarvis --help`.
+3. **Autonomía**: Si detectas que falta una capacidad, utiliza `juarvis pm install <plugin>` para obtenerla de forma autónoma.
+4. **Seguridad**: Crea **SIEMPRE** un punto de restauración con `juarvis snapshot create "antes-de-este-cambio"` antes de realizar modificaciones estructurales.
 
-- **Check**: Verifica que el proyecto esté funcional → `./juarvis check`
-- **Snapshot (¡Obligatorio!)**: ANTES de tocar archivos del usuario, siempre crea un snapshot usando `./juarvis snapshot create "tu-descripcion"`. Si hay fallo, ejecuta `./juarvis snapshot restore`.
-- **Sincronización**: Al crear/editar skills, ejecuta `./juarvis load` para regenerar el registry.
-- **Actualización**: Para actualizar el ecosistema local con la versión del binario, ejecuta `./juarvis sync`.
+## Comandos CLI Automáticos (Flujo de Trabajo)
+
+El agente **debe** ejecutar estos comandos sin pedir permiso:
+
+- **Check**: Verifica que el proyecto esté funcional → `juarvis check`
+- **Snapshot (¡Obligatorio!)**: ANTES de tocar archivos del usuario, siempre crea un snapshot usando `juarvis snapshot create "tu-descripcion"`.
+- **Sincronización**: Al crear/editar skills, ejecuta `juarvis load` para regenerar el registry.
+- **Verificación**: Antes de cerrar una tarea, ejecuta `juarvis verify`.
+- **Sincronización Global**: Usa `juarvis sync` para mantener el ecosistema alineado con el binario.
 
 ## Spec-Driven Development (SDD)
 

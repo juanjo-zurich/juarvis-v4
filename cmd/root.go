@@ -67,8 +67,8 @@ var rootCmd = &cobra.Command{
 				_, err := os.Stat(filepath.Join(r, "permissions.yaml"))
 				return err == nil
 			}},
-			{"opencode.json", func(r string) bool {
-				_, err := os.Stat(filepath.Join(r, "opencode.json"))
+			{"agent-settings.json", func(r string) bool {
+				_, err := os.Stat(filepath.Join(r, "agent-settings.json"))
 				return err == nil
 			}},
 			{"plugins/", func(r string) bool {

@@ -93,7 +93,7 @@ func checkEmbeddedJSONs() CheckResult {
 		return CheckResult{Name: "embedded JSON", Passed: false, Message: fmt.Sprintf("no se pudo acceder a assets: %v", err)}
 	}
 
-	jsonFiles := []string{"marketplace.json", "opencode.json", "permissions.yaml"}
+	jsonFiles := []string{"marketplace.json", "agent-settings.json", "permissions.yaml"}
 	for _, f := range jsonFiles {
 		data, err := fs.ReadFile(efs, f)
 		if err != nil {

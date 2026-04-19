@@ -128,13 +128,36 @@ func RunSetupCore(targets []string) error {
 			output.Success("Reglas de permisos distribuidas en IDE %s", t)
 		}
 
+		// Cargar manifiesto universal para generación dinámica
+		var manifest UniversalManifest
+		manifestPath := filepath.Join(rootPath, "agent-settings.json")
+		if data, err := os.ReadFile(manifestPath); err == nil {
+			_ = json.Unmarshal(data, &manifest)
+		}
+
 		if t == "opencode" {
-			srcOpencode := filepath.Join(rootPath, "opencode.json")
+			configData, err := manifest.GenerateOpenCodeConfig()
 			destOpencode := filepath.Join(targetDir, "opencode.json")
-			if err := copyFile(srcOpencode, destOpencode); err != nil {
-				warnings = append(warnings, fmt.Sprintf("no se pudo copiar opencode.json a %s: %v", t, err))
+			if err != nil {
+				warnings = append(warnings, fmt.Sprintf("no se pudo generar opencode.json: %v", err))
 			} else {
-				output.Success("Configuración opencode.json instalada en IDE %s", t)
+				if err := os.WriteFile(destOpencode, configData, 0644); err != nil {
+					warnings = append(warnings, fmt.Sprintf("no se pudo escribir opencode.json: %v", err))
+				} else {
+					output.Success("Configuración opencode.json generada para IDE %s", t)
+				}
+			}
+		}
+
+		if t == "cursor" {
+			cursorRules := manifest.GenerateCursorConfig()
+			if cursorRules != "" {
+				destRules := filepath.Join(targetDir, ".cursorrules")
+				if err := os.WriteFile(destRules, []byte(cursorRules), 0644); err != nil {
+					warnings = append(warnings, fmt.Sprintf("no se pudo escribir .cursorrules: %v", err))
+				} else {
+					output.Success("Reglas específicas .cursorrules generadas para Cursor")
+				}
 			}
 		}
 

@@ -7,6 +7,42 @@ import (
 	"strings"
 )
 
+// Exit codes semánticos.
+// Permiten que scripts externos distingan el tipo de fallo sin parsear mensajes.
+//
+//	juarvis init; echo $?   # → 2 si no hay ecosistema, 6 si sin permisos
+const (
+	ExitOK           = 0 // todo correcto
+	ExitGeneric      = 1 // error genérico no clasificado
+	ExitNoEcosystem  = 2 // .juar/ ausente — ecosistema no inicializado
+	ExitConfigError  = 3 // configuración corrupta o inválida (JSON, YAML)
+	ExitBuildFailed  = 4 // compilación o verificación fallida
+	ExitTestFailed   = 5 // tests fallidos
+	ExitPermission   = 6 // sin permisos de escritura/lectura
+	ExitPluginError  = 7 // error en plugin: instalación, carga o eliminación
+	ExitWatcherError = 8 // error en el watcher daemon
+)
+
+// exitFunc es la función de salida del proceso. En producción es os.Exit;
+// en tests se sustituye por una función de captura para evitar llamadas reales.
+var exitFunc = os.Exit
+
+// Fatal imprime el error en stderr, una pista accionable opcional,
+// y termina el proceso con el código semántico dado.
+//
+// Ejemplo:
+//
+//	output.Fatal(output.ExitNoEcosystem,
+//	    "Ejecuta 'juarvis init' en este directorio primero",
+//	    "Ecosistema no encontrado: %v", err)
+func Fatal(code int, hint, msg string, args ...interface{}) {
+	Error(msg, args...)
+	if hint != "" {
+		fmt.Fprintf(os.Stderr, "   → %s\n", hint)
+	}
+	exitFunc(code)
+}
+
 var jsonMode = false
 
 const (
@@ -151,7 +187,7 @@ func printJSON(data interface{}) {
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(data); err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Error codificando JSON: %v\n", err)
-		os.Exit(1)
+		exitFunc(ExitGeneric)
 	}
 }
 
@@ -160,6 +196,6 @@ func printJSONError(data interface{}) {
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(data); err != nil {
 		fmt.Fprintf(os.Stderr, "Error codificando JSON: %v\n", err)
-		os.Exit(1)
+		exitFunc(ExitGeneric)
 	}
 }

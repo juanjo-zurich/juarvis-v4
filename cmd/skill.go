@@ -3,7 +3,6 @@ package cmd
 import (
 	"juarvis/pkg/output"
 	"juarvis/pkg/pm"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -20,10 +19,11 @@ var createSkillCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		skillName := args[0]
 		output.Info("Creando andamiaje para la skill '%s'...", skillName)
-		
+
 		if err := pm.CreateSkill(skillName); err != nil {
-			output.Error("Fallo al crear la skill: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitPluginError,
+				"El nombre de la skill solo puede contener letras, números y guiones",
+				"Fallo al crear la skill: %v", err)
 		}
 	},
 }

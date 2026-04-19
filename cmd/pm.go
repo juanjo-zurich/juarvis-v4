@@ -3,7 +3,6 @@ package cmd
 import (
 	"juarvis/pkg/output"
 	"juarvis/pkg/pm"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -82,8 +81,9 @@ var installCmd = &cobra.Command{
 		output.Info("Instalando plugin '%s'...", pluginName)
 
 		if err := pm.InstallPlugin(pluginName); err != nil {
-			output.Error("Error instalando plugin: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitPluginError,
+				"Ejecuta 'juarvis pm search "+pluginName+"' para verificar que el plugin existe",
+				"Error instalando plugin: %v", err)
 		}
 
 		output.Success("Plugin '%s' instalado correctamente", pluginName)

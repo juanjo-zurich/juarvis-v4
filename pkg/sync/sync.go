@@ -21,7 +21,7 @@ func RunSync(rootPath string) error {
 	updatedCount := 0
 
 	// 1. Sincronizar archivos de configuración raíz
-	rootFiles := []string{"AGENTS.md", "permissions.yaml", "opencode.json", "marketplace.json"}
+	rootFiles := []string{"AGENTS.md", "permissions.yaml", "agent-settings.json", "marketplace.json"}
 	for _, f := range rootFiles {
 		srcData, err := fs.ReadFile(embeddedFS, f)
 		if err != nil {

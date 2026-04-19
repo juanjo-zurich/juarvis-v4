@@ -106,7 +106,11 @@ rules:
 
     - pattern: "./juarvis *"
       action: allow
-      reason: "Comandos del CLI Juarvis — operaciones internas seguras"
+      reason: "Comandos del CLI Juarvis (local) — operaciones internas seguras"
+
+    - pattern: "juarvis *"
+      action: allow
+      reason: "Comandos del CLI Juarvis (global) — el agente usa juarvis como herramienta de sistema"
 
     # Comandos que requieren confirmación
     - pattern: "git push"

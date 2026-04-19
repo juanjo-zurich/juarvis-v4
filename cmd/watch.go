@@ -70,6 +70,7 @@ func runWatcherForeground(cmd *cobra.Command) {
 		cfg.NoAutoSnapshot = true
 	}
 	cfg.Verbose = verbose
+	cfg.QuietMode = !verbose
 
 	w, err := watcher.NewWatcher(cfg)
 	if err != nil {
