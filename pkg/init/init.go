@@ -101,6 +101,19 @@ func RunInit(path string) error {
 		return fmt.Errorf("error creando directorio .juar: %w", err)
 	}
 
+	// 2.1. Crear .agent/ para user skills y Agent rules (necesario para IDEs y plugins)
+	agentDir := filepath.Join(absPath, ".agent")
+	if err := os.MkdirAll(agentDir, 0755); err != nil {
+		return fmt.Errorf("error creando directorio .agent: %w", err)
+	}
+	// Crear subdirectorios comunes
+	if err := os.MkdirAll(filepath.Join(agentDir, "skills"), 0755); err != nil {
+		return fmt.Errorf("error creando .agent/skills: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Join(agentDir, "rules"), 0755); err != nil {
+		return fmt.Errorf("error creando .agent/rules: %w", err)
+	}
+
 	// Leer marketplace.json para saber qué plugins existen
 	marketplaceData, err := fs.ReadFile(embeddedFS, "marketplace.json")
 	if err == nil {

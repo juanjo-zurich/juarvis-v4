@@ -47,7 +47,7 @@ func TestInit_CreatesEcosystem(t *testing.T) {
 
 	expectedPaths := []string{
 		filepath.Join(tmpDir, ".juar"),
-		// .agent/ NO se crea automaticamente
+		filepath.Join(tmpDir, ".agent"),
 		filepath.Join(tmpDir, ".juar", "skill-registry.md"),
 	}
 
@@ -77,4 +77,3 @@ func TestInit_ThenLoad(t *testing.T) {
 		t.Fatalf("load failed: %v\n%s", err, output)
 	}
 }
-
