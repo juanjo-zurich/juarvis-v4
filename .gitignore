@@ -32,3 +32,15 @@ __debug_bin*
 .cache/
 .juarvis/
 .juar/
+
+# OpenCode local installation
+.opencode/
+node_modules/
+bun.lock
+
+# Test projects
+juarvis-test/
+opencode.jsonc
+
+# Docs
+docs/
