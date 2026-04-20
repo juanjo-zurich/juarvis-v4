@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"juarvis/pkg/analyze"
 	"juarvis/pkg/assets"
 	"juarvis/pkg/config"
 	"juarvis/pkg/loader"
@@ -179,6 +180,15 @@ func RunInit(path string) error {
 	output.Success("Ecosistema Juarvis inicializado en %s", absPath)
 	output.Info("%d archivos extraídos del binario", copied)
 	output.Info("Ejecuta 'juarvis check' para verificar el ecosistema")
+
+	// 5. Analizar el proyecto y generar skills específicas
+	output.Info("🔍 Analizando codebase para generar skills específicas...")
+	if err := analyze.RunAnalyze(false, false); err != nil {
+		output.Warning("Error analysando proyecto: %v", err)
+	} else {
+		output.Info("✅ Skills de proyecto generadas - el agente conoce tu proyecto")
+	}
+
 	return nil
 }
 
