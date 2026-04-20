@@ -1,0 +1,11 @@
+{
+  "name": "app-slack",
+  "version": "1.0.0",
+  "description": "Integración con Slack - mensajes, canales y automatización",
+  "category": "productivity",
+  "author": { "name": "Juarvis Team", "email": "juarvis@example.com" },
+  "keywords": ["slack", "messaging", "automation"],
+  "apps": { "slack": { "required": true, "oauth": "https://slack.com/oauth" } },
+  "skills": ["./skills/"],
+  "mcpServers": [".mcp.json"]
+}

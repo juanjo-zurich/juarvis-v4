@@ -1,0 +1,46 @@
+{
+  "$schema": "https://juarvis.ai/mcp.schema.json",
+  "id": "github",
+  "name": "GitHub MCP Server",
+  "description": "Gestión de repositorios, issues, pull requests y code review",
+  "version": "1.0.0",
+  "package": "@modelcontextprotocol/server-github",
+  "category": "development",
+  "env_vars": [
+    {
+      "name": "GITHUB_PERSONAL_ACCESS_TOKEN",
+      "description": "Token de acceso personal de GitHub",
+      "required": true,
+      "link": "https://github.com/settings/tokens"
+    }
+  ],
+  "tools": [
+    "search_repositories",
+    "get_repository",
+    "create_issue",
+    "list_issues",
+    "create_pull_request",
+    "list_pull_requests",
+    "get_pull_request",
+    "create_branch",
+    "list_branches",
+    "get_file_content",
+    "create_file",
+    "update_file"
+  ],
+  "config": {
+    "mcpServers": {
+      "github": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+        }
+      }
+    }
+  },
+  "permissions": {
+    "allowed_repos": ["*"],
+    "require_approval": ["push", "delete_branch"]
+  }
+}

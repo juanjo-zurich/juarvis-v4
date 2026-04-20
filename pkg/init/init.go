@@ -160,6 +160,16 @@ func RunInit(path string) error {
 		}
 	}
 
+	// 3.1. Copiar configuración MCP al proyecto
+	if err := copyMCPConfig(absPath, embeddedFS); err != nil {
+		output.Warning("Error copiando config MCP: %v", err)
+	}
+
+	// 3.2. Generar .mcp.json para IDEs
+	if err := generateIDE_MCPConfig(absPath); err != nil {
+		output.Warning("Error generando MCP config: %v", err)
+	}
+
 	// 4. Ejecutar loader para indexar los plugins extraídos
 	output.Info("Indexando plugins...")
 	if err := loader.RunLoader(absPath); err != nil {
@@ -196,4 +206,62 @@ func migrateAtlToJuar(rootPath string) (bool, error) {
 		return false, fmt.Errorf("error renombrando .atl/ a .juar/: %w", err)
 	}
 	return true, nil
+}
+
+// copyMCPConfig copia la configuración de MCP servers al directorio del proyecto.
+func copyMCPConfig(rootPath string, embeddedFS fs.FS) error {
+	mcpDir := filepath.Join(rootPath, ".juar", "mcp")
+	if err := os.MkdirAll(mcpDir, 0755); err != nil {
+		return fmt.Errorf("error creando directorio .juar/mcp: %w", err)
+	}
+
+	// Copiar servers.json (catálogo)
+	serversSrc := "mcp/servers.json"
+	serversDest := filepath.Join(mcpDir, "servers.json")
+	if data, err := fs.ReadFile(embeddedFS, serversSrc); err == nil {
+		if err := os.WriteFile(serversDest, data, 0644); err != nil {
+			return fmt.Errorf("error copiando servers.json: %w", err)
+		}
+		output.Info("Catálogo MCP copiado a .juar/mcp/")
+	}
+
+	// Copiar configs individuales
+	configFiles := []string{"github", "brave-search", "filesystem", "postgres"}
+	for _, name := range configFiles {
+		src := fmt.Sprintf("mcp/config/%s.json", name)
+		dest := filepath.Join(mcpDir, fmt.Sprintf("%s.json", name))
+		if data, err := fs.ReadFile(embeddedFS, src); err == nil {
+			os.WriteFile(dest, data, 0644)
+		}
+	}
+
+	return nil
+}
+
+// generateIDE_MCPConfig genera archivos de configuración MCP para IDEs.
+// Genera .mcp.json para OpenCode/Cursor y sugiere configuración.
+func generateIDE_MCPConfig(rootPath string) error {
+	// Generar提示 para el usuario con ejemplos de configuración
+	mcpExample := `{
+  "mcpServers": {
+    "juarvis-memory": {
+      "command": ["juarvis", "memory"],
+      "type": "local"
+    }
+  }
+}
+
+# Para habilitar más MCP servers, añade sus configuraciones.
+# Ver ejemplos en .juar/mcp/*.json
+`
+
+	mcpFile := filepath.Join(rootPath, ".mcp.json")
+	if !pathExists(mcpFile) {
+		if err := os.WriteFile(mcpFile, []byte(mcpExample), 0644); err != nil {
+			return fmt.Errorf("error creando .mcp.json: %w", err)
+		}
+		output.Info("Configuración MCP sugerida en .mcp.json")
+	}
+
+	return nil
 }

@@ -1,0 +1,11 @@
+{
+  "name": "app-notion",
+  "version": "1.0.0",
+  "description": "Integración con Notion - bases de conocimientos y documentación",
+  "category": "knowledge",
+  "author": { "name": "Juarvis Team", "email": "juarvis@example.com" },
+  "keywords": ["notion", "knowledge", "documentation", "database"],
+  "apps": { "notion": { "required": true, "oauth": "https://api.notion.com/v1/oauth" } },
+  "skills": ["./skills/"],
+  "mcpServers": [".mcp.json"]
+}

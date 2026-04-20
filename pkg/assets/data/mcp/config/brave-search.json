@@ -1,0 +1,32 @@
+{
+  "$schema": "https://juarvis.ai/mcp.schema.json",
+  "id": "brave-search",
+  "name": "Brave Search MCP Server",
+  "description": "Búsqueda web en tiempo real usando Brave Search API",
+  "version": "1.0.0",
+  "package": "@modelcontextprotocol/server-brave-search",
+  "category": "research",
+  "env_vars": [
+    {
+      "name": "BRAVE_API_KEY",
+      "description": "API key de Brave Search",
+      "required": true,
+      "link": "https://brave.com/search/api/"
+    }
+  ],
+  "tools": [
+    "web_search",
+    "web_fetch"
+  ],
+  "config": {
+    "mcpServers": {
+      "brave-search": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+        "env": {
+          "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+        }
+      }
+    }
+  }
+}

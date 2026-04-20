@@ -1,0 +1,34 @@
+{
+  "$schema": "https://juarvis.ai/mcp.schema.json",
+  "id": "postgres",
+  "name": "PostgreSQL MCP Server",
+  "description": "Consultas a bases de datos PostgreSQL",
+  "version": "1.0.0",
+  "package": "@modelcontextprotocol/server-postgres",
+  "category": "database",
+  "env_vars": [
+    {
+      "name": "DATABASE_URL",
+      "description": "Connection string de PostgreSQL",
+      "required": true,
+      "example": "postgresql://user:password@localhost:5432/dbname"
+    }
+  ],
+  "tools": [
+    "query",
+    "execute",
+    "list_tables",
+    "describe_table"
+  ],
+  "config": {
+    "mcpServers": {
+      "postgres": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-postgres"],
+        "env": {
+          "DATABASE_URL": "${DATABASE_URL}"
+        }
+      }
+    }
+  }
+}

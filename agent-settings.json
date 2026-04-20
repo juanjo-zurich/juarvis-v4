@@ -44,12 +44,44 @@
   },
   "mcp": {
     "memory": {
-      "command": [
-        "juarvis",
-        "memory"
-      ],
+      "command": ["juarvis", "memory"],
       "enabled": true,
       "type": "local"
+    },
+    "available_servers": {
+      "github": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+        "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" },
+        "description": "Gestión de repositorios, issues, PRs"
+      },
+      "brave-search": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-brave-search"],
+        "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" },
+        "description": "Búsqueda web en tiempo real"
+      },
+      "filesystem": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
+        "description": "Operaciones de archivo"
+      },
+      "postgres": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-postgres"],
+        "env": { "DATABASE_URL": "${DATABASE_URL}" },
+        "description": "Consultas PostgreSQL"
+      },
+      "figma": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-figma"],
+        "description": "Diseño y Code Connect"
+      },
+      "slack": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-slack"],
+        "env": { "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}" },
+        "description": "Mensajes y canales"
+      },
+      "notion": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-notion"],
+        "env": { "NOTION_API_KEY": "${NOTION_API_KEY}" },
+        "description": "Base de conocimientos"
+      }
     }
   },
   "permission": {

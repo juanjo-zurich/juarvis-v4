@@ -1,0 +1,107 @@
+{
+  "$schema": "https://juarvis.ai/mcp.schema.json",
+  "version": "1.0",
+  "name": "juarvis-mcp-servers",
+  "description": "Catálogo de MCP servers disponibles para Juarvis - se instalan en .juar/mcp/",
+  "servers": [
+    {
+      "id": "github",
+      "name": "GitHub",
+      "description": "Gestión de repositorios, issues, pull requests y code review",
+      "package": "@modelcontextprotocol/server-github",
+      "category": "development",
+      "env_vars": ["GITHUB_PERSONAL_ACCESS_TOKEN"],
+      "install_command": "npx -y @modelcontextprotocol/server-github",
+      "example_config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" }
+      }
+    },
+    {
+      "id": "brave-search",
+      "name": "Brave Search",
+      "description": "Búsqueda web en tiempo real",
+      "package": "@modelcontextprotocol/server-brave-search",
+      "category": "research",
+      "env_vars": ["BRAVE_API_KEY"],
+      "install_command": "npx -y @modelcontextprotocol/server-brave-search",
+      "example_config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+        "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" }
+      }
+    },
+    {
+      "id": "filesystem",
+      "name": "Filesystem",
+      "description": "Operaciones avanzadas de sistema de archivos",
+      "package": "@modelcontextprotocol/server-filesystem",
+      "category": "development",
+      "env_vars": [],
+      "install_command": "npx -y @modelcontextprotocol/server-filesystem",
+      "example_config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed-directory"]
+      }
+    },
+    {
+      "id": "postgres",
+      "name": "PostgreSQL",
+      "description": "Consultas a bases de datos PostgreSQL",
+      "package": "@modelcontextprotocol/server-postgres",
+      "category": "database",
+      "env_vars": ["DATABASE_URL"],
+      "install_command": "npx -y @modelcontextprotocol/server-postgres",
+      "example_config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-postgres"],
+        "env": { "DATABASE_URL": "postgresql://user:pass@host:5432/db" }
+      }
+    },
+    {
+      "id": "fetch",
+      "name": "Fetch",
+      "description": "Obtener y parsear contenido web",
+      "package": "@modelcontextprotocol/server-fetch",
+      "category": "research",
+      "env_vars": [],
+      "install_command": "npx -y @modelcontextprotocol/server-fetch",
+      "example_config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-fetch"]
+      }
+    },
+    {
+      "id": "git",
+      "name": "Git",
+      "description": "Operaciones de control de versiones Git",
+      "package": "@modelcontextprotocol/server-git",
+      "category": "development",
+      "env_vars": [],
+      "install_command": "npx -y @modelcontextprotocol/server-git",
+      "example_config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-git", "/path/to/repo"]
+      }
+    },
+    {
+      "id": "sqlite",
+      "name": "SQLite",
+      "description": "Consultas a bases de datos SQLite locales",
+      "package": "@modelcontextprotocol/server-sqlite",
+      "category": "database",
+      "env_vars": [],
+      "install_command": "npx -y @modelcontextprotocol/server-sqlite",
+      "example_config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-sqlite", "--db-path", "./database.db"]
+      }
+    }
+  ],
+  "installation": {
+    "default_path": ".juar/mcp",
+    "config_file": ".mcp.json",
+    "auto_install": true
+  }
+}

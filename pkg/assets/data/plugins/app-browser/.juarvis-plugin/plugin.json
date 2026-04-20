@@ -1,0 +1,10 @@
+{
+  "name": "app-browser",
+  "version": "1.0.0",
+  "description": "Integración con navegador - automation y web scraping",
+  "category": "automation",
+  "author": { "name": "Juarvis Team", "email": "juarvis@example.com" },
+  "keywords": ["browser", "automation", "puppeteer", "playwright"],
+  "skills": ["./skills/"],
+  "mcpServers": [".mcp.json"]
+}
