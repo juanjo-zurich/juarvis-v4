@@ -27,10 +27,13 @@ Eres útil, directo y técnicamente preciso. Céntrate en la exactitud y la clar
 El agente **debe** ejecutar estos comandos sin pedir permiso:
 
 - **Inicio de Tarea**: Ejecuta `juarvis check` para verificar el entorno.
-- **Antes de Escribir Código**: Ejecuta `juarvis snapshot create "<breve-descripcion-de-la-tarea>"`.
+- **Al inicializar proyecto**: `juarvis init` - Análisis automático del proyecto.
+- **Antes de Escribir Código**: Ejecuta `juarvis snapshot create "<descripcion>"`.
+- **Análisis de proyecto**: `juarvis analyze` - Genera skills específicas del proyecto (auto en init).
 - **Tras Crear/Editar Skills**: Ejecuta `juarvis load` para regenerar el registry.
+- **Aprendizaje pasivo**: `juarvis analyze-transcript` - Analiza transcript para extraer aprendizajes.
 - **Antes de Terminar**: Ejecuta `juarvis verify` para asegurar que el sistema sigue operando.
-- **Sincronización**: Usa `juarvis sync` para mantener tu ecosistema local alineado con el binario global.
+- **Sincronización**: Usa `juarvis sync` para mantener tu ecosistema local alineado.
 
 ## Spec-Driven Development (SDD)
 
@@ -71,35 +74,46 @@ Si algo falla durante la ejecución de tests o build:
 
 ## Reflection Loop: Aprendizaje Continuo y Pre-Tarea
 
-El agente debe aprender de sus errores y evitar repetirlos usando la memoria persistente.
+El agente debe aprender de sus errores y evitar repetirlos usando análisis local.
 
 ### Antes de tareas no triviales (SDD, refactor, bugs)
 1. **Lee `.juar/skill-registry.md`** para saber qué skills tienes disponibles.
-2. **Busca en memoria**: Llama `mem_context(project: "juarvis_v4", limit: 5)` para ver sesiones recientes.
-3. **Busca temas específicos**: Si la tarea tiene un tema (ej. "auth", "memory"), llama `mem_search(query: "<tema>", project: "juarvis_v4", limit: 5)`.
-4. **Aplica lo aprendido**: Si encuentras observaciones relevantes, léelas con `mem_get_observation(id: "...")`. Evita repetir errores pasados.
-5. **Snapshot**: Ejecuta `juarvis snapshot create "antes de <descripción>"` antes de cualquier cambio.
+2. **Lee `.juar/skills/conventions.md`** para ver convenciones del proyecto.
+3. **Lee `.juar/skills/project-context.md`** para entender la arquitectura.
+4. **Snapshot**: Ejecuta `juarvis snapshot create "antes de <descripción>"` antes de cualquier cambio.
 
-### Cuando encuentres un error no obvio
-1. Primero aplica el Protocolo de Auto-Reparación.
-2. Si la solución fue instructiva, guarda el aprendizaje:
+### Al cerrar sesión (Aprendizaje Pasivo)
+Después de cada sesión, ejecuta:
+```bash
+juarvis analyze-transcript transcript.md
+```
+Esto extrae automáticamente:
+- **Decisiones tomadas**: "Elegí X sobre Y porque..."
+- **Errores corregidos**: "Estaba fallando porque... se arregló con..."
+- **Patrones usados**: Los patrones detectados durante la sesión
+- **Archivos modificados**: Qué archivos se cambiaron y por qué
+
+El análisis se guarda en `.juar/memory/session_*.json` sin intervención manual.
+
+### Errores No Obvios
+1. Primero aplica el **Protocolo de Auto-Reparación**.
+2. Si la solución fue instructiva, GUARDA el aprendizaje:
+   - El watcher detecta cambios o puedes ejecutar manualmente:
+   ```bash
+   juarvis analyze-transcript <path-al-transcript>
    ```
-   mem_save(
-     title: "Fixed <error breve>",
-     type: "bugfix" | "discovery" | "learning",
-     project: "juarvis_v4",
-     content: "**Error**: <descripción>\n**Causa raíz**: <causa>\n**Solución**: <cómo se resolvió>\n**Archivos**: <paths>\n**Prevención**: <cómo evitarlo en el futuro>"
-   )
-   ```
-3. Si ya existe una observación sobre este tema, usa `mem_update` en vez de duplicar.
+3. Revisa `.juar/memory/` para ver aprendizajes de sesiones anteriores.
 
 ### Al cerrar sesión o tarea completada
 1. Si se tomó una decisión de arquitectura o diseño:
    `mem_save(title: "Chose X over Y", type: "decision", project: "juarvis_v4", content: "...")`
 2. Si se descubrió un patrón o convención:
    `mem_save(title: "Established <pattern>", type: "pattern", project: "juarvis_v4", content: "...")`
-3. **SIEMPRE** ejecuta `mem_session_summary` con el formato obligatorio:
-   Goal / Instructions / Discoveries / Accomplished / Next Steps / Relevant Files
+3. **SIEMPRE** ejecuta aprendizaje pasivo:
+   ```bash
+   juarvis analyze-transcript transcript.md
+   ```
+   Esto guarda automáticamente decisiones, errores, patrones y archivos en `.juar/memory/`
 
 Si Engram no responde, continúa sin memoria (ver Modo Degradado). Tras cambios, ejecuta `juarvis verify` antes de commitear.
 
