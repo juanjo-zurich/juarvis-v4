@@ -183,7 +183,7 @@ func RunInit(path string) error {
 
 	// 5. Analizar el proyecto y generar skills específicas
 	output.Info("🔍 Analizando codebase para generar skills específicas...")
-	if err := analyze.RunAnalyze(false, false); err != nil {
+	if err := analyze.RunAnalyzeIn(absPath, false, false); err != nil {
 		output.Warning("Error analysando proyecto: %v", err)
 	} else {
 		output.Info("✅ Skills de proyecto generadas - el agente conoce tu proyecto")

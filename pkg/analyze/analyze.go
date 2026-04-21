@@ -56,13 +56,21 @@ var (
 	}
 )
 
-// RunAnalyze analiza el proyecto y genera skills específicas
+// RunAnalyze analiza el proyecto actual (donde se ejecuta)
 func RunAnalyze(update bool, verbose bool) error {
 	rootPath, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("no se pudo obtener directorio actual: %w", err)
 	}
+	return runAnalyze(rootPath, update, verbose)
+}
 
+// RunAnalyzeIn analiza un proyecto específico (para usar desde init)
+func RunAnalyzeIn(rootPath string, update bool, verbose bool) error {
+	return runAnalyze(rootPath, update, verbose)
+}
+
+func runAnalyze(rootPath string, update bool, verbose bool) error {
 	output.Info("🔍 Analizando codebase...")
 
 	// Detectar stack
