@@ -189,6 +189,14 @@ func RunInit(path string) error {
 		output.Info("✅ Skills de proyecto generadas - el agente conoce tu proyecto")
 	}
 
+	// 6. Crear configuración del proyecto
+	output.Info("⚙️ Configurando nivel de autonomía...")
+	if _, err := config.LoadOrCreate(absPath); err != nil {
+		output.Warning("Error creando config: %v", err)
+	} else {
+		output.Info("✅ Configuración creada - usa 'juarvis mode' para cambiar")
+	}
+
 	return nil
 }
 
