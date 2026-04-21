@@ -258,8 +258,9 @@ func detectPatterns(rootPath string) []string {
 		{"mobx", "mobx"},
 	}
 
+	// Solo buscar en/src, no en plugins ni skills
 	for _, sp := range statePatterns {
-		if found := searchInFiles(rootPath, sp.file); found {
+		if found := searchInProjectCode(rootPath, sp.file); found {
 			patterns = append(patterns, "state:"+sp.pattern)
 		}
 	}
@@ -371,8 +372,8 @@ func countFiles(rootPath string) (int, map[string]int) {
 			return nil
 		}
 
-		// Skip common ignored dirs
-		skipDirs := []string{".git", "node_modules", "dist", "build", ".next", "coverage", ".cache", "vendor"}
+		// Skip common ignored dirs - INCLUYE plugins y skills
+		skipDirs := []string{".git", "node_modules", "dist", "build", ".next", "coverage", ".cache", "vendor", ".opencode", "plugins", "skills", ".juar", ".agent"}
 		for _, skip := range skipDirs {
 			if strings.HasPrefix(path, filepath.Join(rootPath, skip)) {
 				return nil
@@ -494,4 +495,74 @@ func formatMap(m map[string]int) string {
 		result += fmt.Sprintf("%s: %d, ", k, v)
 	}
 	return strings.TrimSuffix(result, ", ")
+}
+
+// searchInProjectCode busca solo en código del proyecto (src/, cmd/, no en plugins/skills)
+func searchInProjectCode(rootPath, pattern string) bool {
+	cmd := exec.Command("grep", "-r", "-l", pattern, rootPath,
+		"--include=*.go", "--include=*.ts", "--include=*.tsx", "--include=*.js", "--include=*.jsx",
+		"--include=*.py", "--include=*.rs",
+		"--exclude-dir=.git", "--exclude-dir=node_modules", "--exclude-dir=plugins",
+		"--exclude-dir=skills", "--exclude-dir=.juar", "--exclude-dir=.agent")
+	output, err := cmd.Output()
+	return err == nil && len(output) > 0
+}
+
+// detectStackImproved detecta el stack real del proyecto
+func detectStackImproved(rootPath string) []string {
+	var stack []string
+
+	extensions := map[string]string{
+		".go":    "Go",
+		".ts":    "TypeScript",
+		".tsx":   "TypeScript React",
+		".py":    "Python",
+		".rs":    "Rust",
+		".java":  "Java",
+		".kt":    "Kotlin",
+		".swift": "Swift",
+	}
+
+	for ext, name := range extensions {
+		cmd := exec.Command("find", rootPath, "-name", "*"+ext, "-maxdepth", "3",
+			"-not", "-path", "*/node_modules/*",
+			"-not", "-path", "*/.git/*",
+			"-not", "-path", "*/plugins/*",
+			"-not", "-path", "*/skills/*")
+		output, err := cmd.Output()
+		if err == nil && len(output) > 10 { // Más de threshold
+			if !contains(stack, name) {
+				stack = append(stack, name)
+			}
+		}
+	}
+
+	// Detectar package.json real (no en node_modules)
+	pkgJSON := filepath.Join(rootPath, "package.json")
+	if data, err := os.ReadFile(pkgJSON); err == nil {
+		content := string(data)
+		
+		// Frameworks
+		if strings.Contains(content, `"next"`) && !strings.Contains(content, "node_modules") {
+			if !contains(stack, "Next.js") { stack = append(stack, "Next.js") }
+		}
+		if strings.Contains(content, `"react"`) && !strings.Contains(content, "node_modules") {
+			if !contains(stack, "React") { stack = append(stack, "React") }
+		}
+		if strings.Contains(content, `"vue"`) {
+			if !contains(stack, "Vue") { stack = append(stack, "Vue") }
+		}
+		if strings.Contains(content, `"express"`) {
+			if !contains(stack, "Express") { stack = append(stack, "Express") }
+		}
+		if strings.Contains(content, `"fastapi"`) {
+			if !contains(stack, "FastAPI") { stack = append(stack, "FastAPI") }
+		}
+	}
+
+	if len(stack) == 0 {
+		stack = append(stack, "vanilla")
+	}
+
+	return stack
 }
