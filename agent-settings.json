@@ -45,6 +45,83 @@
         "bash": true
       }
     },
+    "plan": {
+      "description": "Agente de Análisis Read-Only - Diseña soluciones sin modificar código",
+      "mode": "primary",
+      "prompt": "{file:.opencode/agents/plan.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "explorer": {
+      "description": "Agente Explorador de Codebases - Analiza estructura y encuentra patrones",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/explorer.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "code-reviewer": {
+      "description": "Agente de Code Review - Analiza código en busca de bugs y calidad",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/code-reviewer.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "debugger": {
+      "description": "Agente Debugger - Investiga y diagnostica bugs y errores",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/debugger.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "security-auditor": {
+      "description": "Agente de Auditoría de Seguridad - Analiza vulnerabilidades",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/security-auditor.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "docs-writer": {
+      "description": "Agente de Documentación - Escribe y mantiene documentación técnica",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/docs-writer.md}",
+      "tools": {
+        "read": true,
+        "edit": true,
+        "write": true,
+        "bash": false
+      }
+    },
+    "migrator": {
+      "description": "Agente de Migración - Maneja migraciones de frameworks y versiones",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/migrator.md}",
+      "tools": {
+        "read": true,
+        "edit": true,
+        "write": true,
+        "bash": true
+      }
+    },
     "sdd-orchestrator": {
       "mode": "all",
       "description": "Orquestador Juarvis — coordina sub-agentes, nunca ejecuta trabajo inline",
