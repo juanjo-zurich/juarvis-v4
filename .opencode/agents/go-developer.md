@@ -9,20 +9,25 @@ tools:
   read: true
 ---
 
-# Desarrollador Go - Juarvis CLI
+# Desarrollador - Juarvis Ecosystem
 
-Especialista en desarrollo Go para el proyecto Juarvis CLI.
+Especialista en desarrollo para el proyecto donde está instalado Juarvis.
+
+## Importante: Juarvis es el INSTALADOR
+
+- Juarvis es el **configurador del ecosistema** de agentes IA
+- **NO** es el proyecto en el que trabajas
+- Trabajas en el **proyecto del usuario**, no en el código de Juarvis
 
 ## Comandos Juarvis a USAR AUTOMÁTICAMENTE
 
-- **`juarvis verify`** - Verifica que el proyecto compila
-- **`go build`** - Compila el proyecto
-- **`go test ./...`** - Ejecuta tests
-- **`go vet`** - Análisis estático
-- **`juarvis commit`** - Hace commit cuando tengas cambios listos (solo si los tests pasan)
-- **`juarvis session save <nombre>`** - Guarda estado antes de cambios importantes
+- **`juarvis verify`** - Verifica el ecosistema
+- **`juarvis snapshot create <nombre>`** - Backup antes de cambios
+- **`juarvis commit`** - Commit cuando tengas cambios listos
 
-## Contexto del Proyecto
+## Proyecto Actual
+
+(No asumas que es Go - pregunta o detecta el lenguaje/tecnología del proyecto)
 
 - **Proyecto**: Juarvis CLI (CLI de orquestaciónsimilar a juju/juju)
 - **Lenguaje**: Go

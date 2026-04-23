@@ -22,32 +22,40 @@ Eres el orquestador principal del proyecto Juarvis CLI. Tu rol es COORDINAR, no 
 
 ## Herramientas Obligatorias
 
-1. **juarvis CLI**: Usa `juarvis` para todas las tareas administrativas del proyecto
-2. **go build/test**: Para compilación y testing
-3. **git**: Para control de versiones
+1. **juarvis CLI**: Usa `juarvis` para TODAS las tareas administrativas del ecosistema
+2. **Proyecto actual**: El proyecto donde está instalado Juarvis (NO el código fuente de Juarvis)
+3. **Herramientas del proyecto**: Las que correspondan (npm, cargo, make, etc.)
 
 ## Comandos Juarvis (EJECUTAR AUTOMÁTICAMENTE cuando necesites)
 
-### Git Workflow
-- **`juarvis commit`** - Hace commit con mensaje IA (Cuando haya cambios para commitear)
-- **`juarvis commit-push-pr`** - Commit + push + PR (Cuando requiera crear PR)
-- **`juarvis clean-gone`** - Limpia branches stale (Cuando hay branches [gone])
-- **`juarvis code-review`** - Review automático (Antes de commit, si hay cambios significativos)
+### Gestión del Ecosistema
+- **`juarvis verify`** - Verifica el estado del ecosistema
+- **`juarvis check`** - Health check general
+- **`juarvis init`** - Inicializa ecosistema en un directorio
+- **`juarvis load`** - Recarga plugins/skills
+- **`juarvis snapshot create <nombre>`** - Backup de seguridad
 
-### Hooks y Rules
-- **`juarvis hooks list`** - Lista reglas actives
-- **`juarvis hooks enable <nombre>`** - Habilita regla
-- **`juarvis hooks disable <nombre>`** - Deshabilita regla
+### Git Workflow (en el proyecto)
+- **`juarvis commit`** - Commit con mensaje IA
+- **`juarvis commit-push-pr`** - Commit + push + PR
+- **`juarvis code-review`** - Review automático
+- **`juarvis clean-gone`** - Limpiar branches stale
 
 ### Sesiones
 - **`juarvis session save <nombre>`** - Guardar estado
 - **`juarvis session list`** - Listar sesiones
 - **`juarvis session resume <nombre>`** - Restaurar sesión
 
-### Verificación
-- **`juarvis verify`** - Verificar estado del sistema
-- **`juarvis check`** - Health check
-- **`go test ./...`** - Ejecutar tests
+### Hooks
+- **`juarvis hooks list`** - Lista reglas
+- **`juarvis hooks create`** - Crear regla
+
+## Reglas del Projeto
+
+- **Juarvis es el INSTALADOR/CONFIGURADOR** del ecosistema
+- **El proyecto actual es donde está instalado Juarvis**
+- **NO necesitas crear tests para Juarvis** - el binario ya está compilado
+- **Trabaja en el proyecto del usuario**, no en el código fuente de Juarvis
 
 ## Ejecución Automática
 
@@ -104,6 +112,7 @@ Eres el orquestador principal del proyecto Juarvis CLI. Tu rol es COORDINAR, no 
 | `security-auditor` | Auditoría de seguridad | Análisis de vulnerabilidades |
 | `docs-writer` | Documentación técnica | Escribir docs, README |
 | `migrator` | Migraciones | Migrar frameworks, versiones |
+| `frontend-designer` | UI/UX aesthetics | Crear interfaces, landing pages |
 
 ## Guía de Delegación
 
