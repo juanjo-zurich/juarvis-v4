@@ -49,6 +49,7 @@ func RunVerify(opts VerifyOptions) ([]CheckResult, error) {
 	if !opts.SkipCLI {
 		results = append(results, checkCLICommands())
 	}
+	results = append(results, checkSkillRegistry(opts))
 
 	return results, nil
 }
@@ -100,9 +101,8 @@ func checkEmbeddedJSONs() CheckResult {
 			return CheckResult{Name: "embedded JSON", Passed: false, Message: fmt.Sprintf("%s no encontrado: %v", f, err)}
 		}
 		if strings.HasSuffix(f, ".json") {
-			var v interface{}
-			if err := json.Unmarshal(data, &v); err != nil {
-				return CheckResult{Name: "embedded JSON", Passed: false, Message: fmt.Sprintf("%s JSON inválido: %v", f, err)}
+			if !json.Valid(data) {
+				return CheckResult{Name: "embedded JSON", Passed: false, Message: fmt.Sprintf("%s JSON inválido", f)}
 			}
 		}
 	}
@@ -130,14 +130,17 @@ func checkPluginManifests() CheckResult {
 		if err != nil {
 			continue
 		}
-		var manifest map[string]interface{}
+		var manifest struct {
+			Name        string `json:"name"`
+			Version     string `json:"version"`
+			Description string `json:"description"`
+			Category    string `json:"category"`
+		}
 		if err := json.Unmarshal(data, &manifest); err != nil {
 			return CheckResult{Name: "plugin manifests", Passed: false, Message: fmt.Sprintf("%s/plugin.json inválido: %v", entry.Name(), err)}
 		}
-		for _, field := range []string{"name", "version", "description", "category"} {
-			if _, ok := manifest[field]; !ok {
-				return CheckResult{Name: "plugin manifests", Passed: false, Message: fmt.Sprintf("%s/plugin.json falta campo: %s", entry.Name(), field)}
-			}
+		if manifest.Name == "" || manifest.Version == "" || manifest.Description == "" || manifest.Category == "" {
+			return CheckResult{Name: "plugin manifests", Passed: false, Message: fmt.Sprintf("%s/plugin.json faltan campos requeridos", entry.Name())}
 		}
 		pluginCount++
 	}
@@ -177,4 +180,60 @@ func findBinary() (string, error) {
 		return path, nil
 	}
 	return "", fmt.Errorf("juarvis binary not found")
+}
+
+func checkSkillRegistry(opts VerifyOptions) CheckResult {
+	if opts.SkipBuild {
+		return CheckResult{Name: "skill registry", Passed: true, Message: "skipping"}
+	}
+
+	registryPath := ".juar/skill-registry.md"
+	if _, err := os.Stat(registryPath); os.IsNotExist(err) {
+		return CheckResult{Name: "skill registry", Passed: true, Message: "no registry found"}
+	}
+
+	_, err := os.ReadFile(registryPath)
+	if err != nil {
+		return CheckResult{Name: "skill registry", Passed: false, Message: fmt.Sprintf("error reading: %v", err)}
+	}
+
+	// Check for broken symlinks
+	skillsDir := "skills"
+	entries, err := os.ReadDir(skillsDir)
+	if err != nil {
+		return CheckResult{Name: "skill registry", Passed: true, Message: "no skills directory"}
+	}
+
+	var brokenLinks []string
+	for _, e := range entries {
+		linkPath := filepath.Join(skillsDir, e.Name())
+		info, err := os.Lstat(linkPath)
+		if err != nil {
+			continue
+		}
+
+		if info.Mode()&os.ModeSymlink != 0 {
+			target, err := os.Readlink(linkPath)
+			if err != nil {
+				brokenLinks = append(brokenLinks, e.Name())
+				continue
+			}
+
+			// Resolve relative path
+			absTarget := target
+			if !filepath.IsAbs(target) {
+				absTarget = filepath.Join(filepath.Dir(linkPath), target)
+			}
+
+			if _, err := os.Stat(absTarget); os.IsNotExist(err) {
+				brokenLinks = append(brokenLinks, fmt.Sprintf("%s -> %s", e.Name(), target))
+			}
+		}
+	}
+
+	if len(brokenLinks) > 0 {
+		return CheckResult{Name: "skill registry", Passed: false, Message: fmt.Sprintf("symlinks rotos: %s", strings.Join(brokenLinks, ", "))}
+	}
+
+	return CheckResult{Name: "skill registry", Passed: true, Message: fmt.Sprintf("%d skills verificadas", len(entries))}
 }

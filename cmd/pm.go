@@ -91,6 +91,62 @@ var installCmd = &cobra.Command{
 	},
 }
 
+var checkUpdatesCmd = &cobra.Command{
+	Use:   "check",
+	Short: "Busca actualizaciones disponibles para los plugins instalados",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := pm.CheckUpdates(); err != nil {
+			output.Error("Error verificando actualizaciones: %v", err)
+		}
+	},
+}
+
+var updateCmd = &cobra.Command{
+	Use:   "update [plugin]",
+	Short: "Actualiza un plugin a la última versión",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		pName := args[0]
+		if err := pm.UpdatePlugin(pName); err != nil {
+			output.Error("Error actualizando plugin: %v", err)
+		} else {
+			output.Success("Plugin '%s' actualizado correctamente", pName)
+		}
+	},
+}
+
+var updateAllCmd = &cobra.Command{
+	Use:   "update-all",
+	Short: "Actualiza todos los plugins instalados a su última versión",
+	Run: func(cmd *cobra.Command, args []string) {
+		force, _ := cmd.Flags().GetBool("force")
+		updated, err := pm.UpdateAllPlugins(force)
+		if err != nil {
+			output.Error("Error actualizando plugins: %v", err)
+		} else {
+			output.Success("%d plugin(s) actualizado(s)", updated)
+		}
+	},
+}
+
+func init() {
+	updateAllCmd.Flags().BoolP("force", "f", false, "Fuerza actualización incluso si ya está actualizado")
+}
+
+var rollbackCmd = &cobra.Command{
+	Use:   "rollback [plugin]",
+	Short: "Revierte un plugin a la versión anterior",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		pName := args[0]
+		if err := pm.RollbackPlugin(pName); err != nil {
+			output.Error("Error en rollback: %v", err)
+		} else {
+			output.Success("Plugin '%s' revertido", pName)
+		}
+	},
+}
+
 func init() {
 	pmCmd.AddCommand(listCmd)
 	pmCmd.AddCommand(searchCmd)
@@ -98,5 +154,9 @@ func init() {
 	pmCmd.AddCommand(disableCmd)
 	pmCmd.AddCommand(removeCmd)
 	pmCmd.AddCommand(installCmd)
+	pmCmd.AddCommand(checkUpdatesCmd)
+	pmCmd.AddCommand(updateCmd)
+	pmCmd.AddCommand(updateAllCmd)
+	pmCmd.AddCommand(rollbackCmd)
 	rootCmd.AddCommand(pmCmd)
 }

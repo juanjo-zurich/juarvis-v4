@@ -26,7 +26,9 @@ var doctorCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		output.Banner("JUARVIS DOCTOR")
 		output.Info("Diagnóstico del ecosistema")
-		fmt.Println()
+		if !output.IsJSONMode() {
+			fmt.Println()
+		}
 
 		type checkResult struct {
 			name    string
@@ -183,9 +185,10 @@ var doctorCmd = &cobra.Command{
 		for _, c := range results {
 			if c.pass {
 				passing++
-				output.Success(c.name)
 				if doctorVerbose && c.details != "" {
-					fmt.Printf("    %s\n", c.details)
+					output.Success("%s - %s", c.name, c.details)
+				} else {
+					output.Success("%s", c.name)
 				}
 			} else {
 				failing++
@@ -193,13 +196,19 @@ var doctorCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Println()
-		fmt.Printf("%d checks, %d passing, %d warnings\n", len(results), passing, failing)
-		fmt.Println()
+		if !output.IsJSONMode() {
+			fmt.Println()
+		}
+		output.Info("%d checks, %d passing, %d warnings", len(results), passing, failing)
+		if !output.IsJSONMode() {
+			fmt.Println()
+		}
 
 		if doctorFix && failing > 0 {
 			output.Info("Ejecutando auto-remedios...")
-			fmt.Println()
+			if !output.IsJSONMode() {
+				fmt.Println()
+			}
 
 			for _, c := range results {
 				if !c.pass {

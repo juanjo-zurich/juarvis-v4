@@ -24,12 +24,12 @@ var analyzeTranscriptCmd = &cobra.Command{
 		analysis, err := analyzer.AnalyzeTranscript(path)
 		if err != nil {
 			output.Fatal(output.ExitGeneric,
-				"Verifica que el transcript existe",
-				"Error analizando transcript: %v", err)
+				"Verifica que el transcript existe: %v",
+				"%v", err)
 		}
 
 		summary := analyzer.BuildSessionSummary(analysis)
-		output.Info("\n" + summary)
+		output.Info("%s", "\n"+summary)
 
 		// Guardar análisis
 		cwd, err := os.Getwd()

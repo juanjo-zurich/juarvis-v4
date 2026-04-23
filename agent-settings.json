@@ -2,12 +2,47 @@
   "name": "juarvis-universal-ecosystem",
   "agent": {
     "orchestrator": {
-      "description": "Mentor Senior de Arquitectura — útil primero, desafiante cuando importa",
+      "description": "Orquestador Principal de Juarvis CLI - Coordina sub-agentes especializados",
       "mode": "primary",
-      "prompt": "{file:./AGENTS.md}",
+      "prompt": "{file:.opencode/agents/orchestrator.md}",
       "tools": {
         "edit": true,
-        "write": true
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "go-developer": {
+      "description": "Desarrollador Go especializado en Juarvis CLI",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/go-developer.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "test-engineer": {
+      "description": "Ingeniero de Testing para Juarvis CLI",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/test-engineer.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "devops": {
+      "description": "Ingeniero DevOps para Juarvis CLI",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/devops.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
       }
     },
     "sdd-orchestrator": {
