@@ -129,7 +129,7 @@ var doctorCmd = &cobra.Command{
 
 		check7 := checkResult{name: "Watcher corriendo"}
 		if r != "" {
-			pidFile := filepath.Join(r, ".juar", "watcher.pid")
+			pidFile := filepath.Join(r, config.JuarDir, config.WatcherPIDFile)
 			if _, err := os.Stat(pidFile); err != nil {
 				check7.pass = false
 				check7.hint = "Ejecuta: juarvis watch --daemon"

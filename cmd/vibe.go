@@ -39,7 +39,7 @@ var vibeCmd = &cobra.Command{
 		watcherStatus := "○ INACTIVO"
 		watcherPID := "-"
 
-		watcherFile := filepath.Join(rootPath, config.JuarDir, ".watcher.pid")
+		watcherFile := filepath.Join(rootPath, config.JuarDir, config.WatcherPIDFile)
 		if data, err := os.ReadFile(watcherFile); err == nil {
 			watcherStatus = "● ACTIVO"
 			watcherPID = strings.TrimSpace(string(data))

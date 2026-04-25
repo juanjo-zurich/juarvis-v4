@@ -10,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+	"juarvis/pkg/config"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 )
@@ -101,7 +102,7 @@ func getDashboardData(rootPath string) dashboardData {
 	}
 
 	// Watcher
-	watcherFile := filepath.Join(rootPath, ".juarvis", ".watcher.pid")
+	watcherFile := filepath.Join(rootPath, config.JuarDir, config.WatcherPIDFile)
 	if data, err := os.ReadFile(watcherFile); err == nil {
 		d.watcherStatus = "● ACTIVO"
 		d.watcherPID = strings.TrimSpace(string(data))

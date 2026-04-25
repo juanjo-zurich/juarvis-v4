@@ -27,4 +27,7 @@ const (
 
 	// MemoryDir is the memory subdirectory within .juar
 	MemoryDir = "memory"
+
+	// WatcherPIDFile is the watcher PID file (no dot prefix - visible file)
+	WatcherPIDFile = "watcher.pid"
 )

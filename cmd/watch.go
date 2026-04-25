@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"syscall"
 
+	"juarvis/pkg/config"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 	"juarvis/pkg/watcher"
@@ -110,7 +111,7 @@ func startDaemon() {
 		output.Error("No se pudo crear directorio .juar: %v", err)
 		os.Exit(1)
 	}
-	pidFile := filepath.Join(juarDir, "watcher.pid")
+	pidFile := filepath.Join(juarDir, config.WatcherPIDFile)
 
 	if _, err := os.Stat(pidFile); err == nil {
 		pidBytes, readErr := os.ReadFile(pidFile)
@@ -156,7 +157,7 @@ func stopWatcher() {
 		os.Exit(1)
 	}
 
-	pidFile := filepath.Join(rootPath, ".juar", "watcher.pid")
+	pidFile := filepath.Join(rootPath, config.JuarDir, config.WatcherPIDFile)
 
 	if _, err := os.Stat(pidFile); os.IsNotExist(err) {
 		output.Info("No hay watcher en segundo plano (no se encontro PID file)")
