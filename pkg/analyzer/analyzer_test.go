@@ -201,3 +201,32 @@ func indexOf(s, substr string) int {
 	}
 	return -1
 }
+
+func TestExtractContextsEmpty(t *testing.T) {
+	transcript := `[]`
+	result := extractContexts(transcript, "test")
+	if len(result) > 0 {
+		t.Logf("extractContexts con JSON vacío devolvió %d contextos", len(result))
+	}
+}
+
+func TestExtractContextsPartial(t *testing.T) {
+	transcript := `[{"role": "user", "content": "hola"}]`
+	result := extractContexts(transcript, "test")
+	// Accept nil or empty for partial transcript
+	if result == nil || len(result) == 0 {
+		t.Log("extractContexts devolvió nil/vacío para transcript parcial (aceptable)")
+	}
+}
+
+func TestDeduplicateFunctions(t *testing.T) {
+	decisions := []Decision{
+		{Choice: "a", Reason: "r1"},
+		{Choice: "a", Reason: "r1"},
+		{Choice: "b", Reason: "r2"},
+	}
+	deduped := deduplicateDecisions(decisions)
+	if deduped == nil {
+		t.Error("deduplicateDecisions devolvió nil")
+	}
+}

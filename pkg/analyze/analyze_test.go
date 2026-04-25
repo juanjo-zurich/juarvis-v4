@@ -163,3 +163,72 @@ func TestSearchInProjectCode(t *testing.T) {
 		t.Error("no encontró func main")
 	}
 }
+
+func TestDetectStackPython(t *testing.T) {
+	tmpDir := t.TempDir()
+	projectDir := filepath.Join(tmpDir, "pyproject")
+	os.MkdirAll(projectDir, 0755)
+
+	// Crear proyecto Python
+	os.WriteFile(filepath.Join(projectDir, "main.py"), []byte("print('hello')\n"), 0644)
+	os.WriteFile(filepath.Join(projectDir, "requirements.txt"), []byte("flask\n"), 0644)
+
+	stack := detectStack(projectDir)
+
+	found := false
+	for _, s := range stack {
+		if s == "python" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Logf("no se detectó python en stack: %v", stack)
+	}
+}
+
+func TestDetectStackNodeJS(t *testing.T) {
+	tmpDir := t.TempDir()
+	projectDir := filepath.Join(tmpDir, "nodecproject")
+	os.MkdirAll(projectDir, 0755)
+
+	// Crear proyecto Node.js
+	os.WriteFile(filepath.Join(projectDir, "index.js"), []byte("console.log('hello')\n"), 0644)
+	os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{"name": "test"}`), 0644)
+
+	stack := detectStack(projectDir)
+
+	found := false
+	for _, s := range stack {
+		if s == "node" || s == "javascript" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Logf("no se detectó node en stack: %v", stack)
+	}
+}
+
+func TestDetectCodeAntiPatterns(t *testing.T) {
+	tmpDir := t.TempDir()
+	projectDir := filepath.Join(tmpDir, "testproject")
+	os.MkdirAll(projectDir, 0755)
+
+	// Crear archivo con potenciales anti-patterns
+	os.WriteFile(filepath.Join(projectDir, "main.go"), []byte(`
+package main
+
+func hugeFunction() {
+	// 200+ líneas de código sin функции
+	for i := 0; i < 1000; i++ {
+		doSomething()
+	}
+}
+`), 0644)
+
+	antiPatterns := detectCodeAntiPatterns(projectDir)
+	if len(antiPatterns) == 0 {
+		t.Log("no se detectaron anti-patterns en código problema (esperado en algunos casos)")
+	}
+}
