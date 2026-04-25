@@ -4,18 +4,18 @@ import "encoding/json"
 
 // UniversalManifest representa la configuración agnóstica del IDE
 type UniversalManifest struct {
-	Schema      string                 `json:"$schema,omitempty"`
-	Agent       map[string]AgentConfig `json:"agent"`
-	MCP         map[string]MCPConfig   `json:"mcp,omitempty"`
-	Permission  PermissionConfig       `json:"permission,omitempty"`
-	ContextPaths []string              `json:"contextPaths,omitempty"`
+	Schema       string                 `json:"$schema,omitempty"`
+	Agent        map[string]AgentConfig `json:"agent"`
+	MCP          map[string]MCPConfig   `json:"mcp,omitempty"`
+	Permission   PermissionConfig       `json:"permission,omitempty"`
+	ContextPaths []string               `json:"contextPaths,omitempty"`
 }
 
 type AgentConfig struct {
-	Description string            `json:"description,omitempty"`
-	Mode        string            `json:"mode,omitempty"`
-	Prompt      string            `json:"prompt"`
-	Tools       map[string]bool   `json:"tools,omitempty"`
+	Description string          `json:"description,omitempty"`
+	Mode        string          `json:"mode,omitempty"`
+	Prompt      string          `json:"prompt"`
+	Tools       map[string]bool `json:"tools,omitempty"`
 }
 
 type MCPConfig struct {
@@ -41,7 +41,7 @@ func (m *UniversalManifest) GenerateOpenCodeConfig() ([]byte, error) {
 	opencode["$schema"] = "https://opencode.ai/config.json"
 
 	// Aquí podríamos filtrar claves no soportadas si fuera necesario
-	// Por ahora mantenemos contextPaths solo si el usuario lo necesita, 
+	// Por ahora mantenemos contextPaths solo si el usuario lo necesita,
 	// pero lo manejamos de forma que no rompa versiones antiguas si es posible.
 
 	return json.MarshalIndent(opencode, "", "  ")

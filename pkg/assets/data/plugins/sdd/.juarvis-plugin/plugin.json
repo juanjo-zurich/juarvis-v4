@@ -1,1 +1,6 @@
-{"name": "juarvis-sdd", "version": "1.0.0", "description": "Spec-Driven Development workflow skills for structured changes", "author": {"name": "Juarvis"}, "category": "development", "skills": ["sdd-apply", "sdd-archive", "sdd-design", "sdd-explore", "sdd-init", "sdd-patch", "sdd-propose", "sdd-spec", "sdd-tasks", "sdd-verify"]}
+{
+  "name": "juarvis-sdd",
+  "version": "1.0.0",
+  "description": "Spec-Driven Development completo (9 fases)",
+  "category": "development"
+}

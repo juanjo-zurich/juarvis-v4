@@ -12,12 +12,12 @@ import (
 )
 
 type ProjectInfo struct {
-	Stack         []string   `json:"stack"`
-	Conventions   []string   `json:"conventions"`
-	Patterns      []string   `json:"patterns"`
-	AntiPatterns  []string   `json:"anti_patterns"`
-	Architecture  string     `json:"architecture"`
-	FileCount     int        `json:"file_count"`
+	Stack         []string       `json:"stack"`
+	Conventions   []string       `json:"conventions"`
+	Patterns      []string       `json:"patterns"`
+	AntiPatterns  []string       `json:"anti_patterns"`
+	Architecture  string         `json:"architecture"`
+	FileCount     int            `json:"file_count"`
 	LanguageStats map[string]int `json:"language_stats"`
 }
 
@@ -46,12 +46,12 @@ var (
 	}
 
 	conventionDetectors = map[string][]string{
-		"eslint":          {".eslintrc", ".eslintrc.js", ".eslintrc.json"},
-		"prettier":       {".prettierrc", "prettier.config"},
-		"vitest":         {"vitest.config", "package.json:vitest"},
-		"jest":           {"jest.config", "package.json:jest"},
-		"commitlint":     {".commitlintrc", "commitlint.config"},
-		"husky":          {".husky/", "husky.config"},
+		"eslint":              {".eslintrc", ".eslintrc.js", ".eslintrc.json"},
+		"prettier":            {".prettierrc", "prettier.config"},
+		"vitest":              {"vitest.config", "package.json:vitest"},
+		"jest":                {"jest.config", "package.json:jest"},
+		"commitlint":          {".commitlintrc", "commitlint.config"},
+		"husky":               {".husky/", "husky.config"},
 		"conventionalcommits": {"package.json:commitizen"},
 	}
 )
@@ -68,6 +68,23 @@ func RunAnalyze(update bool, verbose bool) error {
 // RunAnalyzeIn analiza un proyecto específico (para usar desde init)
 func RunAnalyzeIn(rootPath string, update bool, verbose bool) error {
 	return runAnalyze(rootPath, update, verbose)
+}
+
+// GetProjectInfo returns project analysis without generating skills (for display purposes)
+func GetProjectInfo(rootPath string) (ProjectInfo, error) {
+	info := ProjectInfo{
+		Stack:        detectStack(rootPath),
+		Conventions:  detectConventions(rootPath),
+		Patterns:     detectPatterns(rootPath),
+		AntiPatterns: detectAntiPatterns(rootPath),
+		Architecture: analyzeArchitecture(rootPath),
+	}
+
+	fileCount, langStats := countFiles(rootPath)
+	info.FileCount = fileCount
+	info.LanguageStats = langStats
+
+	return info, nil
 }
 
 func runAnalyze(rootPath string, update bool, verbose bool) error {
@@ -227,13 +244,13 @@ func detectPatterns(rootPath string) []string {
 
 	// Detectar patrones comunes por archivos
 	patternFiles := map[string][]string{
-		"hooks":     {"src/hooks", "lib/hooks"},
-		"context":   {"src/context", "lib/context"},
+		"hooks":      {"src/hooks", "lib/hooks"},
+		"context":    {"src/context", "lib/context"},
 		"components": {"src/components", "components/"},
-		"services":  {"src/services", "lib/services"},
-		"utils":     {"src/utils", "lib/utils"},
-		"api":       {"src/api", "api/", "routes/"},
-		"models":    {"src/models", "models/"},
+		"services":   {"src/services", "lib/services"},
+		"utils":      {"src/utils", "lib/utils"},
+		"api":        {"src/api", "api/", "routes/"},
+		"models":     {"src/models", "models/"},
 		"middleware": {"src/middleware", "middleware/"},
 	}
 
@@ -246,22 +263,25 @@ func detectPatterns(rootPath string) []string {
 		}
 	}
 
-	// State management
-	statePatterns := []struct {
-		file     string
-		pattern  string
+	// State management - buscar USO REAL, no solo imports
+	// Por ejemplo: "use zustand", "createStore", no solo la palabra "zustand"
+	stateUsagePatterns := []struct {
+		pattern string
+		name    string
 	}{
-		{"zustand", "zustand"},
-		{"redux", "redux"},
-		{"jotai", "jotai"},
-		{"recoil", "recoil"},
-		{"mobx", "mobx"},
+		{"use zustand", "zustand"},
+		{"createStore", "zustand"},
+		{"createSlice", "zustand"},
+		{"configureStore", "redux"},
+		{"createReducer", "redux"},
+		{"useAtom", "jotai"},
+		{"useRecoilValue", "recoil"},
+		{"makeAutoObservable", "mobx"},
 	}
 
-	// Solo buscar en/src, no en plugins ni skills
-	for _, sp := range statePatterns {
-		if found := searchInProjectCode(rootPath, sp.file); found {
-			patterns = append(patterns, "state:"+sp.pattern)
+	for _, sp := range stateUsagePatterns {
+		if found := searchInProjectCode(rootPath, sp.pattern); found {
+			patterns = append(patterns, "state:"+sp.name)
 		}
 	}
 
@@ -283,12 +303,12 @@ func detectAntiPatterns(rootPath string) []string {
 
 	// Detectar mensajes de fix comunes
 	antiPatternKeywords := map[string][]string{
-		"memory-leak":       {"memory leak", "leak", "cleanup"},
-		"race-condition":    {"race condition", "concurrent", "thread"},
-		"security-fix":      {"security", "vulnerability", "xss", "injection"},
-		"performance":       {"performance", "slow", "bottleneck", "optimize"},
-		"bugfix":           {"fix", "fix:", "fixed"},
-		"naming":           {"naming", "rename", "typo"},
+		"memory-leak":    {"memory leak", "leak", "cleanup"},
+		"race-condition": {"race condition", "concurrent", "thread"},
+		"security-fix":   {"security", "vulnerability", "xss", "injection"},
+		"performance":    {"performance", "slow", "bottleneck", "optimize"},
+		"bugfix":         {"fix", "fix:", "fixed"},
+		"naming":         {"naming", "rename", "typo"},
 	}
 
 	for name, keywords := range antiPatternKeywords {
@@ -296,12 +316,84 @@ func detectAntiPatterns(rootPath string) []string {
 		for _, kw := range keywords {
 			count += strings.Count(history, kw)
 		}
-		if count > 2 {
-			antiPatterns = append(antiPatterns, fmt.Sprintf("%s (%d occurrences)", name, count))
+		if count > 5 { // Threshold más alto para evitar ruido
+			antiPatterns = append(antiPatterns, fmt.Sprintf("%s (%d mentions in commits)", name, count))
 		}
 	}
 
+	//También buscar antipatrones reales en código
+	codeAntiPatterns := detectCodeAntiPatterns(rootPath)
+	antiPatterns = append(antiPatterns, codeAntiPatterns...)
+
 	return antiPatterns
+}
+
+// detectCodeAntiPatterns busca antipatrones conocidos en el código real
+func detectCodeAntiPatterns(rootPath string) []string {
+	var antipatterns []string
+
+	// Patrones de código que son anti-patterns conocidos
+	codeSearches := []struct {
+		pattern string
+		name    string
+	}{
+		{"TODO", "TODO comments"},
+		{"FIXME", "FIXME comments"},
+		{"XXX", "XXX comments"},
+		{"hack", "HACK comments"},
+		{"console.log", "console.log statements"},
+		{"print(", "print statements"},
+		{"fmt.Print", "fmt.Print statements"},
+		{"log.Fatal", "log.Fatal calls"},
+		{"panic(", "panic calls"},
+		{"TODO(", "TODO() function calls"},
+		{"any", "any type usage (Go)"},
+		{"interface{}", "empty interface"},
+		{"// nolint", "nolint suppressions"},
+		{"eslint-disable", "ESLint disables"},
+		{"// @ts-ignore", "TS ignore comments"},
+		{"// @ts-expect-error", "TS expect errors"},
+		{"password =", "hardcoded password"},
+		{"api_key =", "hardcoded api_key"},
+		{"secret =", "hardcoded secret"},
+	}
+
+	counts := make(map[string]int)
+
+	filepath.WalkDir(rootPath, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() {
+			if isIgnoredDir(d.Name()) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		ext := filepath.Ext(path)
+		if ext != ".go" && ext != ".ts" && ext != ".js" && ext != ".py" {
+			return nil
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return nil
+		}
+		strContent := string(content)
+		for _, search := range codeSearches {
+			counts[search.name] += strings.Count(strContent, search.pattern)
+		}
+		return nil
+	})
+
+	for _, search := range codeSearches {
+		if counts[search.name] > 0 {
+			antipatterns = append(antipatterns, fmt.Sprintf("%s (%d occurrences)", search.name, counts[search.name]))
+		}
+	}
+
+	return antipatterns
 }
 
 func analyzeArchitecture(rootPath string) string {
@@ -309,8 +401,8 @@ func analyzeArchitecture(rootPath string) string {
 
 	// Estructura principal
 	structures := []struct {
-		dir    string
-		desc   string
+		dir  string
+		desc string
 	}{
 		{"cmd/", "CLI application"},
 		{"internal/", "Internal packages"},
@@ -344,27 +436,27 @@ func countFiles(rootPath string) (int, map[string]int) {
 	count := 0
 
 	extensions := map[string]string{
-		".go":    "Go",
-		".ts":    "TypeScript",
-		".tsx":   "TypeScript React",
-		".js":    "JavaScript",
-		".jsx":   "React",
-		".py":    "Python",
-		".rb":    "Ruby",
-		".java":  "Java",
-		".kt":    "Kotlin",
-		".rs":    "Rust",
-		".c":     "C",
-		".cpp":   "C++",
-		".cs":    "C#",
-		".php":   "PHP",
-		".swift": "Swift",
-		".vue":   "Vue",
+		".go":     "Go",
+		".ts":     "TypeScript",
+		".tsx":    "TypeScript React",
+		".js":     "JavaScript",
+		".jsx":    "React",
+		".py":     "Python",
+		".rb":     "Ruby",
+		".java":   "Java",
+		".kt":     "Kotlin",
+		".rs":     "Rust",
+		".c":      "C",
+		".cpp":    "C++",
+		".cs":     "C#",
+		".php":    "PHP",
+		".swift":  "Swift",
+		".vue":    "Vue",
 		".svelte": "Svelte",
-		".yaml":  "YAML",
-		".yml":   "YAML",
-		".json":  "JSON",
-		".md":    "Markdown",
+		".yaml":   "YAML",
+		".yml":    "YAML",
+		".json":   "JSON",
+		".md":     "Markdown",
 	}
 
 	filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
@@ -373,11 +465,8 @@ func countFiles(rootPath string) (int, map[string]int) {
 		}
 
 		// Skip common ignored dirs - INCLUYE plugins y skills
-		skipDirs := []string{".git", "node_modules", "dist", "build", ".next", "coverage", ".cache", "vendor", ".opencode", "plugins", "skills", ".juar", ".agent"}
-		for _, skip := range skipDirs {
-			if strings.HasPrefix(path, filepath.Join(rootPath, skip)) {
-				return nil
-			}
+		if info.IsDir() && isIgnoredDir(info.Name()) {
+			return filepath.SkipDir
 		}
 
 		if !info.IsDir() {
@@ -393,10 +482,14 @@ func countFiles(rootPath string) (int, map[string]int) {
 	return count, stats
 }
 
-func searchInFiles(rootPath, pattern string) bool {
-	cmd := exec.Command("grep", "-r", "-l", pattern, rootPath, "--exclude-dir=node_modules", "--exclude-dir=.git")
-	output, err := cmd.Output()
-	return err == nil && len(output) > 0
+func isIgnoredDir(dirName string) bool {
+	skipDirs := []string{".git", "node_modules", "dist", "build", ".next", "coverage", ".cache", "vendor", ".opencode", "plugins", "skills", ".juar", ".agent"}
+	for _, skip := range skipDirs {
+		if dirName == skip {
+			return true
+		}
+	}
+	return false
 }
 
 func contains(slice []string, item string) bool {
@@ -499,70 +592,30 @@ func formatMap(m map[string]int) string {
 
 // searchInProjectCode busca solo en código del proyecto (src/, cmd/, no en plugins/skills)
 func searchInProjectCode(rootPath, pattern string) bool {
-	cmd := exec.Command("grep", "-r", "-l", pattern, rootPath,
-		"--include=*.go", "--include=*.ts", "--include=*.tsx", "--include=*.js", "--include=*.jsx",
-		"--include=*.py", "--include=*.rs",
-		"--exclude-dir=.git", "--exclude-dir=node_modules", "--exclude-dir=plugins",
-		"--exclude-dir=skills", "--exclude-dir=.juar", "--exclude-dir=.agent")
-	output, err := cmd.Output()
-	return err == nil && len(output) > 0
-}
-
-// detectStackImproved detecta el stack real del proyecto
-func detectStackImproved(rootPath string) []string {
-	var stack []string
-
-	extensions := map[string]string{
-		".go":    "Go",
-		".ts":    "TypeScript",
-		".tsx":   "TypeScript React",
-		".py":    "Python",
-		".rs":    "Rust",
-		".java":  "Java",
-		".kt":    "Kotlin",
-		".swift": "Swift",
-	}
-
-	for ext, name := range extensions {
-		cmd := exec.Command("find", rootPath, "-name", "*"+ext, "-maxdepth", "3",
-			"-not", "-path", "*/node_modules/*",
-			"-not", "-path", "*/.git/*",
-			"-not", "-path", "*/plugins/*",
-			"-not", "-path", "*/skills/*")
-		output, err := cmd.Output()
-		if err == nil && len(output) > 10 { // Más de threshold
-			if !contains(stack, name) {
-				stack = append(stack, name)
+	found := false
+	filepath.WalkDir(rootPath, func(path string, d os.DirEntry, err error) error {
+		if found || err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if isIgnoredDir(d.Name()) {
+				return filepath.SkipDir
 			}
+			return nil
 		}
-	}
 
-	// Detectar package.json real (no en node_modules)
-	pkgJSON := filepath.Join(rootPath, "package.json")
-	if data, err := os.ReadFile(pkgJSON); err == nil {
-		content := string(data)
-		
-		// Frameworks
-		if strings.Contains(content, `"next"`) && !strings.Contains(content, "node_modules") {
-			if !contains(stack, "Next.js") { stack = append(stack, "Next.js") }
+		ext := filepath.Ext(path)
+		validExts := map[string]bool{".go": true, ".ts": true, ".tsx": true, ".js": true, ".jsx": true, ".py": true, ".rs": true}
+		if !validExts[ext] {
+			return nil
 		}
-		if strings.Contains(content, `"react"`) && !strings.Contains(content, "node_modules") {
-			if !contains(stack, "React") { stack = append(stack, "React") }
-		}
-		if strings.Contains(content, `"vue"`) {
-			if !contains(stack, "Vue") { stack = append(stack, "Vue") }
-		}
-		if strings.Contains(content, `"express"`) {
-			if !contains(stack, "Express") { stack = append(stack, "Express") }
-		}
-		if strings.Contains(content, `"fastapi"`) {
-			if !contains(stack, "FastAPI") { stack = append(stack, "FastAPI") }
-		}
-	}
 
-	if len(stack) == 0 {
-		stack = append(stack, "vanilla")
-	}
-
-	return stack
+		content, err := os.ReadFile(path)
+		if err == nil && strings.Contains(string(content), pattern) {
+			found = true
+			return filepath.SkipDir
+		}
+		return nil
+	})
+	return found
 }

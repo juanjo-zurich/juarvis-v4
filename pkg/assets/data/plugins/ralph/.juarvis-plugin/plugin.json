@@ -1,1 +1,6 @@
-{"name": "juarvis-ralph", "version": "1.0.0", "description": "Productivity and assistant interaction skills", "author": {"name": "Juarvis"}, "category": "productivity", "skills": ["ralph-wiggum"]}
+{
+  "name": "juarvis-ralph",
+  "version": "1.0.0",
+  "description": "Bucles autónomos de iteración",
+  "category": "productivity"
+}

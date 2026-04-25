@@ -25,8 +25,9 @@ var upCmd = &cobra.Command{
 		// 1. Init
 		output.Info("Paso 1/3: Inicializando ecosistema...")
 		if err := pkginit.RunInit(""); err != nil {
-			output.Error("Fallo en la inicialización: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitGeneric,
+				"Fallo en la inicialización",
+				"Error: %v", err)
 		}
 		output.Success("Ecosistema listo.")
 
@@ -42,15 +43,17 @@ var upCmd = &cobra.Command{
 		output.Info("Paso 3/3: Arrancando el Watcher...")
 		rootPath, err := root.GetRoot()
 		if err != nil {
-			output.Error("%v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitNoEcosystem,
+				"Ejecuta 'juarvis init' primero",
+				"Error: %v", err)
 		}
 
 		cfg := watcher.DefaultWatcherConfig(rootPath)
 		w, err := watcher.NewWatcher(cfg)
 		if err != nil {
-			output.Error("Error iniciando watcher: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitWatcherError,
+				"Error iniciando watcher",
+				"Error: %v", err)
 		}
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -63,8 +66,9 @@ var upCmd = &cobra.Command{
 
 		output.Banner("WATCHER ACTIVO - ¡A PROGRAMAR!")
 		if err := w.Start(ctx); err != nil {
-			output.Error("Error en watcher: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitWatcherError,
+				"Error en watcher",
+				"Error: %v", err)
 		}
 	},
 }

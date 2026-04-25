@@ -168,4 +168,3 @@ func TestLoopState_Increment(t *testing.T) {
 		t.Errorf("expected iteration 2, got %d", state.Iteration)
 	}
 }
-

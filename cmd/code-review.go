@@ -11,7 +11,7 @@ import (
 
 var (
 	codeReviewComment bool
-	codeReviewTarget string
+	codeReviewTarget  string
 )
 
 var codeReviewCmd = &cobra.Command{
@@ -69,10 +69,10 @@ Solo reporta issues con confidence ≥ 75%.`,
 
 type reviewIssue struct {
 	severity    string
-	file       string
-	line       int
+	file        string
+	line        int
 	description string
-	confidence int
+	confidence  int
 }
 
 func runCodeReview(diff string) []reviewIssue {
@@ -98,34 +98,34 @@ func runCodeReview(diff string) []reviewIssue {
 			case strings.Contains(content, "TODO") && strings.Contains(content, "fix"):
 				issues = append(issues, reviewIssue{
 					severity:    "MEDIUM",
-					file:       currentFile,
-					line:       1,
+					file:        currentFile,
+					line:        1,
 					description: "TODO sin completar",
-					confidence: 60,
+					confidence:  60,
 				})
 			case strings.Contains(content, "console.Log"):
 				issues = append(issues, reviewIssue{
 					severity:    "LOW",
-					file:       currentFile,
-					line:       1,
+					file:        currentFile,
+					line:        1,
 					description: "Debug code encontrado",
-					confidence: 85,
+					confidence:  85,
 				})
 			case strings.Contains(content, "eval("):
 				issues = append(issues, reviewIssue{
 					severity:    "HIGH",
-					file:       currentFile,
-					line:       1,
+					file:        currentFile,
+					line:        1,
 					description: "Uso de eval() - riesgo de seguridad",
-					confidence: 90,
+					confidence:  90,
 				})
 			case strings.Contains(content, "password") && !strings.Contains(content, "env"):
 				issues = append(issues, reviewIssue{
 					severity:    "HIGH",
-					file:       currentFile,
-					line:       1,
+					file:        currentFile,
+					line:        1,
 					description: "Posible password hardcoded",
-					confidence: 75,
+					confidence:  75,
 				})
 			}
 		}

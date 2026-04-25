@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"juarvis/pkg/output"
 	"juarvis/pkg/snapshot"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,11 +16,11 @@ import (
 )
 
 type Watcher struct {
-	config       WatcherConfig
-	fsWatcher    *fsnotify.Watcher
-	debouncer    *Debouncer
-	eventCount   int64
-	startTime   time.Time
+	config     WatcherConfig
+	fsWatcher  *fsnotify.Watcher
+	debouncer  *Debouncer
+	eventCount int64
+	startTime  time.Time
 }
 
 func NewWatcher(cfg WatcherConfig) (*Watcher, error) {
@@ -36,11 +37,15 @@ func NewWatcher(cfg WatcherConfig) (*Watcher, error) {
 }
 
 func (w *Watcher) Start(ctx context.Context) error {
+	return w.startWithRestart(ctx, 0)
+}
+
+func (w *Watcher) startWithRestart(ctx context.Context, attempt int) error {
 	w.startTime = time.Now()
 
 	for _, dir := range w.config.WatchDirs {
 		if err := w.addRecursive(dir); err != nil {
-			return err
+			return fmt.Errorf("error agregando %s al watcher (¿superaste fs.inotify.max_user_watches?): %w", dir, err)
 		}
 	}
 
@@ -96,7 +101,9 @@ func (w *Watcher) Start(ctx context.Context) error {
 			if event.Op&fsnotify.Create == fsnotify.Create {
 				eventType = "create"
 				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
-					w.addRecursive(event.Name)
+					if err := w.addRecursive(event.Name); err != nil {
+						output.Warning("Error agregando directorio al watcher: %v (quizás superaste el límite fs.inotify.max_user_watches?)", err)
+					}
 				}
 			}
 			if event.Op&fsnotify.Write == fsnotify.Write {
@@ -115,11 +122,46 @@ func (w *Watcher) Start(ctx context.Context) error {
 
 		case err, ok := <-w.fsWatcher.Errors:
 			if !ok {
-				return nil
+				return w.handleRestart(ctx, attempt, err)
 			}
 			output.Warning("Watcher error: %v", err)
+			if w.config.AutoRestart && attempt < w.config.MaxRetries {
+				return w.handleRestart(ctx, attempt, err)
+			}
 		}
 	}
+}
+
+func (w *Watcher) handleRestart(ctx context.Context, attempt int, err error) error {
+	if !w.config.AutoRestart || attempt >= w.config.MaxRetries {
+		output.Error("Watcher stopped after %d attempts: %v", attempt+1, err)
+		return err
+	}
+
+	delay := w.calculateBackoff(attempt)
+	output.Warning("Reiniciando watcher en %v (intento %d/%d)...", delay, attempt+1, w.config.MaxRetries)
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(delay):
+	}
+
+	w.fsWatcher, err = fsnotify.NewWatcher()
+	if err != nil {
+		return fmt.Errorf("error recreando watcher: %w", err)
+	}
+
+	w.debouncer = NewDebouncer(w.config.DebounceMs)
+	return w.startWithRestart(ctx, attempt+1)
+}
+
+func (w *Watcher) calculateBackoff(attempt int) time.Duration {
+	delay := float64(w.config.BaseRetryDelay) * math.Pow(2, float64(attempt))
+	if delay > float64(w.config.MaxRetryDelay) {
+		delay = float64(w.config.MaxRetryDelay)
+	}
+	return time.Duration(delay)
 }
 
 func (w *Watcher) Stop() error {

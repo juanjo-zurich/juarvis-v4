@@ -1,1 +1,6 @@
-{"name": "juarvis-security", "version": "1.0.0", "description": "Security analysis and vulnerability scanning skills", "author": {"name": "Juarvis"}, "category": "security", "skills": ["security-guidance", "security-scanner"]}
+{
+  "name": "juarvis-security",
+  "version": "1.0.0",
+  "description": "Guías y escaneo de seguridad",
+  "category": "security"
+}

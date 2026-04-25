@@ -60,9 +60,8 @@ plugins/             # Plugins con sus skills
 skills/              # Symlinks a las skills de plugins habilitados
 ```
 
-## Si Engram (MCP memory) no responde
+## Si el servidor MCP local (juarvis memory) no responde
 
-1. Intenta reconectar — puede ser temporal
-2. Si persiste, informa al usuario
-3. Continúa trabajando sin persistencia entre sesiones
-4. No bloquees el trabajo por falta de memoria persistente
+1. Verifica que el servidor esté ejecutándose: `pgrep -f "juarvis memory"` o ejecuta `juarvis memory` para iniciarlo
+2. Si persiste, continúa trabajando sin persistencia entre sesiones
+3. No bloquees el trabajo por falta de memoria persistente

@@ -5,10 +5,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"syscall"
 	"regexp"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/spf13/cobra"
 	"juarvis/pkg/config"
@@ -32,8 +32,8 @@ var doctorCmd = &cobra.Command{
 
 		type checkResult struct {
 			name    string
-			pass   bool
-			hint   string
+			pass    bool
+			hint    string
 			details string
 		}
 

@@ -189,6 +189,35 @@ func RunInit(path string) error {
 		output.Info("✅ Skills de proyecto generadas - el agente conoce tu proyecto")
 	}
 
+	// Mostrar resumen del proyecto
+	info, _ := analyze.GetProjectInfo(absPath)
+	if len(info.Stack) > 0 || info.FileCount > 0 {
+		output.Banner("🎯 LO QUE TU AGENTE AHORA SABE DE TU PROYECTO")
+		if len(info.Stack) > 0 {
+			output.Info("  📦 Stack: %s", strings.Join(info.Stack, ", "))
+		}
+		if info.FileCount > 0 {
+			output.Info("  📁 Archivos: %d", info.FileCount)
+		}
+		if len(info.Conventions) > 0 {
+			output.Info("  📋 Convenciones: %s", strings.Join(info.Conventions, ", "))
+		}
+		if len(info.Patterns) > 0 {
+			output.Info("  🔄 Patrones: %s", strings.Join(info.Patterns[:min(3, len(info.Patterns))], ", "))
+		}
+
+		// Before/after comparison
+		output.Info("")
+		output.Banner("💡 ANTES: cada.session_start -> cold.Context()")
+		output.Info("   → explora codebase manualmente")
+		output.Info("   → pregunta: qué stack usa? tests? estilo?")
+		output.Info("")
+		output.Banner("💡 AHORA: desde el.minuto(0)")
+		output.Info("   → skills知道 tu stack: %s", strings.Join(info.Stack, ", "))
+		output.Info("   → %d convenciones detectadas", len(info.Conventions))
+		output.Info("   → .juar/skills/ = contexto persistente")
+	}
+
 	// 6. Crear configuración del proyecto
 	output.Info("⚙️ Configurando nivel de autonomía...")
 	if _, err := config.LoadOrCreate(absPath); err != nil {
@@ -282,4 +311,11 @@ func generateIDE_MCPConfig(rootPath string) error {
 	}
 
 	return nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

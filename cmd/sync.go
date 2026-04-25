@@ -15,7 +15,7 @@ var (
 var syncCmd = &cobra.Command{
 	Use:   "sync",
 	Short: "Actualiza el ecosistema local con la versión del binario",
-	Long:  `Compara los archivos del proyecto (plugins, configs) con los assets embebidos en el binario y actualiza los que hayan cambiado o falten.
+	Long: `Compara los archivos del proyecto (plugins, configs) con los assets embebidos en el binario y actualiza los que hayan cambiado o falten.
 
 Cloud sync: --provider=gist sincroniza memoria con GitHub Gist,
            --provider=local solo sincroniza assets locales (default).`,
@@ -38,7 +38,7 @@ Cloud sync: --provider=gist sincroniza memoria con GitHub Gist,
 var cloudSyncCmd = &cobra.Command{
 	Use:   "cloud sync",
 	Short: "Sincroniza memoria con la cloud (Gist)",
-	Long:  `Sincroniza la memoria local con un proveedor externo.
+	Long: `Sincroniza la memoria local con un proveedor externo.
 Proveedores soportados: gist (GitHub Gist), local (default).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		rootPath, err := root.GetRoot()

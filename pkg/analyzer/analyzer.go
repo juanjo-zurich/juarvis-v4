@@ -14,21 +14,27 @@ import (
 	"juarvis/pkg/output"
 )
 
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+	Ts      int64  `json:"ts,omitempty"`
+}
+
 type Decision struct {
-	Choice   string `json:"choice"`
-	Reason   string `json:"reason"`
-	File    string `json:"file,omitempty"`
+	Choice string `json:"choice"`
+	Reason string `json:"reason"`
+	File   string `json:"file,omitempty"`
 }
 
 type Bugfix struct {
-	Error   string `json:"error"`
-	Fix     string `json:"fix"`
-	File   string `json:"file"`
+	Error string `json:"error"`
+	Fix   string `json:"fix"`
+	File  string `json:"file"`
 }
 
 type Pattern struct {
-	Name      string `json:"name"`
-	Count    int    `json:"count"`
+	Name     string   `json:"name"`
+	Count    int      `json:"count"`
 	Contexts []string `json:"contexts"`
 }
 
@@ -38,40 +44,54 @@ type FileChange struct {
 }
 
 type SessionAnalysis struct {
-	Decisions  []Decision  `json:"decisions"`
-	Mistakes   []Bugfix   `json:"mistakes"`
-	Patterns  []Pattern  `json:"patterns"`
+	Decisions []Decision   `json:"decisions"`
+	Mistakes  []Bugfix     `json:"mistakes"`
+	Patterns  []Pattern    `json:"patterns"`
 	Files     []FileChange `json:"files_changed"`
-	Timestamp time.Time  `json:"timestamp"`
+	Timestamp time.Time    `json:"timestamp"`
 }
 
 var (
+	// decisionPatterns más estrictos: buscan patrones de decisión completos
+	// Requieren estructura: "elegí X sobre Y" o "usé X porque"
 	decisionPatterns = []*regexp.Regexp{
 		regexp.MustCompile(`(?i)(elegí|escogí|usé|preferí|decidí)\s+(\w+)\s+sobre\s+(\w+)`),
 		regexp.MustCompile(`(?i)(porque|ya que|dado que)\s+([^\.]+)`),
 		regexp.MustCompile(`(?i)decision:\s*([^\n]+)`),
 		regexp.MustCompile(`(?i)elegante de\s+([^\.]+)`),
+		// Nuevos patrones más específicos
+		regexp.MustCompile(`(?i)elegí\s+(.+?)\s+(?:sobre|en lugar de)\s+(.+?)(?:\s+porque|\s+$)`),
+		regexp.MustCompile(`(?i)usé\s+(.+?)\s+porque\s+(.+?)(?:\s+$)`),
 	}
 
+	// bugPatterns con mejor discriminación
 	bugPatterns = []*regexp.Regexp{
-		regexp.MustCompile(`(?i)(error|fallo|failing|broken|bug)\s+([^\.]{5,50})`),
-		regexp.MustCompile(`(?i)(arreglé|fixed|corregí)\s+([^\.]+)`),
-		regexp.MustCompile(`(?i)(no funcionaba porque)\s+([^\.]+)`),
-		regexp.MustCompile(`(?i)(estaba|was)\s+([^\.]{5,30})(error|fallo|broken)`),
+		regexp.MustCompile(`(?i)\berror\b[^\.]*(?:en|del|causado por)[^\.]+`),
+		regexp.MustCompile(`(?i)(arreglé|fixed|corregí)\s+[^\.]+`),
+		regexp.MustCompile(`(?i)no\s+funcionaba\s+(?:porque|ya que)[^\.]+`),
+		regexp.MustCompile(`(?i)(?:was|estaba)\s+[^\.]+\s+(?:error|broken|fallo)`),
+		regexp.MustCompile(`(?i)bug:\s*([^\n]+)`),
+		regexp.MustCompile(`(?i)problema\s+era\s+([^\.]+)`),
 	}
 
+	// fileActionPatterns más estrictos
 	fileActionPatterns = []*regexp.Regexp{
-		regexp.MustCompile(`(?i)(creó|created)\s+([^\.]+\.(go|ts|js|py|md|json))`),
-		regexp.MustCompile(`(?i)(modificó|modified|editó)\s+([^\.]+\.(go|ts|js|py|md|json))`),
-		regexp.MustCompile(`(?i)(eliminó|deleted)\s+([^\.]+\.(go|ts|js|py|md|json))`),
+		regexp.MustCompile(`(?i)(?:creó|created)\s+([^\.]+\.(go|ts|js|py|md|json|yaml|yml))`),
+		regexp.MustCompile(`(?i)(?:modificó|modified|editó)\s+([^\.]+\.(go|ts|js|py|md|json|yaml|yml))`),
+		regexp.MustCompile(`(?i)(?:eliminó|deleted)\s+([^\.]+\.(go|ts|js|py|md|json|yaml|yml))`),
+		regexp.MustCompile(`(?i)(?:creó|created)\s+(?:archivo|file|module|package)\s+[^\.]+`),
+		regexp.MustCompile(`(?i)(?:guardó|save)\s+[^\.]+\w`),
 		regexp.MustCompile(`(?i)Write\[([^\]]+)\]`),
 		regexp.MustCompile(`(?i)Edit\(([^\)]+)`),
 	}
 
+	// patternKeywords más enfocados en tecnología
 	patternKeywords = []string{
 		"hook", "context", "component", "service", "api", "middleware",
-		"mutation", "query", "store", "slice", "reducer",
+		"store", "slice", "reducer", "query", "mutation",
 		"plugin", "skill", "mcp", "memory",
+		"table-driven", "t.Run", "subtest",
+		"mock", "stub", "fake",
 	}
 )
 
@@ -96,19 +116,41 @@ func AnalyzeTranscript(path string) (*SessionAnalysis, error) {
 		Timestamp: time.Now(),
 	}
 
-	fullText := strings.Join(lines, "\n")
+	// Parsear cada línea como JSON y extraer contenido por role
+	var assistantContent []string
+	var allContent string
 
-	// Extraer decisiones
-	analysis.Decisions = extractDecisions(fullText)
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
 
-	// Extraer errores/arreglos
-	analysis.Mistakes = extractBugfixes(fullText)
+		var msg Message
+		if err := json.Unmarshal([]byte(line), &msg); err == nil && msg.Content != "" {
+			// Acumular todo el contenido
+			allContent += msg.Content + "\n"
 
-	// Extraer cambios de archivos
-	analysis.Files = extractFileChanges(fullText)
+			// Solo analizar mensajes de assistant para decisiones
+			if msg.Role == "assistant" {
+				assistantContent = append(assistantContent, msg.Content)
+			}
+		} else {
+			// Fallback: texto plano
+			allContent += line + "\n"
+		}
+	}
 
-	// Detectar patrones
-	analysis.Patterns = detectPatterns(fullText)
+	// Análisis principal: solo mensajes de assistant para decisiones y patrones
+	assistantText := strings.Join(assistantContent, "\n")
+	if assistantText != "" {
+		analysis.Decisions = extractDecisions(assistantText)
+		analysis.Mistakes = extractBugfixes(assistantText)
+		analysis.Patterns = detectPatterns(assistantText)
+	}
+
+	// Análisis completo: todo el contenido para cambios de archivos
+	analysis.Files = extractFileChanges(allContent)
 
 	return analysis, nil
 }
@@ -210,8 +252,8 @@ func detectPatterns(text string) []Pattern {
 		count := strings.Count(text, keyword)
 		if count >= 2 {
 			pattern := Pattern{
-				Name:   keyword,
-				Count:  count,
+				Name:     keyword,
+				Count:    count,
 				Contexts: extractContexts(text, keyword),
 			}
 			patterns = append(patterns, pattern)

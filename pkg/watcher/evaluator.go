@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	rulesCache      []hookify.Rule
-	rulesCacheTime  time.Time
-	rulesCacheMu    sync.Mutex
+	rulesCache     []hookify.Rule
+	rulesCacheTime time.Time
+	rulesCacheMu   sync.Mutex
 	rulesTTL       = 30 * time.Second // Cache rules for 30 seconds
 )
 

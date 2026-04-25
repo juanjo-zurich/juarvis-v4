@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"juarvis/pkg/config"
 )
 
@@ -229,14 +231,10 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 		scored = append(scored, scoredObservation{obs: *obs, score: score})
 	}
 
-	// Ordenar por puntuación (descendente)
-	for i := 0; i < len(scored); i++ {
-		for j := i + 1; j < len(scored); j++ {
-			if scored[j].score > scored[i].score {
-				scored[i], scored[j] = scored[j], scored[i]
-			}
-		}
-	}
+	// Ordenar por puntuación (descendente) — O(n log n)
+	sort.Slice(scored, func(i, j int) bool {
+		return scored[i].score > scored[j].score
+	})
 
 	var results []Observation
 	for i := 0; i < len(scored) && i < limit; i++ {
@@ -293,7 +291,17 @@ func (s *Storage) UpdateObservation(id string, updates map[string]interface{}) e
 		return fmt.Errorf("error serializando: %w", err)
 	}
 
-	return os.WriteFile(path, data, 0644)
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return err
+	}
+
+	// Actualizar cache con la observación actualizada
+	var updatedObs Observation
+	if err := json.Unmarshal(data, &updatedObs); err == nil {
+		s.obsCache[id] = &updatedObs
+	}
+
+	return nil
 }
 
 func (s *Storage) DeleteObservation(id string, hard bool) error {
@@ -406,5 +414,5 @@ func (s *Storage) ListSessions(project string, limit int) ([]Session, error) {
 }
 
 func generateID() string {
-	return fmt.Sprintf("obs_%d", time.Now().UnixNano())
+	return "obs_" + uuid.New().String()
 }

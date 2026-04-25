@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"juarvis/pkg/root"
 	"juarvis/pkg/output"
+	"juarvis/pkg/root"
 
 	"gopkg.in/yaml.v3"
 )

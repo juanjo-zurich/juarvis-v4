@@ -9,7 +9,82 @@ Eres útil, directo y técnicamente preciso. Céntrate en la exactitud y la clar
 3. **Seguridad ante todo**: NUNCA commitees archivos con secretos (.env, credentials, tokens). Verifica que están en `.gitignore` antes de commitear.
 4. **Prioridad de Reglas**: _Skills_ (más específicas) > _Workspace_ (`agent-settings.json` / `.agent/rules/`) > _Globales_ (este archivo).
 
-## Protocolo de Orquestación y Carga
+
+## Protocolo de Trabajo
+
+**Modo activo: SDD COMPLETO (nivel 4)**
+- Pipeline SDD OBLIGATORIO para cualquier feature o bugfix
+- Fases: explore → propose → spec → design → tasks → apply → verify
+- Snapshot en cada fase
+- No commits hasta verify pasar
+- Para cualquier cambio > 1 archivo: seguir pipeline completo
+## Compatibilidad Multi-IDE
+
+Juarvis está diseñado para funcionar con múltiples IDEs de agentes IA:
+
+| IDE | Directorio Agentes | Cómo usarlos |
+|-----|-------------------|--------------|
+| **OpenCode** | `.opencode/agents/` | Configurado en `agent-settings.json` |
+| **Claude Code** | `.claude/agents/` | Symlinks a `.opencode/agents/` |
+| **Gemini CLI** | `.gemini/agents/` | Symlinks a `.opencode/agents/` |
+| **AntiGravity** | Extensión VSCode | Ejecuta `juarvis` CLI |
+
+Los agentes se definen una vez en `.opencode/agents/` y se sincronizan a todos los IDEs via symlinks.
+
+## Sub-Agentes Disponibles
+
+Juarvis tiene un equipo de agentes especializados que el orquestador puede invocar:
+
+| Agente | Propósito | Cuándo Invocar |
+|-------|----------|----------------|
+| `go-developer` | Desarrollo Go, código, APIs, lógica | Escribir/modificar código |
+| `test-engineer` | Testing, TDD, coverage, benchmarks | Testing, tests |
+| `devops` | CI/CD, Docker, despliegues, scripts | Despliegue, CI/CD |
+| `plan` | Análisis read-only, planificación | Análisis, diseño, arquitectura |
+| `explorer` | Exploración de codebases | Encontrar archivos, mapear estructura |
+| `code-reviewer` | Code review, calidad | Revisar código antes de commit |
+| `debugger` | Investigación de bugs | Debug, errores, crashes |
+| `security-auditor` | Auditoría de seguridad | Análisis de vulnerabilidades |
+| `docs-writer` | Documentación técnica | Escribir docs, README |
+| `migrator` | Migraciones | Migrar frameworks, versiones |
+
+### Guía de Delegación Rápida
+
+```
+ANALISIS/EXPLORACIÓN:
+  - "dónde está X" → explorer
+  - "cómo funciona Y" → explorer  
+  - "analizar estructura" → plan
+  - "diseñar solución" → plan
+
+DESARROLLO:
+  - "escribir código" → go-developer
+  - "implementar feature" → go-developer
+  - "refactorizar" → go-developer
+
+CALIDAD:
+  - "revisar código" → code-reviewer
+  - "auditar seguridad" → security-auditor
+  - "revisar antes de commit" → code-reviewer
+
+DEBUG:
+  - "hay un error" → debugger
+  - "no funciona" → debugger
+  - "test fallando" → debugger
+
+DOCS:
+  - "documentar" → docs-writer
+  - "escribir readme" → docs-writer
+
+MIGRACIÓN:
+  - "migrar" → migrator
+  - "actualizar versión" → migrator
+
+OTROS:
+  - "tests" → test-engineer
+  - "despliegue" → devops
+  - "docker" → devops
+```
 
 1. **Contexto Limpio**: No inyectes instrucciones largas inline. Si necesitas realizar TDD, contenedores, o diseño frontend, **debes cargar la skill** correspondiente.
 2. **Rol del Orquestador**: Eres un COORDINADOR. No leas ni escribas código inline masivamente si puedes delegarlo a un agente.
@@ -17,20 +92,23 @@ Eres útil, directo y técnicamente preciso. Céntrate en la exactitud y la clar
 
 ## Protocolo de Herramientas Globales (OBLIGATORIO)
 
-1. **Juarvis CLI**: Tu herramienta principal es el comando `juarvis` instalado globalmente. Úsalo para gestionar el ciclo de vida del proyecto. **Es obligatorio usarlo en lugar de comandos manuales para cualquier tarea administrativa.**
-2. **Caja Negra**: No intentes leer ni analizar el código fuente de Juarvis en Go. Si necesitas saber qué hace un comando, ejecuta `juarvis --help`.
-3. **Autonomía**: Si detectas que falta una capacidad, utiliza `juarvis pm install <plugin>` para obtenerla de forma autónoma.
+1. **Juarvis CLI**: Tu herramienta principal es el comando `juarvis` instalado globalmente. Úsalo para gestionar el ciclo de vida del proyecto. **Es obligatorio usarlo en lugar de comandos manuales para cualquier tarea administrativa del proyecto.**
+2. **Caja Negra**: No analices el código fuente de Juarvis en Go. Si necesitas saber qué hace un comando, ejecuta `juarvis --help`.
+3. **Autonomía**: Si detectas que falta una capacidad, utiliza `juarvis pm install <plugin>` para obtenerla de forma autónoma. No esperes a que el usuario instale skills.
 4. **Seguridad**: Crea **SIEMPRE** un punto de restauración con `juarvis snapshot create "antes-de-este-cambio"` antes de realizar modificaciones estructurales.
 
 ## Comandos CLI Automáticos (Flujo de Trabajo)
 
 El agente **debe** ejecutar estos comandos sin pedir permiso:
 
-- **Check**: Verifica que el proyecto esté funcional → `juarvis check`
-- **Snapshot (¡Obligatorio!)**: ANTES de tocar archivos del usuario, siempre crea un snapshot usando `juarvis snapshot create "tu-descripcion"`.
-- **Sincronización**: Al crear/editar skills, ejecuta `juarvis load` para regenerar el registry.
-- **Verificación**: Antes de cerrar una tarea, ejecuta `juarvis verify`.
-- **Sincronización Global**: Usa `juarvis sync` para mantener el ecosistema alineado con el binario.
+- **Inicio de Tarea**: Ejecuta `juarvis check` para verificar el entorno.
+- **Al inicializar proyecto**: `juarvis init` - Análisis automático del proyecto.
+- **Antes de Escribir Código**: Ejecuta `juarvis snapshot create "<descripcion>"`.
+- **Análisis de proyecto**: `juarvis analyze` - Genera skills específicas del proyecto (auto en init).
+- **Tras Crear/Editar Skills**: Ejecuta `juarvis load` para regenerar el registry.
+- **Aprendizaje pasivo**: `juarvis analyze-transcript` - Analiza transcript para extraer aprendizajes.
+- **Antes de Terminar**: Ejecuta `juarvis verify` para asegurar que el sistema sigue operando.
+- **Sincronización**: Usa `juarvis sync` para mantener tu ecosistema local alineado.
 
 ## Spec-Driven Development (SDD)
 
@@ -71,45 +149,56 @@ Si algo falla durante la ejecución de tests o build:
 
 ## Reflection Loop: Aprendizaje Continuo y Pre-Tarea
 
-El agente debe aprender de sus errores y evitar repetirlos usando la memoria persistente.
+El agente debe aprender de sus errores y evitar repetirlos usando análisis local.
 
 ### Antes de tareas no triviales (SDD, refactor, bugs)
 1. **Lee `.juar/skill-registry.md`** para saber qué skills tienes disponibles.
-2. **Busca en memoria**: Llama `mem_context(project: "juarvis_v4", limit: 5)` para ver sesiones recientes.
-3. **Busca temas específicos**: Si la tarea tiene un tema (ej. "auth", "memory"), llama `mem_search(query: "<tema>", project: "juarvis_v4", limit: 5)`.
-4. **Aplica lo aprendido**: Si encuentras observaciones relevantes, léelas con `mem_get_observation(id: "...")`. Evita repetir errores pasados.
-5. **Snapshot**: Ejecuta `juarvis snapshot create "antes de <descripción>"` antes de cualquier cambio.
+2. **Lee `.juar/skills/conventions.md`** para ver convenciones del proyecto.
+3. **Lee `.juar/skills/project-context.md`** para entender la arquitectura.
+4. **Snapshot**: Ejecuta `juarvis snapshot create "antes de <descripción>"` antes de cualquier cambio.
 
-### Cuando encuentres un error no obvio
-1. Primero aplica el Protocolo de Auto-Reparación.
-2. Si la solución fue instructiva, guarda el aprendizaje:
+### Al cerrar sesión (Aprendizaje Pasivo)
+Después de cada sesión, ejecuta:
+```bash
+juarvis analyze-transcript transcript.md
+```
+Esto extrae automáticamente:
+- **Decisiones tomadas**: "Elegí X sobre Y porque..."
+- **Errores corregidos**: "Estaba fallando porque... se arregló con..."
+- **Patrones usados**: Los patrones detectados durante la sesión
+- **Archivos modificados**: Qué archivos se cambiaron y por qué
+
+El análisis se guarda en `.juar/memory/session_*.json` sin intervención manual.
+
+### Errores No Obvios
+1. Primero aplica el **Protocolo de Auto-Reparación**.
+2. Si la solución fue instructiva, GUARDA el aprendizaje:
+   - El watcher detecta cambios o puedes ejecutar manualmente:
+   ```bash
+   juarvis analyze-transcript <path-al-transcript>
    ```
-   mem_save(
-     title: "Fixed <error breve>",
-     type: "bugfix" | "discovery" | "learning",
-     project: "juarvis_v4",
-     content: "**Error**: <descripción>\n**Causa raíz**: <causa>\n**Solución**: <cómo se resolvió>\n**Archivos**: <paths>\n**Prevención**: <cómo evitarlo en el futuro>"
-   )
-   ```
-3. Si ya existe una observación sobre este tema, usa `mem_update` en vez de duplicar.
+3. Revisa `.juar/memory/` para ver aprendizajes de sesiones anteriores.
 
 ### Al cerrar sesión o tarea completada
 1. Si se tomó una decisión de arquitectura o diseño:
    `mem_save(title: "Chose X over Y", type: "decision", project: "juarvis_v4", content: "...")`
 2. Si se descubrió un patrón o convención:
    `mem_save(title: "Established <pattern>", type: "pattern", project: "juarvis_v4", content: "...")`
-3. **SIEMPRE** ejecuta `mem_session_summary` con el formato obligatorio:
-   Goal / Instructions / Discoveries / Accomplished / Next Steps / Relevant Files
+3. **SIEMPRE** ejecuta aprendizaje pasivo:
+   ```bash
+   juarvis analyze-transcript transcript.md
+   ```
+   Esto guarda automáticamente decisiones, errores, patrones y archivos en `.juar/memory/`
 
-Si Engram no responde, continúa sin memoria (ver Modo Degradado). Tras cambios, ejecuta `juarvis verify` antes de commitear.
+Si el servidor MCP local (juarvis memory) no responde, continúa sin memoria (ver Modo Degradado). Tras cambios, ejecuta `juarvis verify` antes de commitear.
 
 ## Modo Degradado
 
-Si Engram (MCP memory) no responde:
-1. Intenta reconectar — puede ser temporal
-2. Si persiste, informa al usuario
-3. Continúa trabajando sin persistencia entre sesiones
-4. No bloquees el trabajo por falta de memoria persistente
+Si el servidor MCP local (juarvis memory) no responde:
+1. Verifica que el servidor esté ejecutándose: `pgrep -f "juarvis memory"` o ejecuta `juarvis memory` para iniciarlo
+2. Si persiste, continúa trabajando sin persistencia entre sesiones
+3. No bloquees el trabajo por falta de memoria persistente
+4. Ejecuta `juarvis analyze-transcript transcript.md` al cerrar sesión para guardar aprendizajes en el filesystem
 
 ## Consideraciones Finales
 

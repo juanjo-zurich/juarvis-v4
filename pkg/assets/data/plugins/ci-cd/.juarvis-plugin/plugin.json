@@ -1,1 +1,6 @@
-{"name": "juarvis-ci-cd", "version": "1.0.0", "description": "CI/CD pipeline configuration and management skills", "author": {"name": "Juarvis"}, "category": "infrastructure", "skills": ["ci-cd-pipeline"]}
+{
+  "name": "juarvis-ci-cd",
+  "version": "1.0.0",
+  "description": "Pipelines de CI/CD",
+  "category": "infrastructure"
+}

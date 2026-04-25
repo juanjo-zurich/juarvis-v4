@@ -1,1 +1,6 @@
-{"name": "juarvis-languages", "version": "1.0.0", "description": "Programming language best practices and framework guidance", "author": {"name": "Juarvis"}, "category": "languages", "skills": ["nodejs-best-practices", "python-patterns", "rust-pro", "react-best-practices"]}
+{
+  "name": "juarvis-languages",
+  "version": "1.0.0",
+  "description": "Skills de lenguajes (nodejs, python, rust, react)",
+  "category": "languages"
+}

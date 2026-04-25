@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	"os"
-
+	"github.com/spf13/cobra"
 	"juarvis/pkg/config"
 	"juarvis/pkg/output"
-
-	"github.com/spf13/cobra"
+	"juarvis/pkg/root"
 )
 
 var modeCmd = &cobra.Command{
@@ -25,14 +23,14 @@ juarvis mode 0        # Cambiar a Vibe Puro
 juarvis mode sdd       # Cambiar a SDD Completo`,
 	Args: cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
-		cwd, err := os.Getwd()
+		rootPath, err := root.GetRoot()
 		if err != nil {
 			output.Fatal(output.ExitNoEcosystem,
 				"Ejecuta desde un proyecto con juarvis init",
 				"Error: %v", err)
 		}
 
-		cfg, err := config.LoadOrCreate(cwd)
+		cfg, err := config.LoadOrCreate(rootPath)
 		if err != nil {
 			output.Fatal(output.ExitGeneric,
 				"Error cargando configuración",
@@ -42,7 +40,7 @@ juarvis mode sdd       # Cambiar a SDD Completo`,
 		// Sin args = mostrar nivel actual
 		if len(args) == 0 {
 			level := cfg.AutonomyLevel
-			output.Info("📊 Nivel de autonomía: %d (%s)%s", 
+			output.Info("📊 Nivel de autonomía: %d (%s)%s",
 				level,
 				config.GetLevelName(level),
 				config.LevelDescriptions[level])
@@ -51,10 +49,10 @@ juarvis mode sdd       # Cambiar a SDD Completo`,
 
 		// Con args = cambiar nivel
 		level := args[0]
-		
+
 		levels := map[string]int{
 			"0": 0, "vibe": 0,
-			"1": 1, "seguro": 1, 
+			"1": 1, "seguro": 1,
 			"2": 2, "estructurado": 2,
 			"3": 3, "semi": 3,
 			"4": 4, "sdd": 4,
@@ -67,13 +65,18 @@ juarvis mode sdd       # Cambiar a SDD Completo`,
 		}
 
 		cfg.AutonomyLevel = newLevel
-		if err := cfg.Save(cwd); err != nil {
+		if err := cfg.Save(rootPath); err != nil {
 			output.Fatal(output.ExitGeneric,
 				"Error guardando configuración",
 				"Error: %v", err)
 		}
 
-		output.Success("✅ Modo %s activado.%s", 
+		// Actualizar AGENTS.md con el nuevo protocolo
+		if err := cfg.UpdateAgentsSection(rootPath); err != nil {
+			output.Warning("No se pudo actualizar AGENTS.md: %v", err)
+		}
+
+		output.Success("✅ Modo %s activado.%s",
 			config.GetLevelName(newLevel),
 			config.LevelDescriptions[newLevel])
 	},

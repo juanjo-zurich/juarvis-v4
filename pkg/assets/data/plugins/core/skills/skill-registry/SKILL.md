@@ -49,7 +49,7 @@ To ensure maximum reasoning performance and minimize token waste:
   `topic_key` permite actualizaciones (upserts).
 
 - Si el modo es `openspec`: Escribe `.juar/skill-registry.md`.
-- Si el modo es `hybrid`: Persiste en Engram Y escribe en el sistema de archivos.
+- Si el modo es `hybrid`: Persiste en el servidor MCP local Y escribe en el sistema de archivos.
 - Si el modo es `none`: Devuelve el registro sin realizar cambios permanentes.
 
 ## Qué Hacer

@@ -44,6 +44,27 @@ func Fatal(code int, hint, msg string, args ...interface{}) {
 }
 
 var jsonMode = false
+var debugMode = false
+
+func SetDebugMode(enabled bool) {
+	debugMode = enabled
+}
+
+func IsDebugMode() bool {
+	return debugMode
+}
+
+func Debug(msg string, args ...interface{}) {
+	if !debugMode {
+		return
+	}
+	formatted := fmt.Sprintf(msg, args...)
+	if jsonMode {
+		printJSON(map[string]interface{}{"status": "debug", "message": formatted})
+	} else {
+		fmt.Fprintf(os.Stderr, "%s🔍 DEBUG: %s%s\n", colorPurple, formatted, colorReset)
+	}
+}
 
 const (
 	colorReset  = "\033[0m"

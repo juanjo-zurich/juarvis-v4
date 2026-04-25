@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	createName    string
+	createName     string
 	createEvent    string
 	createPattern  string
 	createAction   string
@@ -95,7 +95,7 @@ Action: ` + action
 		// Create file
 		ruleFile := ".juar/hookify." + name + ".md"
 		os.WriteFile(ruleFile, []byte(content), 0644)
-		
+
 		output.Success("Regla creada: %s", name)
 	},
 }
@@ -123,7 +123,7 @@ func setHookEnabled(name string, enabled bool) {
 	if len(matches) == 0 {
 		output.Fatal(output.ExitGeneric, "Regla no encontrada", "name: %v", name)
 	}
-	
+
 	content, _ := os.ReadFile(matches[0])
 	enabledStr := "enabled: true"
 	if !enabled {
@@ -131,7 +131,7 @@ func setHookEnabled(name string, enabled bool) {
 	}
 	newContent := strings.Replace(string(content), enabledStr, "enabled: "+fmt.Sprintf("%t", enabled), 1)
 	os.WriteFile(matches[0], []byte(newContent), 0644)
-	
+
 	state := "habilitada"
 	if !enabled {
 		state = "deshabilitada"

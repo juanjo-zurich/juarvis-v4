@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
-	"juarvis/pkg/verify"
 	"github.com/spf13/cobra"
+	"juarvis/pkg/output"
+	"juarvis/pkg/verify"
 )
 
 var verifyCmd = &cobra.Command{
@@ -30,18 +30,18 @@ var verifyCmd = &cobra.Command{
 
 		results, err := verify.RunVerify(opts)
 		if err != nil {
-			fmt.Printf("❌ Error al ejecutar verify: %v\n", err)
+			output.Error("Error al ejecutar verify: %v", err)
 			os.Exit(1)
 		}
 
 		passed := true
 		for _, res := range results {
-			status := "✅"
 			if !res.Passed {
-				status = "❌"
 				passed = false
+				output.Error("%-20s: %s", res.Name, res.Message)
+			} else {
+				output.Success("%-20s: %s", res.Name, res.Message)
 			}
-			fmt.Printf("%s %-20s: %s\n", status, res.Name, res.Message)
 		}
 
 		if !passed {
@@ -60,4 +60,3 @@ func init() {
 
 	rootCmd.AddCommand(verifyCmd)
 }
-

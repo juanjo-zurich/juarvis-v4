@@ -1,1 +1,6 @@
-{"name": "juarvis-testing", "version": "1.0.0", "description": "Testing patterns and debugging methodology skills", "author": {"name": "Juarvis"}, "category": "testing", "skills": ["test-driven", "systematic-debugging"]}
+{
+  "name": "juarvis-testing",
+  "version": "1.0.0",
+  "description": "Testing y debugging sistemático",
+  "category": "testing"
+}

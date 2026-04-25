@@ -15,13 +15,13 @@ import (
 )
 
 type LoopState struct {
-	RootPath          string `yaml:"-"` // path base del ecosistema
-	Active            bool   `yaml:"active"`
-	Iteration         int    `yaml:"iteration"`
-	MaxIterations     int    `yaml:"max_iterations"`
-	CompletionPromise string `yaml:"completion_promise"`
+	RootPath          string    `yaml:"-"` // path base del ecosistema
+	Active            bool      `yaml:"active"`
+	Iteration         int       `yaml:"iteration"`
+	MaxIterations     int       `yaml:"max_iterations"`
+	CompletionPromise string    `yaml:"completion_promise"`
 	StartedAt         time.Time `yaml:"started_at"`
-	Prompt            string `yaml:"-"`
+	Prompt            string    `yaml:"-"`
 }
 
 func LoadState(rootPath string) (*LoopState, error) {

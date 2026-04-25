@@ -16,7 +16,7 @@ Todos los cambios notables en este proyecto se documentan aquí.
 - Ranking de relevancia mejorado en la memoria MCP local (token frequency + title matching)
 - Soporte para colores ANSI y banners de alto impacto en la terminal
 - Personalidad humana mejorada para Ralph (mensajes de sistema variados y colaborativos)
-- Servidor MCP de memoria local (`pkg/memory/`) con SQLite FTS5, reemplaza dependencia externa de engram
+- Servidor MCP de memoria local (`pkg/memory/`) con JSON + índice token en RAM, reemplaza dependencia externa de engram
 - Comando `juarvis memory` para servir como MCP server
 - 9 herramientas MCP: mem_save, mem_search, mem_context, mem_session_summary, mem_get_observation, mem_suggest_topic_key, mem_update, mem_delete, mem_session_start, mem_session_end
 - 4 nuevos plugins: backend-patterns, api-error-handling, frontend-design, frontend-ui

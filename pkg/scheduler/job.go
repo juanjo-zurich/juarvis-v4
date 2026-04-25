@@ -11,7 +11,7 @@ type Job struct {
 	Name     string    `yaml:"name"`
 	Schedule string    `yaml:"schedule"` // formato cron: "0 9 * * *" = daily at 9am
 	Prompt   string    `yaml:"prompt"`
-	Agent    string    `yaml:"agent"`    // "opencode", "claude", etc.
+	Agent    string    `yaml:"agent"` // "opencode", "claude", etc.
 	Enabled  bool      `yaml:"enabled"`
 	LastRun  time.Time `yaml:"last_run"`
 	Workdir  string    `yaml:"workdir"`

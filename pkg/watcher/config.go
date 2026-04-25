@@ -11,20 +11,24 @@ type WatcherConfig struct {
 	DebounceMs            int
 	AutoSnapshotThreshold int
 	NoAutoSnapshot        bool
-	QuietMode            bool
-	SummaryInterval      time.Duration
-	Verbose             bool
-	IgnorePatterns      []string
-	WatchDirs           []string
+	QuietMode             bool
+	SummaryInterval       time.Duration
+	Verbose               bool
+	IgnorePatterns        []string
+	WatchDirs             []string
+	AutoRestart           bool
+	MaxRetries            int
+	BaseRetryDelay        time.Duration
+	MaxRetryDelay         time.Duration
 }
 
 func DefaultWatcherConfig(rootPath string) WatcherConfig {
 	return WatcherConfig{
-		DebounceMs:              500,
+		DebounceMs:            500,
 		AutoSnapshotThreshold: 5,
 		NoAutoSnapshot:        false,
-		QuietMode:            true,
-		SummaryInterval:      5 * time.Minute,
+		QuietMode:             true,
+		SummaryInterval:       5 * time.Minute,
 		IgnorePatterns: []string{
 			".git/",
 			config.JuarDir + "/",
@@ -37,7 +41,11 @@ func DefaultWatcherConfig(rootPath string) WatcherConfig {
 			".tmp",
 			".swp",
 		},
-		WatchDirs: []string{rootPath},
+		WatchDirs:      []string{rootPath},
+		AutoRestart:    true,
+		MaxRetries:     5,
+		BaseRetryDelay: 1 * time.Second,
+		MaxRetryDelay:  60 * time.Second,
 	}
 }
 

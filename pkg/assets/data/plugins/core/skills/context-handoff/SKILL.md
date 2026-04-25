@@ -84,4 +84,4 @@ Transferir el estado del trabajo a un nuevo contexto sin pérdida de informació
 - **No esperar** al último momento: iniciar handoff cuando queden ~20% de tokens.
 - **Priorizar**: estado actual > próximos pasos > contexto histórico.
 - **Verificar** siempre que `mem_save` tuvo éxito antes de continuar.
-- En modo degradado (Engram no disponible), guardar el handoff en un archivo local `.handoff.md`.
+- En modo degradado (servidor MCP no disponible), guardar el handoff en un archivo local `.handoff.md`.

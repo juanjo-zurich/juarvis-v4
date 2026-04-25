@@ -43,7 +43,7 @@ Requiere:
 		if currentBranch == "main" || currentBranch == "master" {
 			newBranch = fmt.Sprintf("feature/auto-%d", 1)
 			output.Info("Creando branch: %s", newBranch)
-			
+
 			checkoutCmd := exec.Command("git", "checkout", "-b", newBranch)
 			if err := checkoutCmd.Run(); err != nil {
 				output.Fatal(output.ExitGeneric, "No se pudo crear branch", "error: %v", err)
@@ -56,7 +56,7 @@ Requiere:
 		statusCmd := exec.Command("git", "status", "--porcelain")
 		statusOut, _ := statusCmd.Output()
 		status := string(statusOut)
-		
+
 		if status == "" {
 			output.Info("No hay cambios")
 			return
@@ -67,7 +67,7 @@ Requiere:
 
 		// Generate message
 		msg := analyzeCommitMessage(status, "", "")
-		
+
 		// Commit
 		commitCmd := exec.Command("git", "commit", "-m", msg)
 		if err := commitCmd.Run(); err != nil {
@@ -84,7 +84,7 @@ Requiere:
 
 		// Create PR
 		prCmd := exec.Command("gh", "pr", "create",
-			"--fill", 
+			"--fill",
 			"--title", msg,
 			"--body", "Automated PR via juarvis")
 		prOut, err := prCmd.Output()

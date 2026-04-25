@@ -101,7 +101,7 @@ var ralphStopCmd = &cobra.Command{
 		}
 
 		if result["decision"] == "allow" {
-			fmt.Println(result["systemMessage"])
+			output.Info("%s", result["systemMessage"])
 			os.Exit(0) // protocolo hook
 		}
 

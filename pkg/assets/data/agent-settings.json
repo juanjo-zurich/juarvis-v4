@@ -2,12 +2,135 @@
   "name": "juarvis-universal-ecosystem",
   "agent": {
     "orchestrator": {
-      "description": "Mentor Senior de Arquitectura — útil primero, desafiante cuando importa",
+      "description": "Orquestador Principal de Juarvis CLI - Coordina sub-agentes especializados",
       "mode": "primary",
-      "prompt": "{file:./AGENTS.md}",
+      "prompt": "{file:.opencode/agents/orchestrator.md}",
       "tools": {
         "edit": true,
-        "write": true
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "go-developer": {
+      "description": "Desarrollador Go especializado en Juarvis CLI",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/go-developer.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "test-engineer": {
+      "description": "Ingeniero de Testing para Juarvis CLI",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/test-engineer.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "devops": {
+      "description": "Ingeniero DevOps para Juarvis CLI",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/devops.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "plan": {
+      "description": "Agente de Análisis Read-Only - Diseña soluciones sin modificar código",
+      "mode": "primary",
+      "prompt": "{file:.opencode/agents/plan.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "explorer": {
+      "description": "Agente Explorador de Codebases - Analiza estructura y encuentra patrones",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/explorer.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "code-reviewer": {
+      "description": "Agente de Code Review - Analiza código en busca de bugs y calidad",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/code-reviewer.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "debugger": {
+      "description": "Agente Debugger - Investiga y diagnostica bugs y errores",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/debugger.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "security-auditor": {
+      "description": "Agente de Auditoría de Seguridad - Analiza vulnerabilidades",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/security-auditor.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "docs-writer": {
+      "description": "Agente de Documentación - Escribe y mantiene documentación técnica",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/docs-writer.md}",
+      "tools": {
+        "read": true,
+        "edit": true,
+        "write": true,
+        "bash": false
+      }
+    },
+"migrator": {
+      "description": "Agente de Migración - Maneja migraciones de frameworks y versiones",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/migrator.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "frontend-designer": {
+      "description": "Agente Frontend Designer - Crea interfaces aesthetically pleasing, evita AI slop",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/frontend-designer.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
       }
     },
     "sdd-orchestrator": {
@@ -43,40 +166,53 @@
     }
   },
   "mcp": {
-    "context7": {
-      "enabled": true,
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp"
-    },
     "memory": {
-      "command": [
-        "juarvis",
-        "memory"
-      ],
+      "command": ["juarvis", "memory"],
       "enabled": true,
       "type": "local"
+    },
+    "available_servers": {
+      "github": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+        "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" },
+        "description": "Gestión de repositorios, issues, PRs"
+      },
+      "brave-search": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-brave-search"],
+        "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" },
+        "description": "Búsqueda web en tiempo real"
+      },
+      "filesystem": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
+        "description": "Operaciones de archivo"
+      },
+      "postgres": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-postgres"],
+        "env": { "DATABASE_URL": "${DATABASE_URL}" },
+        "description": "Consultas PostgreSQL"
+      },
+      "figma": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-figma"],
+        "description": "Diseño y Code Connect"
+      },
+      "slack": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-slack"],
+        "env": { "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}" },
+        "description": "Mensajes y canales"
+      },
+      "notion": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-notion"],
+        "env": { "NOTION_API_KEY": "${NOTION_API_KEY}" },
+        "description": "Base de conocimientos"
+      }
     }
   },
   "permission": {
     "bash": {
-      "*": "allow",
-      "git commit *": "ask",
-      "git push": "ask",
-      "git push *": "ask",
-      "git push --force *": "deny",
-      "git rebase *": "ask",
-      "git reset --hard *": "deny",
-      "rm -rf *": "ask",
-      "sudo *": "ask"
+      "*": "allow"
     },
     "read": {
-      "*": "allow",
-      "**/.env": "deny",
-      "**/.env.*": "deny",
-      "**/credentials.json": "deny",
-      "**/secrets/**": "deny",
-      "*.env": "deny",
-      "*.env.*": "deny"
+      "*": "allow"
     }
   }
 }

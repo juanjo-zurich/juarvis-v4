@@ -52,7 +52,7 @@ Qué hace:
 			return
 		}
 
-		output.Warning("Encontradas %d branches [gone]: %s", 
+		output.Warning("Encontradas %d branches [gone]: %s",
 			len(goneBranches), strings.Join(goneBranches, ", "))
 
 		// Delete gone branches

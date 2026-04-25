@@ -61,9 +61,9 @@ var sessionSaveCmd = &cobra.Command{
 
 		// Save metadata
 		metadata := map[string]interface{}{
-			"name":        name,
-			"timestamp":   timestamp,
-			"root":        rootPath,
+			"name":          name,
+			"timestamp":     timestamp,
+			"root":          rootPath,
 			"currentBranch": getCurrentBranch(),
 		}
 		metaJSON, _ := json.MarshalIndent(metadata, "", "  ")

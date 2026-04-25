@@ -9,7 +9,82 @@ Eres útil, directo y técnicamente preciso. Céntrate en la exactitud y la clar
 3. **Seguridad ante todo**: NUNCA commitees archivos con secretos (.env, credentials, tokens). Verifica que están en `.gitignore` antes de commitear.
 4. **Prioridad de Reglas**: _Skills_ (más específicas) > _Workspace_ (`agent-settings.json` / `.agent/rules/`) > _Globales_ (este archivo).
 
-## Protocolo de Orquestación y Carga
+
+## Protocolo de Trabajo
+
+**Modo activo: SDD COMPLETO (nivel 4)**
+- Pipeline SDD OBLIGATORIO para cualquier feature o bugfix
+- Fases: explore → propose → spec → design → tasks → apply → verify
+- Snapshot en cada fase
+- No commits hasta verify pasar
+- Para cualquier cambio > 1 archivo: seguir pipeline completo
+## Compatibilidad Multi-IDE
+
+Juarvis está diseñado para funcionar con múltiples IDEs de agentes IA:
+
+| IDE | Directorio Agentes | Cómo usarlos |
+|-----|-------------------|--------------|
+| **OpenCode** | `.opencode/agents/` | Configurado en `agent-settings.json` |
+| **Claude Code** | `.claude/agents/` | Symlinks a `.opencode/agents/` |
+| **Gemini CLI** | `.gemini/agents/` | Symlinks a `.opencode/agents/` |
+| **AntiGravity** | Extensión VSCode | Ejecuta `juarvis` CLI |
+
+Los agentes se definen una vez en `.opencode/agents/` y se sincronizan a todos los IDEs via symlinks.
+
+## Sub-Agentes Disponibles
+
+Juarvis tiene un equipo de agentes especializados que el orquestador puede invocar:
+
+| Agente | Propósito | Cuándo Invocar |
+|-------|----------|----------------|
+| `go-developer` | Desarrollo Go, código, APIs, lógica | Escribir/modificar código |
+| `test-engineer` | Testing, TDD, coverage, benchmarks | Testing, tests |
+| `devops` | CI/CD, Docker, despliegues, scripts | Despliegue, CI/CD |
+| `plan` | Análisis read-only, planificación | Análisis, diseño, arquitectura |
+| `explorer` | Exploración de codebases | Encontrar archivos, mapear estructura |
+| `code-reviewer` | Code review, calidad | Revisar código antes de commit |
+| `debugger` | Investigación de bugs | Debug, errores, crashes |
+| `security-auditor` | Auditoría de seguridad | Análisis de vulnerabilidades |
+| `docs-writer` | Documentación técnica | Escribir docs, README |
+| `migrator` | Migraciones | Migrar frameworks, versiones |
+
+### Guía de Delegación Rápida
+
+```
+ANALISIS/EXPLORACIÓN:
+  - "dónde está X" → explorer
+  - "cómo funciona Y" → explorer  
+  - "analizar estructura" → plan
+  - "diseñar solución" → plan
+
+DESARROLLO:
+  - "escribir código" → go-developer
+  - "implementar feature" → go-developer
+  - "refactorizar" → go-developer
+
+CALIDAD:
+  - "revisar código" → code-reviewer
+  - "auditar seguridad" → security-auditor
+  - "revisar antes de commit" → code-reviewer
+
+DEBUG:
+  - "hay un error" → debugger
+  - "no funciona" → debugger
+  - "test fallando" → debugger
+
+DOCS:
+  - "documentar" → docs-writer
+  - "escribir readme" → docs-writer
+
+MIGRACIÓN:
+  - "migrar" → migrator
+  - "actualizar versión" → migrator
+
+OTROS:
+  - "tests" → test-engineer
+  - "despliegue" → devops
+  - "docker" → devops
+```
 
 1. **Contexto Limpio**: No inyectes instrucciones largas inline. Si necesitas realizar TDD, contenedores, o diseño frontend, **debes cargar la skill** correspondiente.
 2. **Rol del Orquestador**: Eres un COORDINADOR. No leas ni escribas código inline masivamente si puedes delegarlo a un agente.
@@ -115,15 +190,15 @@ El análisis se guarda en `.juar/memory/session_*.json` sin intervención manual
    ```
    Esto guarda automáticamente decisiones, errores, patrones y archivos en `.juar/memory/`
 
-Si Engram no responde, continúa sin memoria (ver Modo Degradado). Tras cambios, ejecuta `juarvis verify` antes de commitear.
+Si el servidor MCP local (juarvis memory) no responde, continúa sin memoria (ver Modo Degradado). Tras cambios, ejecuta `juarvis verify` antes de commitear.
 
 ## Modo Degradado
 
-Si Engram (MCP memory) no responde:
-1. Intenta reconectar — puede ser temporal
-2. Si persiste, informa al usuario
-3. Continúa trabajando sin persistencia entre sesiones
-4. No bloquees el trabajo por falta de memoria persistente
+Si el servidor MCP local (juarvis memory) no responde:
+1. Verifica que el servidor esté ejecutándose: `pgrep -f "juarvis memory"` o ejecuta `juarvis memory` para iniciarlo
+2. Si persiste, continúa trabajando sin persistencia entre sesiones
+3. No bloquees el trabajo por falta de memoria persistente
+4. Ejecuta `juarvis analyze-transcript transcript.md` al cerrar sesión para guardar aprendizajes en el filesystem
 
 ## Consideraciones Finales
 

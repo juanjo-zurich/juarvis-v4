@@ -1,1 +1,6 @@
-{"name": "juarvis-feature-dev", "version": "1.0.0", "description": "Feature development and code architecture skills", "author": {"name": "Juarvis"}, "category": "development", "skills": ["app-builder", "code-architect", "code-explorer", "feature-dev"]}
+{
+  "name": "juarvis-feature-dev",
+  "version": "1.0.0",
+  "description": "Desarrollo de features con agents especializados",
+  "category": "development"
+}
