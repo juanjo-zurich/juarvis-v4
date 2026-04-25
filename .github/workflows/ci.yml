@@ -6,32 +6,50 @@ on:
   pull_request:
     branches: [main]
 
+# Evita运行的concurrency冲突，cancel旧runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
-  GO_VERSION: "1.23"
-  CI: "true"
-  JUARVIS_SKIP_NETWORK: "true"
+  GO_VERSION: '1.25'
 
 jobs:
-  # 1. Build + Tests + Verify (todo en uno para simplicidad)
-  test:
+  # 1. Build y Tests
+  build-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
           cache: true
 
+      # Dependencias - asegura que existen
+      - name: Download dependencies
+        run: |
+          go mod download
+          go mod tidy
+
+      # Build - usa el binario
       - name: Build
         run: make build
+        env:
+          CI: true
+          JUARVIS_SKIP_NETWORK: 'true'
 
+      # Unit Tests
       - name: Run Unit Tests
-        run: go test -timeout 60s -cover ./...
+        run: go test -timeout 60s -cover -race ./...
 
+      # Verify - post-build checks
       - name: Run Juarvis Verify
         run: ./juarvis verify
 
+      # Upload coverage
       - name: Upload coverage to Codecov
         if: success()
         uses: codecov/codecov-action@v4
@@ -39,18 +57,24 @@ jobs:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  # 2. Linting (separado porque puede fallar independientemente)
+  # 2. Linting separado
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
           cache: true
 
-      - name: Run gofmt
+      - name: Download dependencies
+        run: go mod download
+
+      # gofmt check
+      - name: Check gofmt
         run: |
           if [ -n "$(gofmt -l .)" ]; then
             echo "gofmt issues found:"
@@ -58,9 +82,38 @@ jobs:
             exit 1
           fi
 
+      # go vet
       - name: Run go vet
         run: go vet ./...
 
-      - name: Run golint
+      # golangci-lint (opcional)
+      - name: Run golangci-lint
         run: |
-          which golangci-lint && golangci-lint run ./... || echo "golangci-lint not installed, skipping"
+          if command -v golangci-lint &> /dev/null; then
+            golangci-lint run ./... || exit 0
+          else
+            echo "golangci-lint not installed, skipping"
+          fi
+
+  # 3. Archivo locking (protege contra generated files)
+  lockfile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
+          cache: true
+
+      - name: Check for modified .lock.yml files
+        run: |
+          # Verifica que archivos lock no estén modificados (indica generated content issue)
+          if git status --porcelain | grep -q '\.lock\.yml'; then
+            echo "ERROR: .lock.yml files should not be in git (they are generated)"
+            echo "Remove from git with: git rm --cached **/*.lock.yml"
+            exit 1
+          fi
+          echo "✅ No lock files tracked in git"

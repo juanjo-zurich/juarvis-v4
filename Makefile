@@ -1,72 +1,47 @@
 VERSION ?= dev
 COMMIT  := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILDDATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "unknown")
-LDFLAGS := -s -w -X juarvis/cmd.Version=$(VERSION) -X juarvis/cmd.Commit=$(COMMIT) -X juarvis/cmd.BuildDate=$(BUILD_DATE)
+LDFLAGS := -s -w -X juarvis/cmd.Version=$(VERSION) -X juarvis/cmd.Commit=$(COMMIT) -X juarvis/cmd.BuildDate=$(BUILDDATE)
 export CI := true
-exportJUARVIS_SKIP_NETWORK := true
+export JUARVIS_SKIP_NETWORK := true
 
-.PHONY: build test test-integration test-regression test-e2e test-verify test-all lint install clean sync-assets ci
+.PHONY: build test test-integration test-regression test-e2e test-verify test-all lint install clean sync-assets sync-plugins ci ci-local ci-validate ci-install-act
 
-build:
-	go build -ldflags "$(LDFLAGS)" -o juarvis .
+# Targets de CI
+ci: build test test-verify lint
+	@echo "✅ CI pipeline completo"
 
-test:
-	go test -timeout 60s -cover ./...
+ci-local: ci-validate
+	@echo "✅ Validación CI local completada"
+	@echo ""
+	@echo "💡 Para ejecutar workflow completo con act:"
+	@echo "   make ci-act"
 
-test-integration: build
-	go test -v -tags=integration -timeout 60s ./tests/integration/...
+ci-validate:
+	@./scripts/validate-ci.sh
 
-test-regression: build
-	go test -v -tags=regression -timeout 60s ./tests/regression/...
-
-test-e2e: build
-	go test -v -tags=e2e -timeout 120s ./tests/e2e/...
-
-test-verify: build
-	./juarvis verify
-
-test-all: build test test-verify
-
-# CI target: ejecuta solo lo que funciona en GitHub Actions
-ci: build
-	@echo "==> Running CI checks..."
-	@echo "     - go vet..."
-	@$(MAKE) vet
-	@echo "     - unit tests..."
-	@go test -timeout 60s ./...
-	@echo "     - verify CLI..."
-	@./juarvis verify
-	@echo "✅ CI passed!"
-
-fmt:
-	gofmt -w -s .
-
-vet:
-	go vet ./...
-
-lint:
-	golangci-lint run ./...
-
-check: fmt vet lint
-
-install: build
-	@echo "Instalando juarvis en /usr/local/bin/..."
-	@if [ -w /usr/local/bin ]; then \
-		cp juarvis /usr/local/bin/; \
-		echo "✅ Instalado globalmente."; \
+ci-install-act:
+	@echo "📦 Instalando act (GitHub Actions local runner)..."
+	@if command -v brew &> /dev/null; then \
+		brew install act; \
+	elif command -v curl &> /dev/null; then \
+		curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash; \
 	else \
-		echo "❌ Error: No tienes permisos para escribir en /usr/local/bin/"; \
-		echo "Ejecuta: sudo make install"; \
+		echo "❌ No se pudo instalar act"; \
+		echo "   Instalar manualmente: https://nektosact.com/installation/"; \
 		exit 1; \
 	fi
+	@echo "✅ act instalado"
+	@echo ""
+	@echo "💡 Para validar workflow localmente:"
+	@echo "   make ci-local"
 
-clean:
-	rm -f juarvis
-
-sync-assets:
-	@echo "Sincronizando assets desde proyecto padre..."
-	@if [ -f ../AGENTS.md ]; then cp ../AGENTS.md pkg/assets/data/; fi
-	@if [ -f ../marketplace.json ]; then cp ../marketplace.json pkg/assets/data/; fi
-	@if [ -f ../agent-settings.json ]; then cp ../agent-settings.json pkg/assets/data/; fi
-	@if [ -f ../permissions.yaml ]; then cp ../permissions.yaml pkg/assets/data/; fi
-	@echo "Assets sincronizados."
+ci-act:
+	@if ! command -v act &> /dev/null; then \
+		echo "❌ act no instalado"; \
+		echo "   Ejecutar: make ci-install-act"; \
+		exit 1; \
+	fi
+	@echo "🔄 Ejecutando workflow CI con act..."
+	act --workflows .github/workflows --dryrun
+	@echo "✅ Workflow CI validado con act"
