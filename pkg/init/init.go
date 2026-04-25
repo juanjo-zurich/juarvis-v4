@@ -208,12 +208,12 @@ func RunInit(path string) error {
 
 		// Before/after comparison
 		output.Info("")
-		output.Banner("💡 ANTES: cada.session_start -> cold.Context()")
+		output.Info("💡 ANTES de Juarvis:")
 		output.Info("   → explora codebase manualmente")
-		output.Info("   → pregunta: qué stack usa? tests? estilo?")
+		output.Info("   → pregunta: qué stack usas? qué tests? qué estilo?")
 		output.Info("")
-		output.Banner("💡 AHORA: desde el.minuto(0)")
-		output.Info("   → skills知道 tu stack: %s", strings.Join(info.Stack, ", "))
+		output.Info("💡 AHORA con Juarvis:")
+		output.Info("   → conoce tu stack: %s", strings.Join(info.Stack, ", "))
 		output.Info("   → %d convenciones detectadas", len(info.Conventions))
 		output.Info("   → .juar/skills/ = contexto persistente")
 	}
