@@ -194,7 +194,11 @@ func RunSetupCore(targets []string) error {
 			for _, e := range entries {
 				skillSourceMD := filepath.Join(skillsDir, e.Name(), "SKILL.md")
 				if _, err := os.Stat(skillSourceMD); err == nil {
-					skillDestMD := filepath.Join(targetDir, e.Name()+".md")
+					// Para IDEs tipo OpenCode, copiar a subdirectorio skills/
+					skillDestDir := filepath.Join(targetDir, "skills")
+					os.MkdirAll(skillDestDir, 0755)
+					skillDestMD := filepath.Join(skillDestDir, e.Name(), "SKILL.md")
+					os.MkdirAll(filepath.Join(skillDestDir, e.Name()), 0755)
 					if err := copyFile(skillSourceMD, skillDestMD); err != nil {
 						warnings = append(warnings, fmt.Sprintf("no se pudo copiar skill %s: %v", e.Name(), err))
 					} else {
