@@ -5,7 +5,7 @@ LDFLAGS := -s -w -X juarvis/cmd.Version=$(VERSION) -X juarvis/cmd.Commit=$(COMMI
 export CI := true
 export JUARVIS_SKIP_NETWORK := true
 
-.PHONY: build test test-integration test-regression test-e2e test-verify test-all lint install clean sync-assets sync-plugins ci ci-local ci-validate ci-install-act
+.PHONY: build test test-integration test-regression test-e2e test-verify test-all lint install clean sync-assets sync-plugins ci ci-local ci-validate ci-install-act ci-act
 
 # Core build target
 build: sync-plugins
@@ -15,6 +15,14 @@ sync-plugins:
 	@rm -rf pkg/assets/data/plugins
 	@cp -r plugins/ pkg/assets/data/plugins/
 	@echo "✅ $(shell ls plugins/ | wc -l | tr -d ' ') plugins sincronizados"
+
+install: build
+	@mkdir -p ~/.local/bin
+	@cp juarvis ~/.local/bin/
+	@chmod +x ~/.local/bin/juarvis
+	@echo 'export PATH="$$HOME/.local/bin:$$PATH"' >> ~/.bashrc 2>/dev/null || true
+	@echo 'export PATH="$$HOME/.local/bin:$$PATH"' >> ~/.zshrc 2>/dev/null || true
+	@echo "✅ Instalado en ~/.local/bin/ — usa 'juarvis' desde cualquier directorio"
 
 # Targets de CI
 ci: build test test-verify lint
