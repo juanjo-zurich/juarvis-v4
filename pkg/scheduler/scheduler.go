@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/adhocore/gronx"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 
@@ -134,7 +135,7 @@ func ValidateCronExpression(expr string) error {
 	return nil
 }
 
-// IsDue verifica si un job debería ejecutarse según su schedule (simplificado)
+// IsDue verifica si un job debe ejecutarse según su schedule cron
 func IsDue(job *Job) (bool, error) {
 	if !job.Enabled {
 		return false, nil
@@ -144,13 +145,15 @@ func IsDue(job *Job) (bool, error) {
 		return false, err
 	}
 
-	// Verificación simple: si LastRun está vacío o hace más de 1 minuto, está "due"
-	// La lógica completa de cron requiere un parser más sofisticado
+	// Si nunca se ha ejecutado, está debido
 	if job.LastRun.IsZero() {
 		return true, nil
 	}
 
-	return time.Since(job.LastRun) > time.Minute, nil
+	// Usar gronx paraparsing cron real (sin argumento de tiempo usa time.Now())
+	gron := gronx.New()
+	due, _ := gron.IsDue(job.Schedule)
+	return due, nil
 }
 
 // RunJob ejecuta un job inmediatamente
