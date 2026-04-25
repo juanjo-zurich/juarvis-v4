@@ -86,19 +86,10 @@ func getDashboardData(rootPath string) dashboardData {
 		snapCount:     0,
 	}
 
-	// Config - autonomy level
-	configPath := filepath.Join(rootPath, ".juarvis", "config.yaml")
-	if data, err := os.ReadFile(configPath); err == nil {
-		content := string(data)
-		if strings.Contains(content, "autonomy_level: 0") {
-			d.autonomyLevel = 0
-		} else if strings.Contains(content, "autonomy_level: 1") {
-			d.autonomyLevel = 1
-		} else if strings.Contains(content, "autonomy_level: 3") {
-			d.autonomyLevel = 3
-		} else if strings.Contains(content, "autonomy_level: 4") {
-			d.autonomyLevel = 4
-		}
+	// Config - using API instead of legacy file parsing
+	cfg, err := config.LoadOrCreate(rootPath)
+	if err == nil {
+		d.autonomyLevel = cfg.AutonomyLevel
 	}
 
 	// Watcher
