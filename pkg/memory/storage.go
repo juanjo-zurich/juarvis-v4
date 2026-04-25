@@ -244,21 +244,6 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 	return results, nil
 }
 
-// getObservationLocked is reserved for future use with transactions
-// nolint:unused
-func (s *Storage) getObservationLocked(id string) (*Observation, error) {
-	path := filepath.Join(s.memoryDir, "observations", id+".json")
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("observación no encontrada: %s", id)
-	}
-	var obs Observation
-	if err := json.Unmarshal(data, &obs); err != nil {
-		return nil, fmt.Errorf("error parseando observación: %w", err)
-	}
-	return &obs, nil
-}
-
 func (s *Storage) UpdateObservation(id string, updates map[string]interface{}) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
