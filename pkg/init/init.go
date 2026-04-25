@@ -288,7 +288,7 @@ func copyMCPConfig(rootPath string, embeddedFS fs.FS) error {
 // generateIDE_MCPConfig genera archivos de configuración MCP para IDEs.
 // Genera .mcp.json para OpenCode/Cursor y sugiere configuración.
 func generateIDE_MCPConfig(rootPath string) error {
-	// Generar提示 para el usuario con ejemplos de configuración
+	// JSON válido sin comentarios (los comentarios en JSON no son estándar)
 	mcpExample := `{
   "mcpServers": {
     "juarvis-memory": {
@@ -297,9 +297,6 @@ func generateIDE_MCPConfig(rootPath string) error {
     }
   }
 }
-
-# Para habilitar más MCP servers, añade sus configuraciones.
-# Ver ejemplos en .juar/mcp/*.json
 `
 
 	mcpFile := filepath.Join(rootPath, ".mcp.json")
