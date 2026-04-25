@@ -40,9 +40,10 @@ func (m *UniversalManifest) GenerateOpenCodeConfig() ([]byte, error) {
 	// OpenCode espera $schema específico
 	opencode["$schema"] = "https://opencode.ai/config.json"
 
-	// Aquí podríamos filtrar claves no soportadas si fuera necesario
-	// Por ahora mantenemos contextPaths solo si el usuario lo necesita,
-	// pero lo manejamos de forma que no rompa versiones antiguas si es posible.
+	// ASEGURAR que agent nunca sea null (error común de OpenCode)
+	if opencode["agent"] == nil {
+		opencode["agent"] = map[string]interface{}{}
+	}
 
 	return json.MarshalIndent(opencode, "", "  ")
 }
