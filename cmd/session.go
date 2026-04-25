@@ -117,7 +117,7 @@ var sessionListCmd = &cobra.Command{
 
 var sessionResumeCmd = &cobra.Command{
 	Use:   "resume [nombre|id]",
-	Short: "Restaura una sesión guardada",
+	Short: "Restaura una sesión guardada aplicando parches",
 	Args:  cobra.ExactArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -129,9 +129,24 @@ var sessionResumeCmd = &cobra.Command{
 			output.Fatal(output.ExitGeneric, "Sesión no encontrada", "name: %v", name)
 		}
 
-		output.Info("Restaurando sesión: %s", name)
+		// Aplicar git diff si existe
+		diffFile := filepath.Join(sessionDir, "git-diff.txt")
+		if diffData, err := os.ReadFile(diffFile); err == nil && len(diffData) > 0 {
+			diffPath := filepath.Join(sessionDir, "temp-diff.patch")
+			if err := os.WriteFile(diffPath, diffData, 0644); err == nil {
+				output.Info("Aplicando cambios de la sesión...")
+				applyCmd := exec.Command("git", "apply", diffPath)
+				applyCmd.Dir = rootPath
+				if err := applyCmd.Run(); err != nil {
+					output.Warning("No se pudieron aplicar los cambios: %v", err)
+				} else {
+					output.Success("Cambios aplicados desde sesión %s", name)
+				}
+				os.Remove(diffPath)
+			}
+		}
 
-		// Read git status
+		// Mostrar git status guardado
 		statusFile := filepath.Join(sessionDir, "git-status.txt")
 		if data, err := os.ReadFile(statusFile); err == nil {
 			output.Info("Cambios en la sesión:")
