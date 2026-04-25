@@ -112,6 +112,7 @@ func RunSetupCore(targets []string) error {
 
 		var warnings []string
 
+		// Copiar AGENTS.md
 		srcAgents := filepath.Join(rootPath, "AGENTS.md")
 		destAgents := filepath.Join(targetDir, "AGENTS.md")
 		if err := copyFile(srcAgents, destAgents); err != nil {
@@ -120,6 +121,25 @@ func RunSetupCore(targets []string) error {
 			output.Success("Reglas maestras (AGENTS.md) instaladas en IDE %s", t)
 		}
 
+		// Para OpenCode: copiar agentes a .opencode/agents/
+		if t == "opencode" {
+			agentsSrcDir := filepath.Join(rootPath, ".opencode", "agents")
+			agentsDestDir := filepath.Join(targetDir, ".opencode", "agents")
+			if entries, err := os.ReadDir(agentsSrcDir); err == nil {
+				os.MkdirAll(agentsDestDir, 0755)
+				for _, e := range entries {
+					if !e.IsDir() {
+						src := filepath.Join(agentsSrcDir, e.Name())
+						dst := filepath.Join(agentsDestDir, e.Name())
+						if err := copyFile(src, dst); err == nil {
+							output.Success("Agente %s instalado", e.Name())
+						}
+					}
+				}
+			}
+		}
+
+		// Copiar permissions.yaml
 		srcPermissions := filepath.Join(rootPath, "permissions.yaml")
 		destPermissions := filepath.Join(targetDir, "permissions.yaml")
 		if err := copyFile(srcPermissions, destPermissions); err != nil {
@@ -194,11 +214,16 @@ func RunSetupCore(targets []string) error {
 			for _, e := range entries {
 				skillSourceMD := filepath.Join(skillsDir, e.Name(), "SKILL.md")
 				if _, err := os.Stat(skillSourceMD); err == nil {
-					// Para IDEs tipo OpenCode, copiar a subdirectorio skills/
-					skillDestDir := filepath.Join(targetDir, "skills")
-					os.MkdirAll(skillDestDir, 0755)
-					skillDestMD := filepath.Join(skillDestDir, e.Name(), "SKILL.md")
-					os.MkdirAll(filepath.Join(skillDestDir, e.Name()), 0755)
+					var skillDestMD string
+					// Para IDEs tipo OpenCode, copiar a .opencode/skills/
+					if t == "opencode" {
+						skillDirOpencode := filepath.Join(targetDir, ".opencode", "skills", e.Name())
+						os.MkdirAll(skillDirOpencode, 0755)
+						skillDestMD = filepath.Join(skillDirOpencode, "SKILL.md")
+					} else {
+						// Para otros IDEs: skill.md en raíz
+						skillDestMD = filepath.Join(targetDir, e.Name()+".md")
+					}
 					if err := copyFile(skillSourceMD, skillDestMD); err != nil {
 						warnings = append(warnings, fmt.Sprintf("no se pudo copiar skill %s: %v", e.Name(), err))
 					} else {
