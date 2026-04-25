@@ -7,6 +7,15 @@ export JUARVIS_SKIP_NETWORK := true
 
 .PHONY: build test test-integration test-regression test-e2e test-verify test-all lint install clean sync-assets sync-plugins ci ci-local ci-validate ci-install-act
 
+# Core build target
+build: sync-plugins
+	go build -ldflags "$(LDFLAGS)" -o juarvis .
+
+sync-plugins:
+	@rm -rf pkg/assets/data/plugins
+	@cp -r plugins/ pkg/assets/data/plugins/
+	@echo "✅ $(shell ls plugins/ | wc -l | tr -d ' ') plugins sincronizados"
+
 # Targets de CI
 ci: build test test-verify lint
 	@echo "✅ CI pipeline completo"
