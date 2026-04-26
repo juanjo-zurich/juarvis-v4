@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"path/filepath"
 
 	"juarvis/pkg/kb"
 	"juarvis/pkg/output"
@@ -17,6 +17,11 @@ var kbCmd = &cobra.Command{
 	Long:  `Comandos para buscar, añadir y gestionar conocimiento aprendido.`,
 }
 
+// kbBasePath returns the KB path for a given root
+func kbBasePath(rootPath string) string {
+	return filepath.Join(rootPath, ".juar", "kb")
+}
+
 // kbSearchCmd: juarvis kb search <query>
 var kbSearchCmd = &cobra.Command{
 	Use:   "search [query]",
@@ -25,10 +30,10 @@ var kbSearchCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		rootPath, _ := root.GetRoot()
 
-		kbPath := rootPath + "/.juar/kb"
-		os.MkdirAll(kbPath, 0755)
+		cfg := kb.DefaultConfig()
+		cfg.StoragePath = kbBasePath(rootPath)
 
-		kbBase, err := kb.NewKnowledgeBase(kb.DefaultConfig())
+		kbBase, err := kb.NewKnowledgeBase(cfg)
 		if err != nil {
 			output.Error("Error inicializando KB: %v", err)
 			return
@@ -59,7 +64,12 @@ var kbListCmd = &cobra.Command{
 	Short: "Listar todas las entradas",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		kbBase, err := kb.NewKnowledgeBase(kb.DefaultConfig())
+		rootPath, _ := root.GetRoot()
+
+		cfg := kb.DefaultConfig()
+		cfg.StoragePath = kbBasePath(rootPath)
+
+		kbBase, err := kb.NewKnowledgeBase(cfg)
 		if err != nil {
 			output.Error("Error inicializando KB: %v", err)
 			return
@@ -84,7 +94,12 @@ var kbStatsCmd = &cobra.Command{
 	Short: "Mostrar estadísticas de la KB",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		kbBase, err := kb.NewKnowledgeBase(kb.DefaultConfig())
+		rootPath, _ := root.GetRoot()
+
+		cfg := kb.DefaultConfig()
+		cfg.StoragePath = kbBasePath(rootPath)
+
+		kbBase, err := kb.NewKnowledgeBase(cfg)
 		if err != nil {
 			output.Error("Error inicializando KB: %v", err)
 			return
@@ -106,7 +121,12 @@ var kbAddCmd = &cobra.Command{
 	Short: "Añadir entrada a la KB",
 	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		kbBase, err := kb.NewKnowledgeBase(kb.DefaultConfig())
+		rootPath, _ := root.GetRoot()
+
+		cfg := kb.DefaultConfig()
+		cfg.StoragePath = kbBasePath(rootPath)
+
+		kbBase, err := kb.NewKnowledgeBase(cfg)
 		if err != nil {
 			output.Error("Error inicializando KB: %v", err)
 			return
