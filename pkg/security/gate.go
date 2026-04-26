@@ -7,36 +7,26 @@ import (
 	"path/filepath"
 	"strings"
 
-	"juarvis/pkg/hookify"
-	"juarvis/pkg/root"
-
 	"gopkg.in/yaml.v3"
 )
 
 // SecurityGateEvalúa las tres capas de seguridad en cascada
 type SecurityGate struct {
-	sandbox *Sandbox
+	sandbox     *Sandbox
 	permissions *Permissions
-	hooks    *hookify.Hookify
-	enabledLayers []string // ["sandbox", "permissions", "hookify"]
+	enabledLayers []string // ["sandbox", "permissions"]
 }
 
 type Result struct {
-	Allowed bool
-	Layer   string // Capa que bloqueó
+	Allowed  bool
+	Layer    string // Capa que bloqueó
 	Message string
-	AutoFix *AutoFixAction
-}
-
-type AutoFixAction struct {
-	Command string
-	Files   []string
 }
 
 // NewSecurityGate crea un gate de seguridad unificado
 func NewSecurityGate(rootPath string) (*SecurityGate, error) {
 	g := &SecurityGate{
-		enabledLayers: []string{"sandbox", "permissions", "hookify"},
+		enabledLayers: []string{"sandbox", "permissions"},
 	}
 
 	// Capa 1: Sandbox
@@ -44,9 +34,6 @@ func NewSecurityGate(rootPath string) (*SecurityGate, error) {
 
 	// Capa 2: Permissions.yaml
 	g.permissions = NewPermissions(rootPath)
-
-	// Capa 3: Hookify
-	g.hooks = hookify.New(rootPath)
 
 	return g, nil
 }
@@ -65,20 +52,6 @@ func (g *SecurityGate) Eval(ctx context.Context, command string, args []string) 
 				reason := g.permissions.Reason(command)
 				return &Result{Allowed: false, Layer: "permissions", Message: reason}
 			}
-
-		case "hookify":
-			fix := g.hooks.CheckAutoFix(command, args)
-			if fix != nil {
-				return &Result{
-					Allowed:  true,
-					Layer:    "hookify",
-					Message: "Auto-fix disponible",
-					AutoFix: &AutoFixAction{
-						Command: fix.Command,
-						Files:   fix.Files,
-					},
-				}
-			}
 		}
 	}
 
@@ -96,7 +69,7 @@ func (g *SecurityGate) DisableLayer(layer string) {
 	g.enabledLayers = remaining
 }
 
-// EnableLayeractiva una capa
+// EnableLayer activa una capa
 func (g *SecurityGate) EnableLayer(layer string) {
 	for _, l := range g.enabledLayers {
 		if l == layer {

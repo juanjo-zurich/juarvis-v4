@@ -95,6 +95,36 @@ action: gofmt -w {{file}}
 
 ## Orden de Evaluación
 
+Con el paquete unificado `pkg/security/gate.go`:
+
+```
+1. Sandbox (Capa 1)
+   ↓ Si permitido
+2. Permissions.yaml (Capa 2)
+   ↓ Si permitido
+3. Hookify (Capa 3)
+```
+
+**Uso:**
+```go
+import "juarvis/pkg/security"
+
+gate, _ := security.NewSecurityGate(rootPath)
+
+// Evalúa todas las capas
+result := gate.Eval(ctx, "git", []string{"push", "--force"})
+if !result.Allowed {
+    fmt.Printf("[%s] %s\n", result.Layer, result.Message)
+    return
+}
+
+// Auto-fix available?
+if result.AutoFix != nil {
+    fmt.Printf("Auto-fix: %s\n", result.AutoFix.Command)
+}
+
+// Desactivar capa hookify si es muy restrictivo
+gate.DisableLayer("hookify")
 ```
 1. Sandbox (Capa 1)
    ↓ Si permitido
