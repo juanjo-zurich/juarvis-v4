@@ -134,6 +134,8 @@ var sessionResumeCmd = &cobra.Command{
 		if diffData, err := os.ReadFile(diffFile); err == nil && len(diffData) > 0 {
 			diffPath := filepath.Join(sessionDir, "temp-diff.patch")
 			if err := os.WriteFile(diffPath, diffData, 0644); err == nil {
+				defer os.Remove(diffPath) // Cleanup garantizado
+
 				output.Info("Aplicando cambios de la sesión...")
 				applyCmd := exec.Command("git", "apply", diffPath)
 				applyCmd.Dir = rootPath
@@ -142,7 +144,6 @@ var sessionResumeCmd = &cobra.Command{
 				} else {
 					output.Success("Cambios aplicados desde sesión %s", name)
 				}
-				os.Remove(diffPath)
 			}
 		}
 
