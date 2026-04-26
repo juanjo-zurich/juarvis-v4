@@ -1,1 +1,6 @@
-{"name": "juarvis-plugin-dev", "version": "1.0.0", "description": "Plugin and skill development framework skills", "author": {"name": "Juarvis"}, "category": "development", "skills": ["command-development", "plugin-dev", "plugin-settings", "plugin-structure", "plugin-validator", "skill-development", "skill-reviewer"]}
+{
+  "name": "juarvis-plugin-dev",
+  "version": "1.0.0",
+  "description": "Toolkit para crear plugins",
+  "category": "development"
+}

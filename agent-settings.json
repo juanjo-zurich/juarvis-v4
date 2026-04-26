@@ -1,0 +1,218 @@
+{
+  "name": "juarvis-universal-ecosystem",
+  "agent": {
+    "orchestrator": {
+      "description": "Orquestador Principal de Juarvis CLI - Coordina sub-agentes especializados",
+      "mode": "primary",
+      "prompt": "{file:.opencode/agents/orchestrator.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "go-developer": {
+      "description": "Desarrollador Go especializado en Juarvis CLI",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/go-developer.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "test-engineer": {
+      "description": "Ingeniero de Testing para Juarvis CLI",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/test-engineer.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "devops": {
+      "description": "Ingeniero DevOps para Juarvis CLI",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/devops.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "plan": {
+      "description": "Agente de Análisis Read-Only - Diseña soluciones sin modificar código",
+      "mode": "primary",
+      "prompt": "{file:.opencode/agents/plan.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "explorer": {
+      "description": "Agente Explorador de Codebases - Analiza estructura y encuentra patrones",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/explorer.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "code-reviewer": {
+      "description": "Agente de Code Review - Analiza código en busca de bugs y calidad",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/code-reviewer.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "debugger": {
+      "description": "Agente Debugger - Investiga y diagnostica bugs y errores",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/debugger.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "security-auditor": {
+      "description": "Agente de Auditoría de Seguridad - Analiza vulnerabilidades",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/security-auditor.md}",
+      "tools": {
+        "read": true,
+        "edit": false,
+        "write": false,
+        "bash": true
+      }
+    },
+    "docs-writer": {
+      "description": "Agente de Documentación - Escribe y mantiene documentación técnica",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/docs-writer.md}",
+      "tools": {
+        "read": true,
+        "edit": true,
+        "write": true,
+        "bash": false
+      }
+    },
+"migrator": {
+      "description": "Agente de Migración - Maneja migraciones de frameworks y versiones",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/migrator.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "frontend-designer": {
+      "description": "Agente Frontend Designer - Crea interfaces aesthetically pleasing, evita AI slop",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/frontend-designer.md}",
+      "tools": {
+        "edit": true,
+        "write": true,
+        "read": true,
+        "bash": true
+      }
+    },
+    "sdd-orchestrator": {
+      "mode": "all",
+      "description": "Orquestador Juarvis — coordina sub-agentes, nunca ejecuta trabajo inline",
+      "prompt": "ORQUESTADOR DE AGENT TEAMS\n============================\n\nEres un COORDINADOR, no un ejecutor. Tu único trabajo es mantener un hilo de conversación fino con el usuario, delegar TODO el trabajo real a sub-agentes via Task, y sintetizar sus resultados.\n\nREQUISITO DE IDIOMA: TODOS tus mensajes al usuario, tu proceso de pensamiento y los resultados resumidos DEBEN ser estrictamente en Español de España.\n\nREGLAS DE DELEGACIÓN (SIEMPRE ACTIVAS):\nSe aplican a CADA solicitud, no solo a SDD.\n1. NUNCA hagas trabajo real inline. Leer código, escribir código, analizar, diseñar, testear = delegar a sub-agente.\n2. Estás autorizado a: responder preguntas breves, coordinar sub-agentes, mostrar resúmenes, pedir decisiones, hacer seguimiento del estado.\n3. Auto-comprueba antes de cada respuesta: ¿Voy a leer código, escribir código o hacer análisis? Si es así, delegar.\n4. Por qué: Eres contexto siempre cargado. El trabajo pesado inline hincha el contexto, activa compresión, pierde estado. Los sub-agentes obtienen contexto fresco.\n\nANTI-PATRONES (nunca hagas esto):\n- NO leas código fuente para entender la codebase. Delega.\n- NO escribas ni edites código. Delega.\n- NO escribas specs, propuestas, diseños o tareas. Delega.\n- NO ejecutes tests o builds. Delega.\n- NO hagas análisis rápido inline para ahorrar tiempo. Hincha el contexto.\n\nESCALADO DE TAREAS:\n1. Pregunta simple (¿qué hace X?) -> responde brevemente si lo sabes, si no delega.\n2. Tarea pequeña (un solo archivo, fix rápido) -> delega a sub-agente general.\n3. Feature/Refactor sustancial -> sugiere SDD: Esto es un buen candidato para /sdd-new {nombre}.\n\nFLUJO SDD (Spec-Driven Development):\nCapa de planificación estructurada para cambios sustanciales.\n\nComandos:\n- /sdd-init -> inicializar contexto SDD\n- /sdd-explore <tema> -> explorar antes de comprometerse\n- /sdd-new <cambio> -> explorar + proponer\n- /sdd-new <cambio> --patch -> fusionar explore+propose+spec para cambios triviales\n- /sdd-continue [cambio] -> crear siguiente artefacto faltante\n- /sdd-ff [cambio] -> fast-forward: propose -> spec -> design -> tasks\n- /sdd-apply [cambio] -> implementar tareas\n- /sdd-verify [cambio] -> validar implementación\n- /sdd-archive [cambio] -> cerrar cambio\n\nGrafo de dependencias:\nproposal -> specs --> tasks -> apply -> verify -> archive\n             ^\n             |\n           design\n\nPROTOCOLO DE MEMORIA (Engram):\n- Guardar descubrimientos, decisiones y bugs corregidos via mem_save\n- Buscar contexto previo via mem_search antes de responder a preguntas sobre pasado\n- Cerrar sesión con mem_session_summary obligatorio\n\nPROTOCOLO DE PERMISOS:\nComprobar permissions.yaml antes de ejecutar herramientas.\nReglas más específicas prevalecen sobre generales.\n\nPROTOCOLO DE EJECUCIÓN SEGURA:\n- Máximo 3 intentos por test/comando fallido\n- NUNCA rm -rf sin verificar ruta\n- Snapshot obligatorio antes de sdd-apply\n- Si tests fallan 3 veces -> rollback automático",
+      "tools": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
+    },
+    "database-architect": {
+      "description": "Arquitecto de Bases de Datos — experto en esquemas, migraciones y SQL",
+      "prompt": "{file:./skills/database-design/SKILL.md}"
+    },
+    "backend-specialist": {
+      "description": "Especialista Backend — experto en APIs, lógica de negocio y patrones",
+      "prompt": "{file:./skills/backend-patterns/SKILL.md}"
+    },
+    "frontend-specialist": {
+      "description": "Especialista Frontend — experto en UI/UX, componentes y estilos",
+      "prompt": "{file:./skills/frontend-design/SKILL.md}"
+    },
+    "security-auditor": {
+      "description": "Auditor de Seguridad — caza vulnerabilidades y asegura el código",
+      "prompt": "{file:./skills/security-scanner/SKILL.md}"
+    },
+    "devops-engineer": {
+      "description": "Ingeniero DevOps — experto en CI/CD, Docker y despliegue",
+      "prompt": "{file:./skills/ci-cd-pipeline/SKILL.md}"
+    }
+  },
+  "mcp": {
+    "memory": {
+      "command": ["juarvis", "memory"],
+      "enabled": true,
+      "type": "local"
+    },
+    "available_servers": {
+      "github": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+        "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" },
+        "description": "Gestión de repositorios, issues, PRs"
+      },
+      "brave-search": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-brave-search"],
+        "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" },
+        "description": "Búsqueda web en tiempo real"
+      },
+      "filesystem": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
+        "description": "Operaciones de archivo"
+      },
+      "postgres": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-postgres"],
+        "env": { "DATABASE_URL": "${DATABASE_URL}" },
+        "description": "Consultas PostgreSQL"
+      },
+      "figma": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-figma"],
+        "description": "Diseño y Code Connect"
+      },
+      "slack": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-slack"],
+        "env": { "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}" },
+        "description": "Mensajes y canales"
+      },
+      "notion": {
+        "command": ["npx", "-y", "@modelcontextprotocol/server-notion"],
+        "env": { "NOTION_API_KEY": "${NOTION_API_KEY}" },
+        "description": "Base de conocimientos"
+      }
+    }
+  },
+  "permission": {
+    "bash": {
+      "*": "allow"
+    },
+    "read": {
+      "*": "allow"
+    }
+  }
+}

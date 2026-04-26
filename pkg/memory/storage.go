@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"juarvis/pkg/config"
 )
 
@@ -172,6 +174,11 @@ func (s *Storage) GetObservation(id string) (*Observation, error) {
 	return &obs, nil
 }
 
+type scoredObservation struct {
+	obs   Observation
+	score int
+}
+
 func (s *Storage) SearchObservations(query, project, obsType, scope string, limit int) ([]Observation, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -180,38 +187,30 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 		limit = 10
 	}
 
-	// Use index to find candidate IDs
-	candidateIDs := make(map[string]bool)
+	// Tokenizar la query para calcular relevancia
+	queryTokens := tokenize(query)
+	candidateScores := make(map[string]int)
+
 	if query != "" {
-		queryTokens := tokenize(query)
 		for _, token := range queryTokens {
 			if ids, ok := s.index[token]; ok {
 				for _, id := range ids {
-					candidateIDs[id] = true
+					// Puntuación simple: frecuencia de términos de la query en la observación
+					candidateScores[id]++
 				}
 			}
 		}
 	} else {
-		// No query: use all observations
-		entries, _ := os.ReadDir(filepath.Join(s.memoryDir, "observations"))
-		for _, entry := range entries {
-			if strings.HasSuffix(entry.Name(), ".json") {
-				candidateIDs[strings.TrimSuffix(entry.Name(), ".json")] = true
-			}
+		// No query: usar todas las observaciones (puntuación base)
+		for id := range s.obsCache {
+			candidateScores[id] = 1
 		}
 	}
 
-	var results []Observation
-	for id := range candidateIDs {
-		if len(results) >= limit {
-			break
-		}
-		// Use cache instead of reading from disk
+	var scored []scoredObservation
+	for id, score := range candidateScores {
 		obs, ok := s.obsCache[id]
-		if !ok {
-			continue
-		}
-		if obs.DeletedAt != nil {
+		if !ok || obs.DeletedAt != nil {
 			continue
 		}
 		if project != "" && obs.Project != project {
@@ -223,25 +222,26 @@ func (s *Storage) SearchObservations(query, project, obsType, scope string, limi
 		if scope != "" && obs.Scope != scope {
 			continue
 		}
-		results = append(results, *obs)
+
+		// Bonus por coincidencia exacta en el título
+		if query != "" && strings.Contains(strings.ToLower(obs.Title), strings.ToLower(query)) {
+			score += 10
+		}
+
+		scored = append(scored, scoredObservation{obs: *obs, score: score})
+	}
+
+	// Ordenar por puntuación (descendente) — O(n log n)
+	sort.Slice(scored, func(i, j int) bool {
+		return scored[i].score > scored[j].score
+	})
+
+	var results []Observation
+	for i := 0; i < len(scored) && i < limit; i++ {
+		results = append(results, scored[i].obs)
 	}
 
 	return results, nil
-}
-
-// getObservationLocked is reserved for future use with transactions
-// nolint:unused
-func (s *Storage) getObservationLocked(id string) (*Observation, error) {
-	path := filepath.Join(s.memoryDir, "observations", id+".json")
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("observación no encontrada: %s", id)
-	}
-	var obs Observation
-	if err := json.Unmarshal(data, &obs); err != nil {
-		return nil, fmt.Errorf("error parseando observación: %w", err)
-	}
-	return &obs, nil
 }
 
 func (s *Storage) UpdateObservation(id string, updates map[string]interface{}) error {
@@ -276,7 +276,17 @@ func (s *Storage) UpdateObservation(id string, updates map[string]interface{}) e
 		return fmt.Errorf("error serializando: %w", err)
 	}
 
-	return os.WriteFile(path, data, 0644)
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return err
+	}
+
+	// Actualizar cache con la observación actualizada
+	var updatedObs Observation
+	if err := json.Unmarshal(data, &updatedObs); err == nil {
+		s.obsCache[id] = &updatedObs
+	}
+
+	return nil
 }
 
 func (s *Storage) DeleteObservation(id string, hard bool) error {
@@ -389,5 +399,5 @@ func (s *Storage) ListSessions(project string, limit int) ([]Session, error) {
 }
 
 func generateID() string {
-	return fmt.Sprintf("obs_%d", time.Now().UnixNano())
+	return "obs_" + uuid.New().String()
 }

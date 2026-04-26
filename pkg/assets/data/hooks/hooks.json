@@ -1,0 +1,110 @@
+{
+  "$schema": "https://juarvis.ai/hooks.schema.json",
+  "version": "1.0",
+  "name": "juarvis-security-hooks",
+  "description": "Sistema de hooks de seguridad para Juarvis - PreToolUse/PostToolUse/Agent hooks",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "name": "block-dangerous-bash",
+        "matcher": "Bash(rm -rf|Bash(:\\(\\)|Bash(mkfs|Bash(dd if=|Bash(shutdown|Bash(reboot|Bash(halt|Bash(sudo",
+        "type": "command",
+        "action": "deny",
+        "reason": "Comando potencialmente destructivo odangeroso"
+      },
+      {
+        "name": "block-secret-writing", 
+        "matcher": "Write|Edit",
+        "if": {
+          "field": "new_text",
+          "operator": "contains",
+          "pattern": "password|api_key|secret|token|apikey|auth"
+        },
+        "type": "command", 
+        "action": "deny",
+        "reason": "No escribir secrets directamente en código"
+      },
+      {
+        "name": "require-snapshot-before-write",
+        "matcher": "Write|Edit",
+        "if": {
+          "field": "file_path", 
+          "operator": "not_contains",
+          "pattern": "\\.test\\.|\\.spec\\.|_test\\.go"
+        },
+        "type": "command",
+        "action": "run",
+        "command": ["juarvis", "snapshot", "auto-create"],
+        "fallback": "warn"
+      },
+      {
+        "name": "validate-npm-install",
+        "matcher": "Bash(npm install|Bash(yarn add|Bash(pnpm add",
+        "type": "command",
+        "action": "warn",
+        "message": "Revisando package.json antes de instalar..."
+      }
+    ],
+    "PostToolUse": [
+      {
+        "name": "log-all-changes",
+        "matcher": "Write|Edit",
+        "type": "command",
+        "action": "run", 
+        "command": ["juarvis", "audit", "log", "change", "$FILE_PATH"]
+      },
+      {
+        "name": "verify-tests-after-write",
+        "matcher": "Write|Edit",
+        "type": "command", 
+        "action": "run",
+        "command": ["juarvis", "verify", "quick"]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "name": "log-failures",
+        "matcher": ".*",
+        "type": "command", 
+        "action": "run",
+        "command": ["juarvis", "audit", "log-error", "$TOOL_NAME", "$ERROR"]
+      }
+    ],
+    "SessionStart": [
+      {
+        "name": "load-project-context",
+        "matcher": ".*",
+        "type": "command",
+        "action": "run",
+        "command": ["juarvis", "context", "load"]
+      },
+      {
+        "name": "check-snapshot-restored",
+        "matcher": ".*",
+        "type": "command", 
+        "action": "run",
+        "command": ["juarvis", "snapshot", "check"]
+      }
+    ]
+  },
+  "agent_hooks": {
+    "enabled": true,
+    "default_model": "claude-3-opus",
+    "timeout_ms": 10000,
+    "hooks": [
+      {
+        "name": "security-validation",
+        "matcher": "Bash(git push|Bash(sudo|Bash(npm install -g",
+        "type": "agent",
+        "prompt": "Eres un guardián de seguridad. Evalúa si el siguiente comando es seguro para ejecutar:\n\nComando: $ARGUMENTS.command\n\nResponde ONLY: ALLOW o DENY con una razón breve.",
+        "require_confirmation": true
+      }
+    ]
+  },
+  "config": {
+    "enabled": true,
+    "log_file": ".juar/hooks.log",
+    "log_all_decisions": true,
+    "auto_enable": true
+  }
+}

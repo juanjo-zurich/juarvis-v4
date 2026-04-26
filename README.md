@@ -1,237 +1,373 @@
-# Juarvis V4
+# Juarvis V4 — Sistema Operativo para Agentes IA
 
-Motor CLI autocontenido para ecosistemas de agentes IA con Spec-Driven Development (SDD), enforcement automático y aprendizaje continuo.
+Juarvis V4 es una herramienta de sistema que convierte cualquier carpeta en un entorno de desarrollo profesional gobernado por agentes de IA autónomos.
 
-## Qué es
+No es solo un script; es un **motor global** que permite que IAs (Claude, Cursor, OpenCode, etc.) seguían protocolos de ingeniería rigurosos, autogestionen sus herramientas y aprendan de sus errores sin que tú tengas que configurar nada.
 
-Juarvis V4 es una herramienta de línea de comandos escrita en Go que prepara el terreno para que IAs (Claude, Cursor, Windsurf, OpenCode, etc.) trabajen de forma **estructurada, segura y autónoma** en tu proyecto.
+---
 
-**Tres pilares:**
-1. **Ecosistema autocontenido** — 21 plugins y 70+ skills embebidos en un solo binario
-2. **Enforcement automático** — Watcher que vigila cambios y evalúa reglas de seguridad sin intervención humana
-3. **Aprendizaje continuo** — Los agentes aprenden de sus errores usando memoria persistente (MCP local)
+## 🚀 Guía Rápida
 
-## Instalación
-
+### 1. Instalación (Solo una vez)
 ```bash
 git clone https://github.com/juanjo-zurich/juarvis-v4.git
 cd juarvis-v4
-make build      # Compila el binario
-make install    # Instala en /usr/local/bin/
+make install
 ```
 
-### Requisitos
+### 2. Preparar tu Proyecto
+```bash
+juarvis up
+```
+*Esto hace todo: init + setup + watch + analiza tu proyecto*
 
-- **Go 1.23+**
-- **Git** (para snapshots)
+### 3. Ver el Estado
+```bash
+juarvis dashboard    # Panel visual del ecosistema
+juarvis mode        # Ver/cambiar nivel de autonomía (0-4)
+```
 
-## Uso Rápido
+---
+
+## 🧠 Niveles de Autonomía
+
+| Nivel | Nombre | Comportamiento |
+|-------|--------|---------------|
+| 0 | Vibe Puro | Ejecución directa, sin planes |
+| 1 | Seguro | + snapshot automático antes de cambios grandes |
+| 2 | Estructurado | + descomposición de tareas (default) |
+| 3 | Semi-SDD | + spec antes de implementar |
+| 4 | SDD Completo | Pipeline completo: explore→spec→design→verify |
+
+Cambia el modo con: `juarvis mode 0` a `juarvis mode 4`
+
+---
+
+## ⚡ Comandos Esenciales
 
 ```bash
-# 1. Inicializar un ecosistema en tu proyecto
-cd mi-proyecto
-juarvis init
-
-# 2. Distribuir reglas a tu IDE (incluye watcher automático)
-juarvis setup --ide opencode   # o cursor, windsurf, vscode, antigravity, trae, kiro
-# O configura todos a la vez:
-juarvis setup --all
-
-# 3. Verificar estado
-juarvis check
-
-# 4. El watcher arranca automáticamente al abrir el proyecto en tu IDE
-# Vigila cambios, evalúa reglas de seguridad, crea auto-snapshots
+juarvis init           # Inicializar ecosistema
+juarvis up            # Onboarding completo (init + setup + watch)
+juarvis watch        # Vigilancia activa de archivos
+juarvis verify       # Verificar que todo esté sano
+juarvis snapshot     # Puntos de restauración
+juarvis analyze      # Analizar codebase
+juarvis memory      # Servidor MCP de memoria
+juarvis mode [n]    # Cambiar nivel de autonomía
+juarvis dashboard   # Panel visual del ecosistema
 ```
 
-## Comandos
+---
 
-### Gestión del Ecosistema
+## 🗃️ Memoria Persistente
 
-| Comando | Descripción |
-|---------|-------------|
-| `juarvis` | Sin argumentos: detecta ecosistema y muestra estado |
-| `juarvis init [path]` | Inicializa un ecosistema completo (21 plugins, 70+ skills) |
-| `juarvis check` | Health-check del ecosistema |
-| `juarvis verify` | Verifica que el proyecto está sano (build, tests, configs) |
-| `juarvis sync` | Actualiza archivos locales con la versión del binario |
-
-### Watcher (Enforcement Automático)
-
-| Comando | Descripción |
-|---------|-------------|
-| `juarvis watch` | Inicia daemon que vigila cambios y evalúa reglas automáticamente |
-| `juarvis watch --daemon` | Ejecuta en segundo plano |
-| `juarvis watch --stop` | Detiene el watcher en segundo plano |
-| `juarvis watch --no-auto-snapshot` | Desactiva auto-snapshots |
-
-> **Nota:** Al ejecutar `juarvis setup --ide <ide>`, se genera automáticamente la configuración para que el watcher arranque al abrir el proyecto en tu IDE.
-
-### Plugins y Skills
-
-| Comando | Descripción |
-|---------|-------------|
-| `juarvis load` | Indexa plugins y regenera symlinks de skills |
-| `juarvis pm list` | Lista plugins del marketplace local |
-| `juarvis pm search <q>` | Busca skills en skills.sh (proveedores oficiales) |
-| `juarvis pm install <plugin>` | Instala un plugin (local o desde GitHub) |
-| `juarvis pm enable/disable <plugin>` | Activa/desactiva un plugin |
-| `juarvis pm remove <plugin>` | Elimina un plugin |
-| `juarvis skill create <name>` | Crea plantilla de nueva skill |
-
-### Seguridad y Snapshots
-
-| Comando | Descripción |
-|---------|-------------|
-| `juarvis snapshot create <name>` | Crea snapshot de seguridad (git stash) |
-| `juarvis snapshot restore` | Restaura último snapshot |
-| `juarvis snapshot prune` | Limpia snapshots viejos |
-| `juarvis hookify list` | Lista reglas de hook activas |
-
-### Agentes Autónomos
-
-| Comando | Descripción |
-|---------|-------------|
-| `juarvis ralph loop <prompt>` | Inicia bucle autónomo iterativo |
-| `juarvis ralph stop` | Detiene bucle de Ralph |
-
-### Configuración
-
-| Comando | Descripción |
-|---------|-------------|
-| `juarvis setup --ide <ide>` | Distribuye reglas al IDE + watcher automático |
-| `juarvis setup --all` | Distribuye a TODOS los IDEs soportados |
-| `juarvis setup --gui` | Interfaz web de configuración |
-
-**Flags globales:** `--root <path>`, `--json`, `--version`
-
-## Cómo Funciona
-
-### Flujo de Trabajo Completo
+Después de `juarvis init`, el agente recuerda lo que aprende:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  1. INSTALAR (una vez por máquina)                          │
-│     make install                                            │
-├─────────────────────────────────────────────────────────────┤
-│  2. INICIALIZAR (una vez por proyecto)                      │
-│     juarvis init                                            │
-│     → Extrae 21 plugins + 70+ skills del binario            │
-│     → Crea .juar/ con skill-registry y memoria              │
-├─────────────────────────────────────────────────────────────┤
-│  3. CONFIGURAR (una vez por proyecto)                       │
-│     juarvis setup --ide opencode                            │
-│     → Distribuye reglas, skills y watcher al IDE            │
-│     → Genera .vscode/tasks.json con runOn: folderOpen       │
-├─────────────────────────────────────────────────────────────┤
-│  4. TRABAJAR (diario)                                       │
-│     Al abrir el proyecto → watcher arranca solo             │
-│     → Vigila cambios en tiempo real                         │
-│     → Evalúa reglas de hookify automáticamente              │
-│     → Auto-snapshot si hay cambios masivos                  │
-│     → El agente aprende de sus errores (Reflection Loop)    │
-├─────────────────────────────────────────────────────────────┤
-│  5. ACTUALIZAR (cuando haya nueva versión)                  │
-│     make install && juarvis sync                            │
-│     → Actualiza binario y sincroniza proyecto               │
-└─────────────────────────────────────────────────────────────┘
+🎯 LO QUE TU AGENTE AHORA SABE DE TU PROYECTO
+  📦 Stack: Go, React, PostgreSQL
+  📁 Archivos: 143
+  📋 Convenciones: conventional commits, ESLint
+
+💡 ANTES: cada sesión → cold context
+💡 AHORA: desde el minuto 0 → contexto persistente
 ```
 
-### Reflection Loop: Aprendizaje Continuo
+Usa las herramientas MCP:
+- `mem_save(title, content, type)` — guardar observación
+- `mem_search(query)` — buscar en memoria
+- `mem_context(limit)` — ver sesiones recientes
 
-Los agentes siguen un ciclo de 3 fases:
+---
 
-| Fase | Cuándo | Qué hace |
-|------|--------|----------|
-| **Pre-tarea** | Antes de tareas no triviales | Busca errores pasados en memoria (`mem_context`, `mem_search`) |
-| **Durante error** | Cuando algo falla | Guarda causa raíz y solución (`mem_save`) |
-| **Post-tarea** | Al cerrar sesión | Guarda decisiones, patrones y resumen (`mem_session_summary`) |
+## 🔒 Seguridad
 
-### Enforcement Automático (Watcher)
+El **Watcher** vigila cada cambio. Si una IA intenta:
+- Borrar archivos clave
+- Ignorar tests
+- Hacer operaciones destructivas
 
-El watcher (`juarvis watch`) proporciona un "cinturón de seguridad" que no depende de la voluntad del agente:
+...el watcher lo detectará y te avisará o detendrá la operación.
 
-1. **Vigila** cambios en archivos del proyecto (ignora `.git/`, `.juar/`, `node_modules/`)
-2. **Evalúa** reglas de hookify automáticamente en cada cambio
-3. **Alerta** si detecta patrones peligrosos (secretos, comandos destructivos)
-4. **Auto-snapshot** si detecta cambios masivos (configurable)
+---
 
-## Arquitectura
+## 🏗️ Arquitectura
 
-```
-cmd/          → Comandos CLI (Cobra)
-pkg/assets/   → go:embed de todos los datos (plugins, skills, configs)
-pkg/config/   → Constantes centralizadas de paths
-pkg/init/     → Extracción de assets al filesystem
-pkg/setup/    → Distribución a IDEs (+ servidor GUI + watcher task)
-pkg/loader/   → Indexación atómica de plugins (temp dir + rename)
-pkg/pm/       → Package Manager (marketplace, install, search, HTTP retry)
-pkg/hookify/  → Engine de hooks de seguridad (YAML rules, regex evaluation)
-pkg/ralph/    → Motor de bucles autónomos
-pkg/validate/ → Health-check del ecosistema
-pkg/snapshot/ → Snapshots via git stash (apply, no pop)
-pkg/root/     → Detección del directorio raíz (3 niveles máx)
-pkg/output/   → Output centralizado (emojis + JSON mode)
-pkg/memory/   → Servidor MCP de memoria local (JSON + índice en memoria)
-pkg/watcher/  → Daemon de file watching (fsnotify + debounce + hookify)
-pkg/sync/     → Sincronización de assets embebidos con proyecto local
-pkg/utils/    → Utilidades compartidas (embed helpers, frontmatter)
-```
+- **Binario**: `juarvis` — CLI en Go, zero runtime deps
+- **.juar/** en proyecto: memoria, skills, config
+- **AGENTS.md**: protocolo activo (se actualiza con `juarvis mode`)
+- **Servidor MCP**: memoria local (JSON + índice token en RAM)
 
-## Ecosistema
+---
 
-| Característica | Detalle |
-|----------------|---------|
-| **Plugins embebidos** | 21 (SDD, backend, frontend, testing, CI/CD, seguridad, PR review, etc.) |
-| **Skills indexadas** | 70+ |
-| **IDEs soportados** | 8 (OpenCode, Cursor, Windsurf, VS Code, Antigravity, Trae, Kiro, Claude) |
-| **Memoria MCP** | Servidor local integrado (JSON + índice en memoria, sin dependencias externas) |
-| **Tests** | 73 pasando con coverage en 11 paquetes |
-| **CI/CD** | GitHub Actions con 5 jobs paralelos (unit, integration, regression, e2e, verify) |
-| **Marketplace** | skills.sh con filtrado de proveedores oficiales (vercel-labs, github, google-labs) |
-
-## Seguridad
-
-- **Permissions.yaml** — Reglas granulares (allow/deny/ask) para comandos bash, git, Go, etc.
-- **Hookify** — Motor de hooks evalúa reglas YAML en cada cambio de archivo
-- **Watcher** — Daemon automático que vigila y evalúa sin intervención humana
-- **Auto-snapshot** — Backup automático ante cambios masivos
-- **Validación de symlinks** — Previene path traversal en plugins
-- **Validación de inputs** — Sanitización de nombres de snapshot, URLs de git, etc.
-- **Auditoría** — Log de decisiones en `~/.config/juarvis/audit.log`
-
-## Desarrollo
+## ✅ Instalación Verificada
 
 ```bash
-make build              # Compilar con ldflags (version, commit, date)
-make test               # Tests unitarios con coverage
-make test-integration   # Tests de integración (binario real)
-make test-regression    # Tests de regresión (golden files)
-make test-e2e           # Tests E2E (flujos completos)
-make test-verify        # Ejecuta juarvis verify
-make test-all           # Todos los tests
-make lint               # go vet
-make clean              # Limpiar binario
+go build .                    # Build binario
+CGO_ENABLED=0 go build .     # Pure Go (sin C)
+go test ./...                 # Tests
+juarvis verify               # Verificar ecosistema
 ```
 
-### Estructura de Tests
+---
 
-| Tipo | Dónde | Qué cubre |
-|------|-------|-----------|
-| **Unitarios** | `pkg/*_test.go` | Funciones individuales (73 tests) |
-| **Integración** | `tests/integration/` | Binario CLI real (init, check, load, verify) |
-| **Regresión** | `tests/regression/` | Golden files de output CLI |
-| **E2E** | `tests/e2e/` | Flujos completos (init→check→load, snapshot, skill-create) |
+## 📦 Nuevas Features
 
-### CI/CD
+### 🔧 Artifact System
 
-5 jobs paralelos en GitHub Actions:
-1. **unit-tests** → build + vet + test -race + coverage
-2. **integration-tests** → binario real + tests de integración
-3. **regression-tests** → golden files de output
-4. **e2e-tests** → flujos completos de usuario
-5. **verify** → `juarvis verify` completo
+Sistema de artifacts estructurados para representar outputs de tareas de agentes.
 
-## Licencia
+| Artifact Type | Descripción | Comando CLI |
+|--------------|-------------|-------------|
+| **TaskList** | Lista de tareas descompuestas | `juarvis tasks` |
+| **ImplementationPlan** | Plan de implementación detallado | `juarvis plan` |
+| **Screenshot** | Captura visual de estado de UI | `juarvis screenshot` |
+| **TestResult** | Resultado de ejecución de tests | `juarvis test --output json` |
+| **VerificationReport** | Reporte de verificación del sistema | `juarvis verify --report` |
+| **CodeDiff** | Diff de cambios realizados | `juarvis diff` |
 
-MIT
+**Ejemplo de uso:**
+```bash
+# Generar un plan de implementación
+juarvis plan --feature "autenticación"
+
+# Verificar cambios con diff
+juarvis diff --since "snapshot-001"
+
+# Generar reporte de verificación
+juarvis verify --mode strict --report artifacts/verify-report.json
+```
+
+---
+
+### 📚 Knowledge Base
+
+Sistema de aprendizaje continuo que extrae y almacena conocimiento del proyecto.
+
+| Tipo de Conocimiento | Descripción | Comando CLI |
+|---------------------|-------------|-------------|
+| **code_pattern** | Patrones de código detectados | `juarvis kb learn --pattern` |
+| **architecture** | Decisiones arquitecturales | `juarvis kb learn --arch` |
+| **workflow** | Flujos de trabajo del proyecto | `juarvis kb learn --workflow` |
+| **bug_fix** | Correcciones de bugs documentadas | `juarvis kb learn --bug` |
+| **decision** | Decisiones técnicas tomadas | `juarvis kb learn --decision` |
+
+**Ejemplo de uso:**
+```bash
+# Aprender un nuevo patrón de código
+juarvis kb learn --pattern "repository-pattern" --files "pkg/db/"
+
+# Buscar conocimiento previo
+juarvis kb search "cómo se maneja la autenticación"
+
+# Listar arquitectura conocida
+juarvis kb list --type architecture
+```
+
+---
+
+### 🔄 Verification Loop
+
+Sistema de verificación automático con múltiples niveles de rigurosidad.
+
+| Modo | Descripción | Casos de Uso |
+|------|-------------|--------------|
+| **none** | Sin verificación | Prototipado rápido |
+| **basic** | Verificación mínima (sintaxis, imports) | Desarrollo rápido |
+| **standard** | Verificación estándar (tests, linting) | Desarrollo normal |
+| **strict** | Verificación estricta (coverage, security) | Pre-production |
+| **xhigh** | Verificación extrema (audit completo) | Producción |
+
+**Verificadores disponibles (6):**
+
+| Verificador | Qué verifica | Comando |
+|-------------|--------------|---------|
+| **Syntax** | Sintaxis y parseo del código | `juarvis verify --check syntax` |
+| **Tests** | Ejecución y resultado de tests | `juarvis verify --check tests` |
+| **Lint** | Estilo y convenciones (golint, govet) | `juarvis verify --check lint` |
+| **Security** | Vulnerabilidades conocidas | `juarvis verify --check security` |
+| **Coverage** | Cobertura de tests | `juarvis verify --check coverage` |
+| **deps** | Dependencias actualizadas | `juarvis verify --check deps` |
+
+**Ejemplo de uso:**
+```bash
+# Verificación básica
+juarvis verify --mode basic
+
+# Verificación estricta con todos los checks
+juarvis verify --mode strict --checks all
+
+# Verificación de producción
+juarvis verify --mode xhigh --report ./verify-report.json
+```
+
+---
+
+### ⚡ Planning / Fast Modes
+
+Sistema de detección automática de complejidad para elegir el nivel de planificación apropiado.
+
+| Modo | Descripción | Activación |
+|------|-------------|------------|
+| **auto** | Detección automática de complejidad | `-` |
+| **fast** | Modo rápido para tareas simples | `juarvis fast` |
+| **planner** | Modo planificador para tareas complejas | `juarvis plan` |
+
+**Detección de complejidad:**
+
+El sistema analiza automáticamente:
+- Número de archivos a modificar
+- Dependencias entre componentes
+- Presencia de tests existentes
+- Cambios en la API pública
+
+**Ejemplo de uso:**
+```bash
+# Modo automático (selecciona fast o planner según complejidad)
+juarvis task "corregir bug en auth" --auto
+
+# Forzar modo rápido
+juarvis fast "agregar comment"
+
+# Forzar modo planificación
+juarvis planner "refactorizar módulo users"
+```
+
+---
+
+### 🤖 Agent Manager
+
+Sistema de gestión de múltiples agentes con capacidad de chaining.
+
+| Capacidad | Descripción | Comando CLI |
+|-----------|-------------|-------------|
+| **Multi-agente** | Ejecución paralela de múltiples agentes | `juarvis agents run --all` |
+| **Chaining** | Ejecución secuencial de agentes (output→input) | `juarvis chain run` |
+| **Carga dinámica** | Carga de agentes desde archivos declarativos | `juarvis agents load` |
+| **Monitoreo** | Estado y métricas de agentes | `juarvis agents status` |
+
+**Configuración de agentes:**
+```yaml
+# .juar/agents.yaml
+agents:
+  - name: go-developer
+    role: coder
+    enabled: true
+  
+  - name: code-reviewer
+    role: reviewer
+    enabled: true
+    chain_after: go-developer
+```
+
+**Ejemplo de uso:**
+```bash
+# Ejecutar todos los agentes activos
+juarvis agents run --all
+
+# Definir y ejecutar un chain
+juarvis chain define "review-flow: explorer → go-developer → code-reviewer"
+juarvis chain run "review-flow"
+
+# Monitorear estado de agentes
+juarvis agents status
+```
+
+---
+
+### 🖥️ Terminal Sandbox
+
+Entorno aislado para ejecución de comandos con múltiples niveles de aislamiento.
+
+| Nivel | Descripción | Aislamiento |
+|-------|-------------|--------------|
+| **0** | Sin aislamiento | None |
+| **1** | Aislamiento básico (timeout) | Timeout, memoria |
+| **2** | Aislamiento medio (docker) | Containers读过 |
+| **3** | Aislamiento completo (vm) | VM completa |
+
+| Compponente | Descripción | Comando |
+|-------------|-------------|---------|
+| **sandbox** | Ejecución de comandos en entorno aislado | `juarvis sandbox run` |
+| **inspector** | Inspección de estado post-ejecución | `juarvis sandbox inspect` |
+| **guard** | Políticas de seguridad de ejecución | `juarvis sandbox guard` |
+
+**Ejemplo de uso:**
+```bash
+# Ejecutar comando en sandbox nivel 2
+juarvis sandbox run --level 2 "npm install"
+
+# Inspeccionar resultado
+juarvis sandbox inspect --last
+
+# Configurar políticas de guard
+juarvis sandbox guard allow --commands "npm,go,make"
+juarvis sandbox guard deny --commands "rm -rf"
+```
+
+---
+
+### 📋 AGENTS.md Declarativo
+
+Sistema de generación y gestión de archivos AGENTS.md de forma declarativa.
+
+| Feature | Descripción | Comando CLI |
+|---------|-------------|-------------|
+| **Generación automática** | Crea AGENTS.md basado en configuración | `juarvis agents gen` |
+| **Templates** | Plantillas predefinidas para diferentes flujos | `juarvis agents template` |
+| **Validación** | Valida sintaxis del archivo AGENTS.md | `juarvis agents validate` |
+| **Migración** | Migra formato antiguo a nuevo | `juarvis agents migrate` |
+
+**Archivo de configuración:**
+```yaml
+# .juar/agents-config.yaml
+version: "2.0"
+agents:
+  - name: explorer
+    description: Exploration agent for codebase analysis
+    capabilities:
+      - read_files
+      - search_code
+      - analyze_structure
+  
+  - name: developer
+    description: Main development agent
+    capabilities:
+      - write_code
+      - run_tests
+      - git_operations
+    requires: [explorer]
+```
+
+**Ejemplo de uso:**
+```bash
+# Generar AGENTS.md desde configuración
+juarvis agents gen --config .juar/agents-config.yaml
+
+# Usar template
+juarvis agents template --type sdd
+
+# Validar AGENTS.md existente
+juarvis agents validate
+```
+
+---
+
+## 📋 Resumen de Comandos
+
+| Categoría | Comandos |
+|-----------|----------|
+| **Ciclo de Vida** | `init`, `up`, `watch`, `verify`, `cleanup` |
+| **Memoria** | `memory`, `kb`, `analyze`, `analyze-transcript` |
+| **Artifacts** | `plan`, `tasks`, `diff`, `screenshot` |
+| **Verificación** | `verify` (con --mode, --checks, --report) |
+| **Modos** | `mode`, `fast`, `planner` |
+| **Agentes** | `agents` (run, load, status, gen, validate) |
+| **Chaining** | `chain` (define, run, list) |
+| **Sandbox** | `sandbox` (run, inspect, guard) |
+| **Snapshot** | `snapshot` (create, restore, list) |
+| **Dashboard** | `dashboard`, `status` |
+
+---
+
+Más info: `juarvis --help`

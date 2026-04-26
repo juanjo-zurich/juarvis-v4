@@ -3,7 +3,6 @@ package cmd
 import (
 	"juarvis/pkg/output"
 	"juarvis/pkg/snapshot"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -20,8 +19,9 @@ var snapshotCreateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		output.Info("Inicializando motor de snapshots locales...")
 		if err := snapshot.CreateSnapshot(args[0]); err != nil {
-			output.Error("%v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitGeneric,
+				"Verifica que estás en un repositorio git con 'git status'",
+				"%v", err)
 		}
 	},
 }
@@ -31,8 +31,9 @@ var snapshotRestoreCmd = &cobra.Command{
 	Short: "Restaura el último snapshot de seguridad tomado por Juarvis",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := snapshot.RestoreLatestSnapshot(); err != nil {
-			output.Error("Error al restaurar: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitGeneric,
+				"Ejecuta 'git stash list' para ver los snapshots disponibles",
+				"Error al restaurar: %v", err)
 		}
 	},
 }
@@ -46,8 +47,9 @@ Los stashes del usuario no se tocan.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		pruned, err := snapshot.PruneSnapshots(true)
 		if err != nil {
-			output.Error("Error eliminando snapshots: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitGeneric,
+				"Verifica que estás en un repositorio git con 'git status'",
+				"Error eliminando snapshots: %v", err)
 		}
 
 		if pruned == 0 {

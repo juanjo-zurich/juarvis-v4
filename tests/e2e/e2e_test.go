@@ -92,7 +92,7 @@ func TestE2E_SnapshotFlow(t *testing.T) {
 	runGit(t, tmpDir, "init")
 	runGit(t, tmpDir, "config", "user.email", "test@test.com")
 	runGit(t, tmpDir, "config", "user.name", "Test Runner")
-	
+
 	testFile := filepath.Join(tmpDir, "test.txt")
 	os.WriteFile(testFile, []byte("contenido original\n"), 0644)
 	runGit(t, tmpDir, "add", "test.txt")
@@ -101,7 +101,7 @@ func TestE2E_SnapshotFlow(t *testing.T) {
 	// 3. REALIZAR UN CAMBIO Y AGREGARLO AL INDEX
 	// Esto es crucial para que git stash (usado por juarvis) no ignore el cambio
 	os.WriteFile(testFile, []byte("contenido modificado para snapshot\n"), 0644)
-	runGit(t, tmpDir, "add", "test.txt") 
+	runGit(t, tmpDir, "add", "test.txt")
 
 	// 4. Crear el snapshot
 	output, err = runJuarvis(t, "--root", tmpDir, "snapshot", "create", "fix-test")
@@ -123,7 +123,7 @@ func TestE2E_SnapshotFlow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("no se pudo leer el archivo tras restaurar: %v", err)
 	}
-	
+
 	expected := "contenido modificado para snapshot\n"
 	if string(content) != expected {
 		t.Errorf("La restauración falló.\nEsperado: %q\nObtenido: %q", expected, string(content))

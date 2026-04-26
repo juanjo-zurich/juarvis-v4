@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"os"
-
 	"juarvis/pkg/output"
 
 	initpkg "juarvis/pkg/init"
@@ -29,8 +27,9 @@ Estructura creada:
 		}
 
 		if err := initpkg.RunInit(path); err != nil {
-			output.Error("Error inicializando ecosistema: %v", err)
-			os.Exit(1)
+			output.Fatal(output.ExitGeneric,
+				"Verifica que tienes permisos de escritura en este directorio",
+				"Error inicializando ecosistema: %v", err)
 		}
 	},
 }

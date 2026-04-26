@@ -12,9 +12,15 @@ import (
 )
 
 var hookifyCmd = &cobra.Command{
-	Use:    "hookify",
-	Short:  "Hookify engine - Evaluates user-defined rules against hook events",
-	Hidden: true,
+	Use:   "hookify",
+	Short: "Hookify engine - Gestiona reglas de comportamiento",
+	Long: `Sistema de hooks para prevenir comportamientos no deseados.
+
+Comandos:
+  juarvis hookify list             - Lista reglas
+  juarvis hookify create         - Crea regla
+  juarvis hookify enable [nombre]  - Habilita regla
+  juarvis hookify disable [nombre] - Deshabilita regla`,
 }
 
 var hookifyPreToolUseCmd = &cobra.Command{
@@ -90,23 +96,29 @@ func runHookifyHook(eventName, eventFilter string) error {
 
 var hookifyListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List loaded hookify rules",
+	Short: "Lista todas las reglas hookify",
+	Long: `Lista todas las reglas de hookify cargadas.
+
+Muestra: nombre, evento, acción, habilitada`,
 	Run: func(cmd *cobra.Command, args []string) {
 		rules := hookify.LoadRules("")
 		rules = append(rules, hookify.LoadRules("all")...)
 
 		if len(rules) == 0 {
-			output.Info("No hookify rules loaded")
+			output.Info("No hay reglas hookify cargadas")
 			return
 		}
 
-		output.Info("%d hookify rules loaded", len(rules))
-		headers := []string{"NAME", "EVENT", "ACTION", "ENABLED"}
+		output.Success("%d reglas cargadas:", len(rules))
 		rows := [][]string{}
 		for _, r := range rules {
-			rows = append(rows, []string{r.Name, r.Event, r.Action, fmt.Sprint(r.Enabled)})
+			enabled := "✅"
+			if !r.Enabled {
+				enabled = "❌"
+			}
+			rows = append(rows, []string{r.Name, r.Event, r.Action, enabled})
 		}
-		output.PrintTable(headers, rows)
+		output.PrintTable([]string{"NOMBRE", "EVENTO", "ACCIÓN", "ESTADO"}, rows)
 	},
 }
 

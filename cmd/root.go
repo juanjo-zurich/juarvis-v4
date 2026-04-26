@@ -19,6 +19,7 @@ var (
 
 var GlobalRoot string
 var GlobalJSON bool
+var GlobalDebug bool
 
 var rootCmd = &cobra.Command{
 	Use:   "juarvis",
@@ -29,6 +30,10 @@ var rootCmd = &cobra.Command{
 			_ = os.Setenv("JUARVIS_ROOT", GlobalRoot)
 		}
 		output.SetJSONMode(GlobalJSON)
+		output.SetDebugMode(GlobalDebug)
+		if GlobalDebug {
+			output.Debug("Juarvis iniciado en modo depuración. Root: %s", GlobalRoot)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Detectar si estamos dentro de un ecosistema
@@ -36,19 +41,23 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			// No estamos en un ecosistema
 			output.Info("No se detecto un ecosistema Juarvis en este directorio")
-			fmt.Println()
-			fmt.Println("Comandos disponibles:")
-			fmt.Printf("  %-20s %s\n", "juarvis init", "Inicializa un nuevo ecosistema en este directorio")
-			fmt.Printf("  %-20s %s\n", "juarvis init [path]", "Inicializa un ecosistema en el path especificado")
-			fmt.Printf("  %-20s %s\n", "juarvis --help", "Ver todos los comandos disponibles")
-			fmt.Println()
+			if !output.IsJSONMode() {
+				fmt.Println()
+				fmt.Println("Comandos disponibles:")
+				fmt.Printf("  %-20s %s\n", "juarvis init", "Inicializa un nuevo ecosistema en este directorio")
+				fmt.Printf("  %-20s %s\n", "juarvis init [path]", "Inicializa un ecosistema en el path especificado")
+				fmt.Printf("  %-20s %s\n", "juarvis --help", "Ver todos los comandos disponibles")
+				fmt.Println()
+			}
 			output.Info("Ejecuta 'juarvis init' para empezar")
 			return
 		}
 
 		// Estamos en un ecosistema — mostrar estado
 		output.Info("Ecosistema Juarvis detectado en: %s", rootPath)
-		fmt.Println()
+		if !output.IsJSONMode() {
+			fmt.Println()
+		}
 
 		// Verificar componentes
 		checks := []struct {
@@ -67,8 +76,8 @@ var rootCmd = &cobra.Command{
 				_, err := os.Stat(filepath.Join(r, "permissions.yaml"))
 				return err == nil
 			}},
-			{"opencode.json", func(r string) bool {
-				_, err := os.Stat(filepath.Join(r, "opencode.json"))
+			{"agent-settings.json", func(r string) bool {
+				_, err := os.Stat(filepath.Join(r, "agent-settings.json"))
 				return err == nil
 			}},
 			{"plugins/", func(r string) bool {
@@ -93,18 +102,21 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Println()
-		fmt.Println("Comandos rapidos:")
-		fmt.Printf("  %-25s %s\n", "juarvis check", "Health check completo")
-		fmt.Printf("  %-25s %s\n", "juarvis pm list", "Listar plugins del marketplace")
-		fmt.Printf("  %-25s %s\n", "juarvis setup --ide <ide>", "Distribuir reglas al IDE")
-		fmt.Printf("  %-25s %s\n", "juarvis --help", "Ver todos los comandos")
+		if !output.IsJSONMode() {
+			fmt.Println()
+			fmt.Println("Comandos rapidos:")
+			fmt.Printf("  %-25s %s\n", "juarvis check", "Health check completo")
+			fmt.Printf("  %-25s %s\n", "juarvis pm list", "Listar plugins del marketplace")
+			fmt.Printf("  %-25s %s\n", "juarvis setup --ide <ide>", "Distribuir reglas al IDE")
+			fmt.Printf("  %-25s %s\n", "juarvis --help", "Ver todos los comandos")
+		}
 	},
 }
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&GlobalRoot, "root", "", "Directorio raíz del ecosistema Juarvis (opcional)")
 	rootCmd.PersistentFlags().BoolVar(&GlobalJSON, "json", false, "Salida en formato JSON para consumo programatico")
+	rootCmd.PersistentFlags().BoolVar(&GlobalDebug, "debug", false, "Habilitar trazas de depuración internas")
 	rootCmd.Version = fmt.Sprintf("%s (commit: %s, built: %s)", Version, Commit, BuildDate)
 	rootCmd.SetVersionTemplate("juarvis version {{.Version}}\n")
 }

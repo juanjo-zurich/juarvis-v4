@@ -1,1 +1,6 @@
-{"name": "juarvis-core", "version": "1.0.0", "description": "Core orchestration and agent management skills for Juarvis", "author": {"name": "Juarvis"}, "category": "development", "skills": ["behavioral-modes", "context-handoff", "intelligent-routing", "memory-update", "parallel-agents", "plan-mode", "skill-generator", "skill-registry", "templates", "todo-tracking"]}
+{
+  "name": "juarvis-core",
+  "version": "1.0.0",
+  "description": "Skills básicas del sistema (context-handoff, memory-update, plan-mode, etc.)",
+  "category": "development"
+}

@@ -38,7 +38,7 @@ func TestRunSync_NoChanges(t *testing.T) {
 		os.WriteFile(filepath.Join(tmpDir, f), []byte("test"), 0644)
 	}
 
-	err = RunSync(tmpDir)
+	err = RunSync(tmpDir, "local")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestRunSync_UpdateFiles(t *testing.T) {
 	ag := "old content"
 	os.WriteFile(filepath.Join(tmpDir, "AGENTS.md"), []byte(ag), 0644)
 
-	err := RunSync(tmpDir)
+	err := RunSync(tmpDir, "local")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestRunSync_UpdateFiles(t *testing.T) {
 func TestRunSync_CreateFiles(t *testing.T) {
 	tmpDir := setupSyncTest(t)
 
-	err := RunSync(tmpDir)
+	err := RunSync(tmpDir, "local")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

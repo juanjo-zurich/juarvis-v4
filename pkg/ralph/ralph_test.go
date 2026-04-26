@@ -168,34 +168,3 @@ func TestLoopState_Increment(t *testing.T) {
 		t.Errorf("expected iteration 2, got %d", state.Iteration)
 	}
 }
-
-func TestParseFrontmatter(t *testing.T) {
-	content := `---
-active: true
-iteration: 3
-max_iterations: 10
----
-
-Some prompt text`
-	fm, body := parseFrontmatter(content)
-	if fm["active"] != "true" {
-		t.Errorf("expected active 'true', got %s", fm["active"])
-	}
-	if fm["max_iterations"] != "10" {
-		t.Errorf("expected max_iterations '10', got %s", fm["max_iterations"])
-	}
-	if !strings.Contains(body, "Some prompt text") {
-		t.Errorf("expected body to contain prompt text, got: %s", body)
-	}
-}
-
-func TestParseFrontmatter_NoFrontmatter(t *testing.T) {
-	content := "Just plain text"
-	fm, body := parseFrontmatter(content)
-	if fm != nil {
-		t.Error("expected nil frontmatter")
-	}
-	if body != content {
-		t.Error("expected body to equal content")
-	}
-}

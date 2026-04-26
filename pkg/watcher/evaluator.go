@@ -6,11 +6,62 @@ import (
 	"juarvis/pkg/output"
 	"os"
 	"path/filepath"
+	"sync"
+	"time"
 )
 
+var (
+	rulesCache     []hookify.Rule
+	rulesCacheTime time.Time
+	rulesCacheMu   sync.Mutex
+	rulesTTL       = 30 * time.Second // Cache rules for 30 seconds
+)
+
+// reloadRulesIfNeeded recarg reglas si han pasado más de 30 segundos
+func reloadRulesIfNeeded() {
+	rulesCacheMu.Lock()
+	defer rulesCacheMu.Unlock()
+
+	if time.Since(rulesCacheTime) > rulesTTL {
+		rules := hookify.LoadRules("file")
+		rules = append(rules, hookify.LoadRules("all")...)
+		rulesCache = rules
+		rulesCacheTime = time.Now()
+		if len(rules) > 0 {
+			output.Info("Reglas de security recargadas")
+		}
+	}
+}
+
+func getCachedRules() []hookify.Rule {
+	rulesCacheMu.Lock()
+	defer rulesCacheMu.Unlock()
+
+	if time.Since(rulesCacheTime) > rulesTTL {
+		// Unlock briefly to reload
+		rulesCacheMu.Unlock()
+		rules := hookify.LoadRules("file")
+		rules = append(rules, hookify.LoadRules("all")...)
+		rulesCacheMu.Lock()
+		rulesCache = rules
+		rulesCacheTime = time.Now()
+	}
+
+	if rulesCache == nil {
+		rules := hookify.LoadRules("file")
+		rules = append(rules, hookify.LoadRules("all")...)
+		rulesCache = rules
+		rulesCacheTime = time.Now()
+	}
+
+	return rulesCache
+}
+
 func EvaluateFileChanges(changes map[string]string) {
-	rules := hookify.LoadRules("file")
-	rules = append(rules, hookify.LoadRules("all")...)
+	// Recargar reglas si es necesario
+	reloadRulesIfNeeded()
+
+	rules := getCachedRules()
 
 	if len(rules) == 0 {
 		return

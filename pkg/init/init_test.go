@@ -20,7 +20,7 @@ func TestRunInit_CreatesStructure(t *testing.T) {
 	files := []string{
 		"marketplace.json",
 		"AGENTS.md",
-		"opencode.json",
+		"agent-settings.json",
 		"permissions.yaml",
 	}
 	for _, f := range files {

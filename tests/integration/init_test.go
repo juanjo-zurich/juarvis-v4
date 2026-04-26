@@ -77,4 +77,3 @@ func TestInit_ThenLoad(t *testing.T) {
 		t.Fatalf("load failed: %v\n%s", err, output)
 	}
 }
-

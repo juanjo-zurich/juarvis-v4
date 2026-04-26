@@ -1,0 +1,1 @@
+../../.opencode/agents/debugger.md

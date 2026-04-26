@@ -9,7 +9,7 @@ ASSETS_DST="$PROJECT_DIR/pkg/assets/data"
 
 echo "Sincronizando assets desde $ASSETS_SRC..."
 
-for file in AGENTS.md marketplace.json opencode.json permissions.yaml; do
+for file in AGENTS.md marketplace.json agent-settings.json permissions.yaml; do
 	if [ -f "$ASSETS_SRC/$file" ]; then
 		cp -f "$ASSETS_SRC/$file" "$ASSETS_DST/$file"
 		echo "  ✅ $file"

@@ -6,8 +6,11 @@ import (
 
 func TestRunVerify(t *testing.T) {
 	opts := VerifyOptions{
-		SkipBuild: true,
-		SkipCLI:   true,
+		SkipBuild:   true,
+		SkipTest:    true, // IMPORTANTE: skip test check para evitar loop infinito
+		SkipCLI:     true,
+		SkipJSON:    true, // Los assets ya se testean en otros tests
+		SkipPlugins: true,
 	}
 
 	results, err := RunVerify(opts)

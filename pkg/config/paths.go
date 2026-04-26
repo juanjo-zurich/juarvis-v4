@@ -1,27 +1,33 @@
 package config
 
 const (
-	// JuarDir es el directorio de memoria/registry del ecosistema
+	// JuarFile is the versioned config file in project root (team-shared)
+	JuarFile = "juarvis.yaml"
+
+	// JuarDir is the personal directory (gitignored) - memory, sessions, snapshots
 	JuarDir = ".juar"
 
-	// JuarvisPluginDir es el directorio de manifiesto de cada plugin
+	// JuarvisPluginDir is the manifest directory for each plugin
 	JuarvisPluginDir = ".juarvis-plugin"
 
-	// JuarvisDir es el directorio de configuración de Juarvis en el proyecto
+	// JuarvisDir is the local config directory (IDE preferences, local hooks)
 	JuarvisDir = ".juarvis"
 
-	// AgentSkillsDir es el directorio de skills del agente SDK
+	// AgentSkillsDir is the agent SDK skills directory
 	AgentSkillsDir = ".agent/skills"
 
-	// HookifyPattern es el patrón de archivos de reglas de hookify
+	// HookifyPattern is the pattern for hookify rule files
 	HookifyPattern = "hookify.*.local.md"
 
-	// RalphStateFile es el archivo de estado del bucle de Ralph
+	// RalphStateFile is the Ralph loop state file
 	RalphStateFile = "ralph-loop.local.md"
 
-	// SkillRegistryFile es el nombre del archivo de registry de skills
+	// SkillRegistryFile is the skill registry filename
 	SkillRegistryFile = "skill-registry.md"
 
-	// MemoryDir es el subdirectorio de memoria dentro de .juar
+	// MemoryDir is the memory subdirectory within .juar
 	MemoryDir = "memory"
+
+	// WatcherPIDFile is the watcher PID file (no dot prefix - visible file)
+	WatcherPIDFile = "watcher.pid"
 )

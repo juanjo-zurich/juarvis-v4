@@ -9,6 +9,13 @@ import (
 	"juarvis/pkg/config"
 )
 
+// skipIfCI skips test if running in CI (network disabled)
+func skipIfCI(t *testing.T) {
+	if os.Getenv("CI") == "true" || os.Getenv("JUARVIS_SKIP_NETWORK") == "true" {
+		t.Skip("skipping test in CI (network disabled)")
+	}
+}
+
 func setupPMTest(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
@@ -36,6 +43,7 @@ func setupPMTest(t *testing.T) string {
 }
 
 func TestLoadMarketplace_Success(t *testing.T) {
+	skipIfCI(t)
 	setupPMTest(t)
 
 	market, err := loadMarketplace()
@@ -51,6 +59,7 @@ func TestLoadMarketplace_Success(t *testing.T) {
 }
 
 func TestLoadMarketplace_NoFile(t *testing.T) {
+	skipIfCI(t)
 	dir := t.TempDir()
 	t.Setenv("JUARVIS_ROOT", dir)
 

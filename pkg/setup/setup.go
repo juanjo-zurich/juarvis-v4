@@ -112,6 +112,7 @@ func RunSetupCore(targets []string) error {
 
 		var warnings []string
 
+		// Copiar AGENTS.md
 		srcAgents := filepath.Join(rootPath, "AGENTS.md")
 		destAgents := filepath.Join(targetDir, "AGENTS.md")
 		if err := copyFile(srcAgents, destAgents); err != nil {
@@ -120,6 +121,25 @@ func RunSetupCore(targets []string) error {
 			output.Success("Reglas maestras (AGENTS.md) instaladas en IDE %s", t)
 		}
 
+		// Para OpenCode: copiar agentes a .opencode/agents/
+		if t == "opencode" {
+			agentsSrcDir := filepath.Join(rootPath, ".opencode", "agents")
+			agentsDestDir := filepath.Join(targetDir, ".opencode", "agents")
+			if entries, err := os.ReadDir(agentsSrcDir); err == nil {
+				os.MkdirAll(agentsDestDir, 0755)
+				for _, e := range entries {
+					if !e.IsDir() {
+						src := filepath.Join(agentsSrcDir, e.Name())
+						dst := filepath.Join(agentsDestDir, e.Name())
+						if err := copyFile(src, dst); err == nil {
+							output.Success("Agente %s instalado", e.Name())
+						}
+					}
+				}
+			}
+		}
+
+		// Copiar permissions.yaml
 		srcPermissions := filepath.Join(rootPath, "permissions.yaml")
 		destPermissions := filepath.Join(targetDir, "permissions.yaml")
 		if err := copyFile(srcPermissions, destPermissions); err != nil {
@@ -128,13 +148,36 @@ func RunSetupCore(targets []string) error {
 			output.Success("Reglas de permisos distribuidas en IDE %s", t)
 		}
 
+		// Cargar manifiesto universal para generación dinámica
+		var manifest UniversalManifest
+		manifestPath := filepath.Join(rootPath, "agent-settings.json")
+		if data, err := os.ReadFile(manifestPath); err == nil {
+			_ = json.Unmarshal(data, &manifest)
+		}
+
 		if t == "opencode" {
-			srcOpencode := filepath.Join(rootPath, "opencode.json")
+			configData, err := manifest.GenerateOpenCodeConfig()
 			destOpencode := filepath.Join(targetDir, "opencode.json")
-			if err := copyFile(srcOpencode, destOpencode); err != nil {
-				warnings = append(warnings, fmt.Sprintf("no se pudo copiar opencode.json a %s: %v", t, err))
+			if err != nil {
+				warnings = append(warnings, fmt.Sprintf("no se pudo generar opencode.json: %v", err))
 			} else {
-				output.Success("Configuración opencode.json instalada en IDE %s", t)
+				if err := os.WriteFile(destOpencode, configData, 0644); err != nil {
+					warnings = append(warnings, fmt.Sprintf("no se pudo escribir opencode.json: %v", err))
+				} else {
+					output.Success("Configuración opencode.json generada para IDE %s", t)
+				}
+			}
+		}
+
+		if t == "cursor" {
+			cursorRules := manifest.GenerateCursorConfig()
+			if cursorRules != "" {
+				destRules := filepath.Join(targetDir, ".cursorrules")
+				if err := os.WriteFile(destRules, []byte(cursorRules), 0644); err != nil {
+					warnings = append(warnings, fmt.Sprintf("no se pudo escribir .cursorrules: %v", err))
+				} else {
+					output.Success("Reglas específicas .cursorrules generadas para Cursor")
+				}
 			}
 		}
 
@@ -171,7 +214,16 @@ func RunSetupCore(targets []string) error {
 			for _, e := range entries {
 				skillSourceMD := filepath.Join(skillsDir, e.Name(), "SKILL.md")
 				if _, err := os.Stat(skillSourceMD); err == nil {
-					skillDestMD := filepath.Join(targetDir, e.Name()+".md")
+					var skillDestMD string
+					// Para IDEs tipo OpenCode, copiar a .opencode/skills/
+					if t == "opencode" {
+						skillDirOpencode := filepath.Join(targetDir, ".opencode", "skills", e.Name())
+						os.MkdirAll(skillDirOpencode, 0755)
+						skillDestMD = filepath.Join(skillDirOpencode, "SKILL.md")
+					} else {
+						// Para otros IDEs: skill.md en raíz
+						skillDestMD = filepath.Join(targetDir, e.Name()+".md")
+					}
 					if err := copyFile(skillSourceMD, skillDestMD); err != nil {
 						warnings = append(warnings, fmt.Sprintf("no se pudo copiar skill %s: %v", e.Name(), err))
 					} else {

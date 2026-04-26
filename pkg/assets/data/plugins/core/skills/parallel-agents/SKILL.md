@@ -173,3 +173,149 @@ After all agents complete, synthesize:
 - ✅ **Native integration** - Works with built-in Explore, Plan agents
 - ✅ **Resume support** - Can continue previous agent work
 - ✅ **Context passing** - Findings flow between agents
+
+---
+
+## Retry Configuration
+
+### Configuración
+
+```yaml
+retry:
+  maxRetries: 3          # 1-3 reintentos (configurable)
+  backoff: exponential   # exponential (2^n segundos) o linear
+  retryCondition:
+    timeout: true       # Reintentar timeouts
+    rateLimit: true      # Reintentar rate limits (429)
+    transient: true      # Errores transitorios
+  fatalErrors:
+    - "permission denied"
+    - "not found"
+    - "authentication failed"
+  timeoutPerAttempt: 30000  # ms
+```
+
+### Algoritmo de Retry
+
+```
+1. Ejecutar tarea
+2. Si error:
+   a. Verificar si es fatal → fallar inmediatamente
+   b. Si es reintentable:
+      - Calcular delay (backoff)
+      - Esperar delay
+      - Reintentar (hasta maxRetries)
+3. Si todos los reintentos fallan → marcar como failed
+```
+
+### Backoff Calculation
+
+| Tipo | Fórmula | Ejemplo (initial: 1s) |
+|------|---------|----------------------|
+| exponential | `initial * 2^n` | 1s, 2s, 4s, 8s... |
+| linear | `initial + (n * increment)` | 1s, 2s, 3s, 4s... |
+
+### Estados del Retry
+
+- `pending` - No iniciado
+- `running` - En ejecución
+- `retrying` - Reintentando (n/m intentos)
+- `success` - Completado exitosamente
+- `failed` - Falló después de todos los reintentos
+- `skipped` - Saltado (no aplica retry)
+
+---
+
+## Fallback Configuration
+
+### Configuración
+
+```yaml
+fallback:
+  enabled: true
+  fallbackAgent: test-driven  # Agente alternativo
+  fallbackCondition:
+    - agentNotAvailable   # Agente no existe
+    - agentTimeout        # Timeout del agente
+    - agentError          # Error irrecuperable
+```
+
+### Matriz de Fallbacks
+
+| Agente Primary | Fallback | Condición |
+|----------------|----------|-----------|
+| security-scanner | dependency-audit | Scanner no disponible |
+| test-engineer | test-driven | Test engineer falla |
+| code-reviewer | refactor-assistant | Reviewer no responde |
+| sdd-explore | sdd-patch | Explorar trivial |
+
+### Flujo de Fallback
+
+```
+1. Ejecutar agente primario
+2. Si falla:
+   a. Verificar condición de fallback
+   b. Si aplica: ejecutar agente fallback
+   c. Si fallback también falla: propagar error
+3. Registrar qué agente ejecutó (primary/fallback)
+```
+
+---
+
+## Shared Context
+
+### Estructura
+
+```yaml
+sharedContext:
+  id: "uuid-unico"
+  template: "full-audit"
+  createdAt: "ISO8601"
+  
+  artifacts:
+    security-scan: {}
+    test-files: []
+    review-results: {}
+    
+  state:
+    currentStep: 2
+    completedSteps: [1]
+    results: {}
+    
+  errors:
+    - step: 1
+      error: "timeout"
+      retryCount: 2
+      
+  metadata:
+    inputPath: "/path/to/project"
+    userId: "user-123"
+```
+
+### Métodos del Context
+
+| Método | Descripción |
+|--------|-------------|
+| `set(key, value)` | Guardar valor |
+| `get(key)` | Obtener valor |
+| `appendError(error)` | Añadir error |
+| `setArtifact(name, data)` | Guardar artefacto |
+| `getArtifact(name)` | Obtener artefacto |
+| `nextStep()` | Avanzar al siguiente paso |
+| `markComplete(stepId)` | Marcar paso como completado |
+| `getState()` | Obtener estado completo |
+
+### Persistencia
+
+- El context se persiste en `.juar/contexts/{id}.yaml`
+- Se limpia automáticamente después de completarse
+- Timeout de limpieza: 24 horas
+
+---
+
+## Workflow Templates
+
+Para flujos predefinidos, ver:
+- `plugins/core/skills/workflow-templates/full-audit.md`
+- `plugins/core/skills/workflow-templates/parallel-review.md`
+- `plugins/core/skills/workflow-templates/feature-pipeline.md`

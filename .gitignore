@@ -23,12 +23,23 @@ coverage.html
 # Hookify rules (user-created, should not be committed)
 .juarvis/*.local.md
 
-# Go test binaries
-*.test
-*.test.exe
-__debug_bin*
-
-# Cache
-.cache/
+# Juarvis local config (personal, gitignored)
 .juarvis/
+
+# Juar personal memory (sessions, snapshots)
 .juar/
+
+# Versioned config (team-shared, in root)
+!juarvis.yaml
+
+# OpenCode local installation
+.opencode/
+node_modules/
+bun.lock
+
+# Test projects
+juarvis-test/
+opencode.jsonc
+
+# Docs
+docs/

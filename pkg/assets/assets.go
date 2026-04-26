@@ -8,7 +8,7 @@ import (
 	"juarvis/pkg/utils"
 )
 
-//go:embed data/*
+//go:embed all:data
 var embeddedAssets embed.FS
 
 // GetEmbeddedFS retorna el sistema de archivos de las reglas nativas compiladas dentro del binario

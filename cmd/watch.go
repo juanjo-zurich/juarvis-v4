@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"syscall"
 
+	"juarvis/pkg/config"
 	"juarvis/pkg/output"
 	"juarvis/pkg/root"
 	"juarvis/pkg/watcher"
@@ -57,6 +58,7 @@ func runWatcherForeground(cmd *cobra.Command) {
 	debounceMs, _ := cmd.Flags().GetInt("debounce-ms")
 	threshold, _ := cmd.Flags().GetInt("auto-snapshot-threshold")
 	noAutoSnapshot, _ := cmd.Flags().GetBool("no-auto-snapshot")
+	verbose, _ := cmd.Flags().GetBool("verbose")
 
 	cfg := watcher.DefaultWatcherConfig(rootPath)
 	if debounceMs > 0 {
@@ -68,6 +70,8 @@ func runWatcherForeground(cmd *cobra.Command) {
 	if noAutoSnapshot {
 		cfg.NoAutoSnapshot = true
 	}
+	cfg.Verbose = verbose
+	cfg.QuietMode = !verbose
 
 	w, err := watcher.NewWatcher(cfg)
 	if err != nil {
@@ -107,7 +111,7 @@ func startDaemon() {
 		output.Error("No se pudo crear directorio .juar: %v", err)
 		os.Exit(1)
 	}
-	pidFile := filepath.Join(juarDir, "watcher.pid")
+	pidFile := filepath.Join(juarDir, config.WatcherPIDFile)
 
 	if _, err := os.Stat(pidFile); err == nil {
 		pidBytes, readErr := os.ReadFile(pidFile)
@@ -153,7 +157,7 @@ func stopWatcher() {
 		os.Exit(1)
 	}
 
-	pidFile := filepath.Join(rootPath, ".juar", "watcher.pid")
+	pidFile := filepath.Join(rootPath, config.JuarDir, config.WatcherPIDFile)
 
 	if _, err := os.Stat(pidFile); os.IsNotExist(err) {
 		output.Info("No hay watcher en segundo plano (no se encontro PID file)")
@@ -194,6 +198,7 @@ func init() {
 	watchCmd.Flags().Int("debounce-ms", 500, "Ventana de debounce en milisegundos")
 	watchCmd.Flags().Int("auto-snapshot-threshold", 5, "Numero de cambios para auto-snapshot")
 	watchCmd.Flags().Bool("no-auto-snapshot", false, "Desactivar auto-snapshots")
+	watchCmd.Flags().Bool("verbose", false, "Mostrar detalles de puntuación y filtrado de archivos")
 	watchCmd.Flags().Bool("daemon", false, "Ejecutar watcher en segundo plano (background)")
 	watchCmd.Flags().Bool("stop", false, "Detener el watcher en segundo plano")
 	watchCmd.Flags().Bool("foreground-child", false, "Flag interno para proceso hijo del daemon")

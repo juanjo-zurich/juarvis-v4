@@ -1,1 +1,6 @@
-{"name": "juarvis-api", "version": "1.0.0", "description": "API design and integration patterns", "author": {"name": "Juarvis"}, "category": "development", "skills": ["api-patterns", "mcp-integration"]}
+{
+  "name": "juarvis-api",
+  "version": "1.0.0",
+  "description": "Diseño de APIs e integración MCP",
+  "category": "development"
+}

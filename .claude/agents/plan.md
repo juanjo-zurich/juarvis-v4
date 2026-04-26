@@ -1,0 +1,1 @@
+../../.opencode/agents/plan.md

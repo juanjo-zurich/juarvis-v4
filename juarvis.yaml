@@ -1,0 +1,25 @@
+autonomy_level: 4
+project_name: juarvis-v4
+version: "1.0"
+features:
+    auto_snapshot: true
+    auto_analyze: true
+    learning_loop: true
+    sdd_pipeline: false
+
+# Configuración del Terminal Sandboxing
+# Protege contra comandos peligrosos que podrían dañar el workspace
+sandbox:
+    enabled: true
+    level: strict               # none | basic | strict | paranoid
+    allowNetwork: false        # permitir acceso a red
+    timeout: 30s             # timeout por defecto para comandos
+    cpuLimit: 50             # % CPU máximo (0 = sin límite)
+    memoryLimit: 512          # MB de memoria máxima (0 = sin límite)
+    maxFilesWrite: 100       # máximo archivos a escribir por comando
+    blacklistedCommands:
+        - rm -rf
+        - sudo
+        - chmod 777
+        - curl | sh
+        - wget -O- | sh

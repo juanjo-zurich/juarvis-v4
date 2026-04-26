@@ -4,6 +4,19 @@
   "version": "1.0.0",
   "description": "Marketplace oficial de plugins para Juarvis_V4",
   "owner": {"name": "Juarvis", "email": "juarvis@example.com"},
+  "mcp_servers": [
+    {"name": "mcp-github", "description": "GitHub MCP - Issues, PRs, repos, code review", "version": "1.0.0", "source": "./plugins/mcp-github", "category": "development"},
+    {"name": "mcp-brave-search", "description": "Brave Search MCP - Búsqueda web", "version": "1.0.0", "source": "./plugins/mcp-brave-search", "category": "research"},
+    {"name": "mcp-filesystem", "description": "Filesystem MCP - Operaciones de archivo", "version": "1.0.0", "source": "./plugins/mcp-filesystem", "category": "development"},
+    {"name": "mcp-postgres", "description": "PostgreSQL MCP - Bases de datos", "version": "1.0.0", "source": "./plugins/mcp-postgres", "category": "database"}
+  ],
+  "app_plugins": [
+    {"name": "app-figma", "description": "Figma - Diseño, componentes y Code Connect", "version": "1.0.0", "source": "./plugins/app-figma", "category": "design"},
+    {"name": "app-slack", "description": "Slack - Mensajes, canales y automatización", "version": "1.0.0", "source": "./plugins/app-slack", "category": "productivity"},
+    {"name": "app-notion", "description": "Notion - Base de conocimientos y documentación", "version": "1.0.0", "source": "./plugins/app-notion", "category": "knowledge"},
+    {"name": "app-linear", "description": "Linear - Gestión de issues y proyectos", "version": "1.0.0", "source": "./plugins/app-linear", "category": "productivity"},
+    {"name": "app-browser", "description": "Browser - Automatización y web scraping", "version": "1.0.0", "source": "./plugins/app-browser", "category": "automation"}
+  ],
   "plugins": [
     {"name": "juarvis-core", "description": "Skills básicas del sistema (context-handoff, memory-update, plan-mode, etc.)", "version": "1.0.0", "source": "./plugins/core", "category": "development"},
     {"name": "juarvis-sdd", "description": "Spec-Driven Development completo (9 fases)", "version": "1.0.0", "source": "./plugins/sdd", "category": "development"},

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"juarvis/pkg/output"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -46,6 +47,7 @@ func RestoreLatestSnapshot() error {
 
 	// Listamos stashes que contengan juarvis-snapshot
 	cmdList := exec.Command("git", "stash", "list")
+	cmdList.Env = append(os.Environ(), "LANG=C", "LC_ALL=C")
 	out, err := cmdList.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error listando snapshots: %w", err)
@@ -88,6 +90,7 @@ func RestoreLatestSnapshot() error {
 // Si all es true, elimina todos. Si olderThan > 0, elimina solo los más antiguos.
 func PruneSnapshots(all bool) (int, error) {
 	cmdList := exec.Command("git", "stash", "list")
+	cmdList.Env = append(os.Environ(), "LANG=C", "LC_ALL=C")
 	listOut, err := cmdList.CombinedOutput()
 	if err != nil {
 		// No hay stashes o git no disponible

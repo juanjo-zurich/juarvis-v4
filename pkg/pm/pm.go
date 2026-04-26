@@ -37,7 +37,12 @@ type Plugin struct {
 
 // httpClient con timeout para evitar bloqueos infinitos
 var httpClient = &http.Client{Timeout: 10 * time.Second}
+
 var httpGetFunc = func(url string) (*http.Response, error) {
+	// Skip network en CI para evitar timeouts
+	if os.Getenv("JUARVIS_SKIP_NETWORK") == "true" {
+		return nil, fmt.Errorf("network disabled (JUARVIS_SKIP_NETWORK=true)")
+	}
 	return httpClient.Get(url)
 }
 
@@ -191,21 +196,41 @@ type SkillsSearchResult struct {
 	} `json:"skills"`
 }
 
-// Proveedores seguros verificados para mitigar orígenes maliciosos
-var officialProviders = map[string]bool{
-	"vercel-labs":      true,
-	"github":           true,
-	"google-labs-code": true,
-	"vercel":           true,
-	"sveltejs":         true,
-	"google-gemini":    true,
-	"resend":           true,
+// getOfficialProviders obtiene la whitelist de proveedores.
+// Carga defaults y los fusiona con .juar/providers.json si existe.
+func getOfficialProviders() map[string]bool {
+	providers := map[string]bool{
+		"vercel-labs":      true,
+		"github":           true,
+		"google-labs-code": true,
+		"vercel":           true,
+		"sveltejs":         true,
+		"google-gemini":    true,
+		"resend":           true,
+	}
+
+	rootPath, err := root.GetRoot()
+	if err == nil {
+		customFile := filepath.Join(rootPath, ".juar", "providers.json")
+		if data, err := os.ReadFile(customFile); err == nil {
+			var custom []string
+			if json.Unmarshal(data, &custom) == nil {
+				for _, p := range custom {
+					providers[p] = true
+				}
+			}
+		}
+	}
+	return providers
 }
 
 func isOfficialProvider(source string) bool {
 	parts := strings.Split(source, "/")
-	if len(parts) > 0 && officialProviders[parts[0]] {
-		return true
+	if len(parts) > 0 {
+		providers := getOfficialProviders()
+		if providers[parts[0]] {
+			return true
+		}
 	}
 	return false
 }
@@ -422,6 +447,42 @@ func InstallPlugin(pluginName string) error {
 	return err
 }
 
+func getGlobalCacheDir() string {
+	cacheRoot, err := os.UserCacheDir()
+	if err != nil {
+		// Fallback manual si falla la detección del sistema
+		home, _ := os.UserHomeDir()
+		cacheRoot = filepath.Join(home, ".cache")
+	}
+	cacheDir := filepath.Join(cacheRoot, "juarvis", "repos")
+	_ = os.MkdirAll(cacheDir, 0755)
+	return cacheDir
+}
+
+func syncRepoToCache(repoUrl string) (string, error) {
+	cacheDir := getGlobalCacheDir()
+	// Crear un nombre de directorio seguro basado en la URL
+	repoName := strings.ReplaceAll(strings.ReplaceAll(repoUrl, "https://", ""), "/", "_")
+	repoPath := filepath.Join(cacheDir, repoName)
+
+	if _, err := os.Stat(repoPath); os.IsNotExist(err) {
+		output.Info("Clonando repositorio en caché global: %s", repoUrl)
+		cmd := exec.Command("git", "clone", "--depth", "1", repoUrl, repoPath)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return "", fmt.Errorf("error clonando repositorio: %s", string(out))
+		}
+	} else {
+		output.Info("Actualizando repositorio en caché: %s", repoUrl)
+		cmd := exec.Command("git", "-C", repoPath, "pull")
+		if _, err := cmd.CombinedOutput(); err != nil {
+			// Si falla el pull (ej. rama cambiada), borramos y re-clonamos
+			_ = os.RemoveAll(repoPath)
+			return syncRepoToCache(repoUrl)
+		}
+	}
+	return repoPath, nil
+}
+
 func installExternalSkill(repoUrl, skillName, destDir string) error {
 	parsed, err := url.Parse(repoUrl)
 	if err != nil {
@@ -430,22 +491,16 @@ func installExternalSkill(repoUrl, skillName, destDir string) error {
 	if parsed.Scheme != "https" {
 		return fmt.Errorf("solo se permiten URLs https, rechazado: %s", repoUrl)
 	}
-	output.Info("Clonando repositorio de proveedor externo (%s)...", repoUrl)
-	tmpDir, err := os.MkdirTemp("", "ext-skill")
-	if err != nil {
-		return fmt.Errorf("error creando directorio temporal: %w", err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
 
-	cmd := exec.Command("git", "clone", "--depth", "1", repoUrl, tmpDir)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("error descargando repositorio proveedor: %s", string(out))
+	repoPath, err := syncRepoToCache(repoUrl)
+	if err != nil {
+		return err
 	}
 
 	// Identificar la ruta correcta de la skill
-	skillDir := filepath.Join(tmpDir, "skills", skillName)
+	skillDir := filepath.Join(repoPath, "skills", skillName)
 	if _, err := os.Stat(skillDir); os.IsNotExist(err) {
-		skillDir = tmpDir // Asumir que la skill está en la raíz
+		skillDir = repoPath // Asumir que la skill está en la raíz
 	}
 
 	if err := copyDir(skillDir, destDir); err != nil {
@@ -459,19 +514,13 @@ func installExternalSkill(repoUrl, skillName, destDir string) error {
 }
 
 func installVercelSkill(skillName, destDir string) error {
-	output.Info("Clonando repositorio oficial de Vercel Agent Skills...")
-	tmpDir, err := os.MkdirTemp("", "vercel-skill")
+	repoUrl := "https://github.com/vercel-labs/agent-skills.git"
+	repoPath, err := syncRepoToCache(repoUrl)
 	if err != nil {
-		return fmt.Errorf("error creando directorio temporal: %w", err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	cmd := exec.Command("git", "clone", "--depth", "1", "https://github.com/vercel-labs/agent-skills.git", tmpDir)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("error descargando vercel skills: %s", string(out))
+		return err
 	}
 
-	skillDir := filepath.Join(tmpDir, "skills", skillName)
+	skillDir := filepath.Join(repoPath, "skills", skillName)
 	if _, err := os.Stat(skillDir); os.IsNotExist(err) {
 		return fmt.Errorf("la skill '%s' no existe en el repositorio de Vercel", skillName)
 	}
@@ -571,5 +620,228 @@ func copyDir(src, dst string) error {
 		}
 	}
 
+	return nil
+}
+
+var pluginVersions = make(map[string][]string)
+
+func loadPluginVersions() {
+	rootPath, _ := root.GetRoot()
+	if rootPath == "" {
+		return
+	}
+
+	pluginsDir := filepath.Join(rootPath, "plugins")
+	entries, _ := os.ReadDir(pluginsDir)
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		pluginDir := filepath.Join(pluginsDir, e.Name(), config.JuarvisPluginDir)
+		manifestFile := filepath.Join(pluginDir, "plugin.json")
+		data, err := os.ReadFile(manifestFile)
+		if err != nil {
+			continue
+		}
+		var plug Plugin
+		if err := json.Unmarshal(data, &plug); err != nil {
+			continue
+		}
+		versions := []string{plug.Version}
+		backupFile := filepath.Join(pluginDir, "version.history")
+		if backupData, err := os.ReadFile(backupFile); err == nil {
+			versions = append(versions, strings.Split(string(backupData), "\n")...)
+		}
+		pluginVersions[e.Name()] = versions
+	}
+}
+
+func CheckUpdates() error {
+	loadPluginVersions()
+	market, err := loadMarketplace()
+	if err != nil {
+		return err
+	}
+	output.Info("Verificando actualizaciones...")
+	hasUpdates := false
+
+	matchedPlugins := make(map[string]bool)
+	for _, p := range market.Plugins {
+		if localVersions, ok := pluginVersions[p.Name]; ok {
+			matchedPlugins[p.Name] = true
+			if localVersions[0] != p.Version {
+				output.Info("  %s: %s → %s", p.Name, localVersions[0], p.Version)
+				hasUpdates = true
+			}
+		}
+	}
+
+	if !hasUpdates {
+		output.Success("Todos los plugins están actualizados")
+	}
+	return nil
+}
+
+func UpdateAllPlugins(force bool) (int, error) {
+	loadPluginVersions()
+	market, err := loadMarketplace()
+	if err != nil {
+		return 0, err
+	}
+
+	// Get installed plugins
+	rootPath, err := root.GetRoot()
+	if err != nil {
+		return 0, fmt.Errorf("error obteniendo root: %w", err)
+	}
+	pluginDir := filepath.Join(rootPath, "plugins")
+	entries, err := os.ReadDir(pluginDir)
+	if err != nil {
+		return 0, err
+	}
+
+	updated := 0
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		pluginName := e.Name()
+		manifestPath := filepath.Join(pluginDir, pluginName, ".juarvis-plugin", "plugin.json")
+		data, err := os.ReadFile(manifestPath)
+		if err != nil {
+			continue // Skip if no manifest
+		}
+
+		var p Plugin
+		if err := json.Unmarshal(data, &p); err != nil {
+			continue
+		}
+
+		// Find in marketplace
+		var latest *Plugin
+		for _, mp := range market.Plugins {
+			if mp.Name == p.Name {
+				latest = &mp
+				break
+			}
+		}
+
+		if latest == nil {
+			continue
+		}
+
+		// Check if update needed
+		if latest.Version != p.Version || force {
+			if err := UpdatePlugin(p.Name); err != nil {
+				output.Warning("Error actualizando %s: %v", p.Name, err)
+				continue
+			}
+			updated++
+		}
+	}
+
+	return updated, nil
+}
+
+func UpdatePlugin(name string) error {
+	pluginDir, err := findPluginDir(name)
+	if err != nil {
+		return err
+	}
+
+	manifestFile := filepath.Join(pluginDir, config.JuarvisPluginDir, "plugin.json")
+	data, err := os.ReadFile(manifestFile)
+	if err != nil {
+		return fmt.Errorf("error leyendo manifest: %w", err)
+	}
+
+	var current Plugin
+	if err := json.Unmarshal(data, &current); err != nil {
+		return fmt.Errorf("error parseando manifest: %w", err)
+	}
+
+	market, err := loadMarketplace()
+	if err != nil {
+		return err
+	}
+
+	var latest *Plugin
+	for _, p := range market.Plugins {
+		if p.Name == name {
+			latest = &p
+			break
+		}
+	}
+
+	if latest == nil || latest.Version == current.Version {
+		return fmt.Errorf("no hay actualización disponible para %s", name)
+	}
+
+	backupManifest := filepath.Join(pluginDir, config.JuarvisPluginDir, "version.history")
+	oldVersion := current.Version
+	if existing, err := os.ReadFile(backupManifest); err == nil {
+		oldVersion = string(existing) + "\n" + current.Version
+	}
+	if err := os.WriteFile(backupManifest, []byte(oldVersion), 0644); err != nil {
+		return fmt.Errorf("error creando backup: %w", err)
+	}
+
+	current.Version = latest.Version
+	data, err = json.MarshalIndent(current, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error serializando: %w", err)
+	}
+	if err := os.WriteFile(manifestFile, data, 0644); err != nil {
+		return fmt.Errorf("error escribiendo manifest: %w", err)
+	}
+
+	output.Success("Plugin '%s' actualizado: %s → %s", name, latest.Version, current.Version)
+	return nil
+}
+
+func RollbackPlugin(name string) error {
+	pluginDir, err := findPluginDir(name)
+	if err != nil {
+		return err
+	}
+
+	backupManifest := filepath.Join(pluginDir, config.JuarvisPluginDir, "version.history")
+	data, err := os.ReadFile(backupManifest)
+	if err != nil {
+		return fmt.Errorf("no hay historial para %s", name)
+	}
+
+	versions := strings.Split(strings.TrimSpace(string(data)), "\n")
+	if len(versions) == 0 {
+		return fmt.Errorf("historial vacío para %s", name)
+	}
+
+	currentVersion := versions[len(versions)-1]
+	versions = versions[:len(versions)-1]
+
+	manifestFile := filepath.Join(pluginDir, config.JuarvisPluginDir, "plugin.json")
+	manifestData, err := os.ReadFile(manifestFile)
+	if err != nil {
+		return err
+	}
+
+	var current Plugin
+	if err := json.Unmarshal(manifestData, &current); err != nil {
+		return err
+	}
+
+	current.Version = currentVersion
+	newData, _ := json.MarshalIndent(current, "", "  ")
+	if err := os.WriteFile(manifestFile, newData, 0644); err != nil {
+		return err
+	}
+
+	if len(versions) > 0 {
+		os.WriteFile(backupManifest, []byte(strings.Join(versions, "\n")), 0644)
+	} else {
+		os.Remove(backupManifest)
+	}
+
+	output.Success("Plugin '%s' revertido a %s", name, current.Version)
 	return nil
 }
