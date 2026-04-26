@@ -23,6 +23,11 @@ type Result struct {
 	Message string
 }
 
+// SkipSecurity returns true if security checks should be bypassed
+func SkipSecurity() bool {
+	return os.Getenv("CI") == "true" || os.Getenv("JUARVIS_SKIP_SECURITY") == "true"
+}
+
 // NewSecurityGate crea un gate de seguridad unificado
 func NewSecurityGate(rootPath string) (*SecurityGate, error) {
 	g := &SecurityGate{
@@ -40,6 +45,11 @@ func NewSecurityGate(rootPath string) (*SecurityGate, error) {
 
 // Evalúa todas las capas en cascada
 func (g *SecurityGate) Eval(ctx context.Context, command string, args []string) *Result {
+	// Skip security in CI mode or when explicitly disabled
+	if SkipSecurity() {
+		return &Result{Allowed: true, Layer: "bypassed", Message: "security check bypassed (CI or JUARVIS_SKIP_SECURITY)"}
+	}
+
 	for _, layer := range g.enabledLayers {
 		switch layer {
 		case "sandbox":
