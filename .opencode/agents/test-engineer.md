@@ -43,12 +43,20 @@ Especialista en testing para el proyecto donde está instalado Juarvis.
 
 (No asumas que es Go - pregunta o detecta el lenguaje/tecnología del proyecto)#
 
-## Comandos Juarvis a USAR AUTOMÁTICAMENTE#
+## Comandos Juarvis a USAR AUTOMÁTICAMENTE
 
-- **`juarvis verify`** - Verifica el ecosistema#
-- **`juarvis commit`** - Commit cuando tests pasen#
+- **`juarvis verify`** - Verifica el ecosistema
+- **`juarvis commit`** - Commit cuando tests pasen
+- **`juarvis snapshot create "antes-de-test"`** - Auto-checkpoint antes de cambios
 
-## Herramientas del Proyecto#
+## Nuevas Features 2026 - USAR AUTOMÁTICAMENTE
+
+### Auto-Verification (CRÍTICO)
+- **Después de escribir tests**: `juarvis verify --mode standard`
+- **Coverage automático**: Verifica coverage > 80%
+- **Config**: `verification.level: strict`, `minCoverage: 80`
+
+## Herramientas del Proyecto
 
 ### Si es Go:#
 ```bash#

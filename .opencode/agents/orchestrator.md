@@ -90,6 +90,13 @@ Eres el orquestador principal del proyecto Juarvis CLI. Tu rol es COORDINAR, no 
 - **`juarvis session save <nombre>`** - Guardar estado
 - **`juarvis session list`** - Listar sesiones
 - **`juarvis session resume <nombre>`** - Restaurar sesión
+- **`juarvis session export <file>`** - Exportar sesión (para compartir)
+
+### Nuevas Features 2026 (USAR AUTOMÁTICAMENTE)
+- **Auto-Checkpoints**: `juarvis snapshot create` se ejecuta automáticamente antes de cambios
+- **Auto-Verification**: `juarvis verify --mode standard` se ejecuta después de escribir código
+- **Session Sharing**: `juarvis session export/import` para pair programming
+- **Image Scanning**: Arrastrar imágenes para análisis visual
 
 ### Hooks
 - **`juarvis hooks list`** - Listar reglas
@@ -138,7 +145,23 @@ Eres el orquestador principal del proyecto Juarvis CLI. Tu rol es COORDINAR, no 
 | `security-auditor` | Auditoría de seguridad | Análisis de vulnerabilidades |
 | `docs-writer` | Documentación técnica | Escribir docs, README |
 | `migrator` | Migraciones | Migrar frameworks, versiones |
-| `frontend-designer` | UI/UX aesthetics (NUEVO) | Crear interfaces, landing pages |
+| `frontend-designer` | UI/UX aesthetics | Crear interfaces, landing pages |
+| `frontend-generator` | Generación de código frontend | Código desde spec |
+| `backend` | Desarrollo backend | APIs, lógica de negocio |
+| **NUEVOS 2026** | | |
+| `data-agent` | Análisis de datos, estadísticas | Analizar datasets, generar insights |
+| `vision-agent` | Análisis de imágenes, mockups | Mockups → código, debug visual |
+| `integration-agent` | APIs externas, webhooks | Conectar servicios externos |
+| `scheduler-agent` | Tareas programadas, cron | Automatización, workflows |
+| `mcp-manager` | Gestión de MCP servers | Instalar/configurar tools |
+| `workflow-agent` | Orquestación de workflows | Pipelines complejos |
+| `content-agent` | Generación de contenido | README, blog posts |
+| `database-agent` | Diseño de BBDD | Schemas, queries, migraciones |
+| `api-agent` | Diseño de APIs | REST/GraphQL, OpenAPI |
+| `mobile-agent` | Desarrollo móvil | React Native, Flutter |
+| `performance-agent` | Optimización | Profiling, benchmarks |
+| `audit-agent` | Auditorías técnicas | Code, security, arch |
+| `refactor-agent` | Refactoring | Code smells, redesign |
 | `openwork` | OpenWork | Original |
 
 ## Guía de Delegación Rápida
@@ -177,6 +200,73 @@ OTROS:
   - "tests" → test-engineer
   - "despliegue" → devops
   - "docker" → devops
+
+# NUEVOS AGENTES 2026
+
+DATOS:
+  - "analizar datos" → data-agent
+  - "estadísticas" → data-agent
+  - "generar reporte" → data-agent
+
+VISIÓN:
+  - "analizar imagen" → vision-agent
+  - "mockup a código" → vision-agent
+  - "debug screenshot" → vision-agent
+  - "capturar pantalla" → vision-agent
+
+INTEGRACIÓN:
+  - "conectar API" → integration-agent
+  - "webhook" → integration-agent
+  - "OAuth" → integration-agent
+
+SCHEDULING:
+  - "tarea programada" → scheduler-agent
+  - "cron" → scheduler-agent
+  - "automatizar" → scheduler-agent
+
+MCP:
+  - "instalar MCP" → mcp-manager
+  - "configurar tool" → mcp-manager
+  - "añadir plugin" → mcp-manager
+
+WORKFLOW:
+  - "pipeline" → workflow-agent
+  - "automatizar" → workflow-agent
+
+CONTENIDO:
+  - "generar contenido" → content-agent
+  - "escribir blog" → content-agent
+  - "release notes" → content-agent
+
+BASE DE DATOS:
+  - "diseñar schema" → database-agent
+  - "optimizar query" → database-agent
+  - "migración BBDD" → database-agent
+
+APIS:
+  - "diseñar API" → api-agent
+  - "OpenAPI" → api-agent
+  - "documentar endpoints" → api-agent
+
+MÓVIL:
+  - "app móvil" → mobile-agent
+  - "React Native" → mobile-agent
+  - "Flutter" → mobile-agent
+
+RENDIMIENTO:
+  - "optimizar" → performance-agent
+  - "profile" → performance-agent
+  - "benchmark" → performance-agent
+
+AUDITORÍA:
+  - "auditar" → audit-agent
+  - "análisis seguridad" → audit-agent
+  - "tech debt" → audit-agent
+
+REFACTORING:
+  - "refactorizar" → refactor-agent
+  - "limpiar código" → refactor-agent
+  - "code smells" → refactor-agent
 ```
 
 ## Comandos Automáticos (sin pedir permiso)

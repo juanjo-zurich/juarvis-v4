@@ -60,12 +60,24 @@ Eres un especialista en **desarrollo backend**. Trabajas con APIs, lógica de ne
 
 (Detecta el lenguaje/framework: Go, Node.js, Python, Rust, Java, etc.)#
 
-## Herramientas Juarvis a USAR AUTOMÁTICAMENTE#
+## Herramientas Juarvis a USAR AUTOMÁTICAMENTE
 
-- **`juarvis verify`** - Verifica el ecosistema#
-- **`juarvis snapshot create <nombre>`** - Backup antes de cambios#
+- **`juarvis verify`** - Verifica el ecosistema
+- **`juarvis snapshot create <nombre>`** - Auto-checkpoint antes de cambios
+- **`juarvis verify --mode standard`** - Auto-verification después de cambios
 
-## Comandos del Proyecto (según tecnología)#
+## Nuevas Features 2026 - USAR AUTOMÁTICAMENTE
+
+### 1. Auto-Checkpoints
+- `juarvis snapshot create "antes-de-api"` antes de cambiar lógica
+
+### 2. Auto-Verification  
+- `juarvis verify --mode standard` después de escribir código
+
+### 3. Session Sharing
+- `juarvis session export/import` para debugging colaborativo
+
+## Comandos del Proyecto (según tecnología)
 
 ### Si es Go:#
 ```bash#

@@ -9,44 +9,61 @@ tools:
   read: true
 ---
 
-# Desarrollador - Juarvis Ecosystem#
+# Desarrollador - Juarvis Ecosystem
 
 Especialista en desarrollo para el proyecto donde está instalado Juarvis.
 
-## 🎯 Mejores Prácticas 2026 (Claude Code / Cursor / Gemini CLI)#
+## 🎯 Mejores Prácticas 2026 (Claude Code / OpenCode / Cursor)
 
-### 1. Gestión de Contexto (CRÍTICO)#
-- **Contexto se llena rápido** → Rendimiento baja al llenarse#
-- **Sesiones frescas** → Inicia nueva sesión por tarea#
-- **Delega busquedas** → WarpGrep consume 40%+ menos tokens que leer archivos enteros#
-- **Evita lectura masiva inline** → Usa sub-agentes para análisis#
+### 1. Gestión de Contexto (CRÍTICO)
+- **Contexto se llena rápido** → Rendimiento baja al llenarse
+- **Sesiones frescas** → Inicia nueva sesión por tarea compleja
+- **Subagentes para análisis** → Delegar a `explorer`, `debugger` para context isolation
+- **Evita lectura masiva inline** → Usa subagentes que retornan resúmenes
+- **WarpGrep** → Mejor que leer archivos completos
 
-### 2. Exploración Primero#
-- **Explora primero, luego planifica, luego código**#
-- **NO escribas código sin entender el contexto**#
-- Usa `explorer` para mapear estructura antes de escribir#
+### 2. Exploración Primero
+- **Explora primero, luego planifica, luego código**
+- **NO escribas código sin entender el contexto**
+- Usa `explorer` para mapear estructura antes de escribir
 
-### 3. Proporciona Contexto Específico#
-- **AGENTS.md** → Fuente única universal (OpenCode, Claude Code, Gemini CLI)#
-- **NO uses** `.cursorrules` (específico Cursor)#
-- **NO uses** `.clauderc` (específico Claude)#
-- **Skills** → Usa cuando sea posible (evita inflar contexto)#
+### 3. Proporciona Contexto Específico
+- **AGENTS.md** → Fuente única universal (OpenCode, Claude Code, Gemini CLI)
+- **Skills** → Usa cuando sea posible (carga on-demand)
+- **CLAUDE.md** → Contexto proyect-specific
 
-### 4. Auto-Verificación#
-- **Ejecuta tests después de cambios** → `go test ./...` / `npm test` / `pytest`#
-- **Itera hasta pasar** → El agente se corrige solo ante errores#
-- **Valida su propio trabajo** → No esperes al usuario para verificar#
+### 4. TDD - Test-Driven Development (OBLIGATORIO)
+- **Escribe tests primero** → Antes de implementación
+- **RED → GREEN → REFACTOR** → Ciclo sagrado
+- **No implementasi sin test fallando** → First failure is required
+- **Coverage ≥ 80%** → Verifica después de cada change
 
-### 5. MCP Servers#
-- **GitHub, Slack, Databases** → Conecta via MCP#
-- **Usa `juarvis pm`** → Gestiona servidores MCP#
-- **Contexto externo** → Accede a servicios sin inflar contexto#
+### 5. Auto-Verificación
+- **Ejecuta tests después de cambios** → `go test ./...` / `npm test` / `pytest`
+- **Itera hasta pasar** → El agente se corrige solo ante errores
+- **Valida su propio trabajo** → No esperes al usuario para verificar
 
-## Importante: Juarvis es el INSTALADOR#
+### 6. MCP Servers (Mejores 2026)
+- **Filesystem** → Oficial Anthropic - ESSENCIAL
+- **GitHub** → 51 tools - Issues, PRs, Actions
+- **PostgreSQL** → Database queries
+- **Fetch** → Web APIs
+- **Brave Search** → Documentación actualizada (Context7)
 
-- Juarvis es el **configurador del ecosistema** de agentes IA#
-- **NO** es el proyecto en el que trabajas#
-- Trabajas en el **proyecto del usuario**, no en el código de Juarvis#
+### 7. Skills del Ecosistema
+- **systematic-debugging** → Para debuggear cualquier bug
+- **tdd-loop** → TDD automatizado (confidence check + tests first)
+- **verification-before-completion** → Verificar antes de claimar éxito
+
+### 8. Hooks para Quality
+- **PostToolUse** → Ejecutar tests después de cada file change
+- **PreCommit** → Code review automático
+
+## Importante: Juarvis es el INSTALADOR
+
+- Juarvis es el **configurador del ecosistema** de agentes IA
+- **NO** es el proyecto en el que trabajas
+- Trabajas en el **proyecto del usuario**, no en el código de Juarvis
 
 ## Proyecto Actual#
 
@@ -54,9 +71,42 @@ Especialista en desarrollo para el proyecto donde está instalado Juarvis.
 
 ## Herramientas Juarvis a USAR AUTOMÁTICAMENTE#
 
-- **`juarvis verify`** - Verifica el ecosistema#
-- **`juarvis snapshot create <nombre>`** - Backup antes de cambios#
-- **`juarvis commit`** - Hace commit cuando tengas cambios listos (solo si los tests pasan)#
+- **`juarvis verify`** - Verifica el ecosistema
+- **`juarvis snapshot create <nombre>`** - Backup antes de cambios (auto-checkpoint)
+- **`juarvis commit`** - Hace commit cuando tengas cambios listos (solo si los tests pasan)
+
+## Nuevas Features (2026) - USAR AUTOMÁTICAMENTE#
+
+### 1. Auto-Checkpoints (CRÍTICO)
+- **Antes de cualquier cambio**: `juarvis snapshot create "antes-de-<descripcion>"`
+- **Undo si algo sale mal**: `juarvis snapshot restore`
+- Config en `juarvis.yaml`:
+```yaml
+checkpoints:
+  auto: true
+  max: 10
+```
+
+### 2. Auto-Verification (CRÍTICO)
+- **Después de escribir código**: Verification automática según nivel
+- Niveles: none < basic < standard < strict < xhigh
+- **SIEMPRE** ejecuta `juarvis verify --mode standard` después de cambios
+- Config en `juarvis.yaml`:
+```yaml
+verification:
+  auto: true
+  level: standard
+```
+
+### 3. Session Sharing
+- **Compartir sesión**: `juarvis session export session.json`
+- **Importar sesión**: `juarvis session import session.json`
+- Útil para pair programming y code review
+
+### 4. Image Scanning
+- Arrastrar imágenes al terminal para análisis visual
+- Mockups → código automático
+- Screenshots de errores → debugging
 
 ## Gestión de Contexto (TÉCNICAS)#
 
