@@ -1,7 +1,15 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"time"
+
+	"juarvis/pkg/config"
 	"juarvis/pkg/output"
+	"juarvis/pkg/root"
 	"juarvis/pkg/scheduler"
 
 	"github.com/spf13/cobra"
@@ -214,5 +222,55 @@ func init() {
 	scheduleCmd.AddCommand(deleteJobCmd)
 	scheduleCmd.AddCommand(enableJobCmd)
 	scheduleCmd.AddCommand(disableJobCmd)
+	scheduleCmd.AddCommand(startDaemonCmd)
 	rootCmd.AddCommand(scheduleCmd)
+}
+
+// startDaemonCmd: juarvis schedule start (background scheduler)
+var startDaemonCmd = &cobra.Command{
+	Use:   "start",
+	Short: "Inicia el daemon del scheduler enbackground",
+	Long:  `Inicia un proceso en background que проверяет los jobs cron y los ejecuta automáticamente.`,
+	Args:  cobra.NoArgs,
+	Run: func(cmd *cobra.Command, args []string) {
+		rootPath, _ := root.GetRoot()
+
+		// Escribir PID file
+		pidFile := filepath.Join(rootPath, config.JuarDir, "scheduler.pid")
+		os.WriteFile(pidFile, []byte(fmt.Sprintf("%d", os.Getpid())), 0644)
+
+		output.Info("Scheduler daemon iniciado en background (PID: %d)", os.Getpid())
+		output.Info("Presiona Ctrl+C para detener")
+
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			// Cargar jobs
+			jobs, err := scheduler.LoadAllJobs()
+			if err != nil {
+				continue
+			}
+
+			for _, job := range jobs {
+				if due, _ := scheduler.IsDue(&job); due {
+					output.Info("Ejecutando job: %s (schedule: %s)", job.Name, job.Schedule)
+
+					// Ejecutar job en background
+					go func(j scheduler.Job) {
+						execCmd := exec.Command("juarvis", "schedule", "run", "-n", j.Name)
+						execCmd.Dir = rootPath
+						execCmd.Env = append(os.Environ(), "CI=true")
+						if err := execCmd.Run(); err != nil {
+							output.Warning("Job %s falló: %v", j.Name, err)
+						}
+					}(job)
+
+					// Actualizar LastRun
+					job.LastRun = time.Now()
+					scheduler.SaveJob(&job)
+				}
+			}
+		}
+	},
 }
